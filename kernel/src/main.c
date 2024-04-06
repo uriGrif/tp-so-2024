@@ -36,12 +36,17 @@ int main(int argc, char *argv[])
         printf("EXEC PROCESS\n");
         char *str = packet_getString(packet->buffer);
         uint32_t value = packet_getUInt32(packet->buffer);
+        char *str2 = packet_getString(packet->buffer);
         printf("string: %s\n", str);
         printf("number: %d\n", value);
+        printf("string2: %s\n", str2);
+        free(str);
+        free(str2);
         break;
     default:
         printf("code not found");
         break;
     }
+    packet_free(packet);
     return 0;
 }

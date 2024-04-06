@@ -8,7 +8,6 @@
 typedef struct
 {
     uint32_t size;
-    uint32_t offset;
     void *stream;
 } t_buffer;
 
@@ -48,7 +47,21 @@ typedef struct
 
 t_packet *packet_new(uint8_t op_code);
 void packet_free(t_packet *packet);
+
+/**
+ * @fn    packet_get
+ * @brief agrega al final del stream otro stream de bytes de tam size
+ */
+int packet_add(t_packet *packet, void *value, int size);
+
 int packet_send(t_packet *packet, int client_fd);
+
+
+/**
+ * @fn    packet_get
+ * @brief del principio del stream saca una parte de tam size y lo guarda en dest
+ */
+void packet_get(t_buffer* buffer, void* dest, int size);
 
 int packet_recv(int fd, t_packet *packet);
 

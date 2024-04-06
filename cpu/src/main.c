@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
     t_packet *packet = packet_new(EXEC_PROCESS);
     packet_addString(packet, "hello from cpu");
     packet_addUInt32(packet, 100);
+    packet_addString(packet,"chau cpu");
     packet_send(packet, fd);
     printf("packet sent\n");
     packet_free(packet);
