@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <sockets/sockets.h>
 
 typedef struct
 {

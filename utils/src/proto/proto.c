@@ -1,4 +1,6 @@
 #include <proto/proto.h>
+#include <string.h>
+#include <sockets/sockets.h>
 
 t_packet *packet_new(uint8_t op_code)
 {
@@ -46,20 +48,12 @@ int packet_addString(t_packet *packet, char *str)
 
 char *packet_getString(t_buffer *buffer)
 {
-    char * result;
+    char *result;
     uint32_t size;
-    packet_get(buffer,&size,sizeof(uint32_t));
+    packet_get(buffer, &size, sizeof(uint32_t));
     result = malloc(size);
-    packet_get(buffer,result,size);
+    packet_get(buffer, result, size);
     return result;
-    // void *stream = buffer->stream;
-    // uint32_t length = packet_getUInt32(buffer);
-
-    // char *str = malloc(length);
-    // memcpy(str, stream + buffer->offset, sizeof(char) * length);
-
-    // buffer->offset += length;
-    // return str;
 }
 
 int packet_addUInt32(t_packet *packet, uint32_t value)
@@ -72,10 +66,7 @@ int packet_addUInt32(t_packet *packet, uint32_t value)
 uint32_t packet_getUInt32(t_buffer *buffer)
 {
     uint32_t value;
-    packet_get(buffer,&value,sizeof(uint32_t));
-    // void *stream = buffer->stream;
-    // memcpy(&value, stream + buffer->offset, sizeof(uint32_t));
-    // buffer->offset += sizeof(uint32_t);
+    packet_get(buffer, &value, sizeof(uint32_t));
 
     return value;
 }
@@ -131,7 +122,8 @@ int packet_recv(int fd, t_packet *packet)
     return 0;
 }
 
-void packet_get(t_buffer* buffer, void* dest, int size) {
+void packet_get(t_buffer *buffer, void *dest, int size)
+{
     memcpy(dest, buffer->stream, size);
     buffer->size -= size;
     memmove(buffer->stream, buffer->stream + size, buffer->size);
