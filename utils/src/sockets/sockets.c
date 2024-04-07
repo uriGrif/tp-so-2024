@@ -92,44 +92,22 @@ int socket_connectToServer(char *host, char *port)
     return fd;
 }
 
-int crear_conexion(char *ip, char* puerto)
-{
-	struct addrinfo hints;
-	struct addrinfo *server_info;
-
-	memset(&hints, 0, sizeof(hints));
-	hints.ai_family = AF_UNSPEC;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_flags = AI_PASSIVE;
-
-	getaddrinfo(ip, puerto, &hints, &server_info);
-
-	// Ahora vamos a crear el socket.
-	int socket_cliente = 0;
-	
-	socket_cliente = socket(server_info->ai_family,
-							server_info->ai_socktype,
-							server_info->ai_protocol);
-
-	if(socket_cliente == -1){
-		freeaddrinfo(server_info);
-		return 0;
-	}
-
-	// Ahora que tenemos el socket, vamos a conectarlo
-
-	if(connect(socket_cliente,server_info->ai_addr,server_info->ai_addrlen) == -1){
-		freeaddrinfo(server_info);
-		return 0;
-	}
-		
-
-	freeaddrinfo(server_info);
-
-	return socket_cliente;
-}
-
 void socket_freeConn(int socket_cliente)
 {
     close(socket_cliente);
+}
+
+void server_listen(int fd, void (*connection_handler)(int*)){
+    int * client_fd;
+    while(fd != -1){
+        client_fd = malloc(sizeof(int));
+        *client_fd = socket_acceptConns(fd);
+        if(*client_fd == -1){
+            free(client_fd);
+            continue;
+        }
+        pthread_t client_thread;
+        pthread_create(&client_thread,NULL,(void*)connection_handler,(void *)client_fd);
+        pthread_detach(client_thread);
+    }
 }

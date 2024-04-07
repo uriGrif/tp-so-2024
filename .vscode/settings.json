@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "type_traits": "c"
+        "type_traits": "c",
+        "init.h": "c",
+        "select.h": "c"
     }
 }
