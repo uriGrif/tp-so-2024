@@ -5,165 +5,129 @@
 #include <errno.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include<sys/select.h>
 
-#define CONFIG_PATH  "cpu.config"
-#define LOG_LEVEL  LOG_LEVEL_INFO
+#define CONFIG_PATH "cpu.config"
+#define LOG_LEVEL LOG_LEVEL_INFO
 #define LOG_PATH "cpu.log"
 #define PROCESS_NAME "CPU"
+#define MAX_CLIENTS 5
 
-t_log * logger;
-static t_config* config;
-static int dispatch_fd;
-static int interrupt_fd;
-
-void cpu_init(){
-    config = config_create(CONFIG_PATH);
-    if(!config){
+// creates the logger and loads the config
+void cpu_setup(t_config **config, t_log **logger)
+{
+    *config = config_create(CONFIG_PATH);
+    if (*config == NULL)
+    {
         perror("error al cargar el config");
-        exit(-1);
+        exit(1);
     }
 
-    logger = log_create(LOG_PATH,PROCESS_NAME,1,LOG_LEVEL);
-    if(!logger)
+    *logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
+    if (*logger == NULL)
     {
         perror("error al crear el logger");
-        exit(-1);
+        exit(1);
     }
-    char * server_ip = config_get_string_value(config,"IP_CPU");
-    char * dispatch_port = config_get_string_value(config,"PUERTO_ESCUCHA_DISPATCH");
-    char * interrupt_port = config_get_string_value(config,"PUERTO_ESCUCHA_INTERRUPT");
-
-    dispatch_fd = socket_createTcpServer(server_ip,dispatch_port);
-    interrupt_fd = socket_createTcpServer(server_ip,interrupt_port);
-
-    if (dispatch_fd == -1 || interrupt_fd == -1)
-    {
-        printf("error: %s", strerror(errno));
-        exit(-1);
-    }
-
-    log_info(logger,"server starting");
-
 }
 
-void cpu_close(){
+void cpu_close(t_log *logger, t_config *config)
+{
     log_destroy(logger);
     config_destroy(config);
 }
 
-int main(int argc, char *argv[])
+/**
+ * handlers
+ */
+struct handlers_args
 {
+    t_log *logger;
+    t_config *config;
+};
 
-    cpu_init();
+void request_handler(uint8_t client_fd, uint8_t op_code, t_buffer *buffer, void *_args)
+{
+    struct handlers_args *args = _args;
+    t_log *logger = args->logger;
 
-    fd_set readset, tempset;
-    struct timeval tv;
-    int cli_dispatch_fd;
-    int cli_intr_fd;
-    int maxfd;
-    int result;
+    switch (op_code)
+    {
+    case EXEC_PROCESS:
+        log_info(logger, "EXEC PROCESS");
+        char *str = packet_getString(buffer);
+        uint32_t value = packet_getUInt32(buffer);
+        char *str2 = packet_getString(buffer);
+        log_info(logger, "string: %s", str);
+        log_info(logger, "number: %d", value);
+        log_info(logger, "string2: %s", str2);
+        free(str);
+        free(str2);
+        break;
+    default:
+        log_error(logger, "undefined behaviour cop: %d", op_code);
+        break;
+    }
+}
 
+void on_new_connection(int client_fd, void *_args)
+{
+    struct handlers_args *args = _args;
+    t_log *logger = args->logger;
+    log_info(logger, "new client connected");
+}
 
-    FD_ZERO(&readset);
-    FD_SET(dispatch_fd,&readset);
-    FD_SET(interrupt_fd,&readset);
-    maxfd = dispatch_fd > interrupt_fd ? dispatch_fd : interrupt_fd;
+void on_connection_closed(int client_fd, void *_args)
+{
+    struct handlers_args *args = _args;
+    t_log *logger = args->logger;
+    log_error(logger, "client disconnect");
+}
 
-      do{
-        memcpy(&tempset,&readset,sizeof(tempset));
-        tv.tv_sec = 30;
-        tv.tv_usec =0;
-        result = select(maxfd + 1,&tempset,NULL,NULL,&tv);
+int main()
+{
+    t_log *logger = malloc(sizeof(t_log));
+    t_config *config = malloc(sizeof(t_config));
+    cpu_setup(&config, &logger);
 
-        if(0 == result)
-            log_warning(logger,"Select timeout!");
-        
-        else if(result < 0 && errno != EINTR)
-            log_error(logger,"Select error");
-        else if(result > 0){
-            if(FD_ISSET(dispatch_fd,&tempset)){
-                cli_dispatch_fd = socket_acceptConns(dispatch_fd);
-                
-                if(cli_dispatch_fd < 0){
-                    log_error(logger,"error en accept");
-                }
-                else {
-                    FD_SET(cli_dispatch_fd,&tempset);
-                    maxfd = (maxfd < cli_dispatch_fd) ? cli_dispatch_fd: maxfd;
-                }
-                FD_CLR(dispatch_fd,&tempset);
-            }
-            if(FD_ISSET(interrupt_fd,&tempset)){
-                cli_intr_fd = socket_acceptConns(interrupt_fd);
-                
-                if(cli_intr_fd < 0){
-                    log_error(logger,"error en accept");
-                }
-                else {
-                    FD_SET(cli_intr_fd,&tempset);
-                    maxfd = (maxfd < cli_intr_fd) ? cli_intr_fd: maxfd;
-                }
-                FD_CLR(interrupt_fd,&tempset);
-            }
+    log_info(logger, "config loaded");
+    char *server_ip = config_get_string_value(config, "IP_CPU");
+    char *dispatch_port = config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH");
+    char *interrupt_port = config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT");
 
-            for(int i =0; i<maxfd + 1; i++){
-                if(FD_ISSET(i,&tempset)){
-                    t_packet* packet = packet_new(0);
-                    if(packet_recv(i,packet) != -1){
-                        switch(packet->op_code){
-                            case EXEC_PROCESS:
-                                 log_info(logger,"EXEC PROCESS\n");
-                                char *str = packet_getString(packet->buffer);
-                                uint32_t value = packet_getUInt32(packet->buffer);
-                                char *str2 = packet_getString(packet->buffer);
-                                log_info(logger,"string: %s\n", str);
-                                log_info(logger,"number: %d\n", value);
-                                log_info(logger,"string2: %s\n", str2);
-                                free(str);
-                                free(str2);
-                                break; 
-                            case -1: 
-                                log_error(logger,"client disconnect");
-                                packet_free(packet);
-                                continue;
-                        
-                            default:
-                                log_error(logger, "undefined behaviour cop: %d",packet->op_code);
-                                packet_free(packet);
-                                continue;;
-                        }
+    int dispatch_fd = socket_createTcpServer(server_ip, dispatch_port);
+    int interrupt_fd = socket_createTcpServer(server_ip, interrupt_port);
 
-                        packet_free(packet);
-                    }
-                    else {
-                       packet_free(packet);
-                        close(i);
-                        FD_CLR(i,&readset);
-                    }
-                }
-            }
-            }
-    }while(1);
+    if (dispatch_fd == -1 || interrupt_fd == -1)
+    {
+        log_error(logger, "socket_createTcpServer: [%s]", strerror(errno));
+        return -1;
+    }
 
-    cpu_close();
+    log_info(logger, "server started listening");
 
-    // int fd = socket_connectToServer(NULL, "8888");
-    // // int fd = crear_conexionNULL, "8888");
-    // if (fd == -1)
-    // {
-    //     printf("err: %s", strerror(errno));
-    //     return 1;
-    // }
-    // printf("connected to server\n");
+    struct handlers_args args;
+    args.config = config;
+    args.logger = logger;
 
-    // t_packet *packet = packet_new(EXEC_PROCESS);
-    // packet_addString(packet, "hello from cpu");
-    // packet_addUInt32(packet, 100);
-    // packet_addString(packet,"chau cpu");
-    // packet_send(packet, fd);
-    // printf("packet sent\n");
-    // packet_free(packet);
+    struct socket_AsyncServerConf conf;
+    conf.fds_size = 2;
+    conf.server_fds = malloc(conf.fds_size * sizeof(int *));
+    conf.server_fds[0] = &dispatch_fd;
+    conf.server_fds[1] = &interrupt_fd;
+    conf.handlers_args = &args;
+    conf.max_clients = MAX_CLIENTS;
+    conf.requestHandler = request_handler;
+    conf.onConnectionClosed = on_connection_closed;
+    conf.onNewConnection = on_new_connection;
 
+    int status = socket_acceptConnsAsync(&conf);
+
+    if (status == -1)
+    {
+        printf("the server has quit unexpectedly: %s\n", strerror(errno));
+        return 1;
+    }
+
+    // should never reach this point
     return 0;
 }
