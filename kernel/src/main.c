@@ -8,8 +8,9 @@
 int main(int argc, char *argv[])
 {
 
-    int fd = socket_connectToServer(NULL, "5678");
-    if (fd == -1)
+    int interrupt_fd = socket_connectToServer(NULL, "5678");
+    int dispatch_fd = socket_connectToServer(NULL, "8765");
+    if (interrupt_fd == -1)
     {
         printf("err: %s", strerror(errno));
         return 1;
@@ -17,11 +18,13 @@ int main(int argc, char *argv[])
     printf("connected to server\n");
 
     t_packet *packet = packet_new(EXEC_PROCESS);
-    packet_addString(packet, "hello from cpu");
+    packet_addString(packet, "hello interrupt");
     packet_addUInt32(packet, 100);
     packet_addString(packet, "chau cpu");
-    packet_send(packet, fd);
-    printf("packet sent\n");
+    packet_send(packet, interrupt_fd);
+    printf("packet sent to interrupt\n");
+    packet_send(packet, dispatch_fd);
+    printf("packet sent to dispatch\n");
     packet_free(packet);
 
     return 0;
