@@ -178,12 +178,14 @@ int socket_acceptConnsAsync(socket_AsyncServerConf *conf)
             {
                 continue;
             }
-            // server sockets
+            // check if the event fd is from the server
+            int is_server_fd = 0;
             for (int k = 0; k < conf->fds_size; k++)
             {
                 int server_fd = *conf->server_fds[k];
                 if (events[i].data.fd == server_fd)
                 {
+                    is_server_fd = 1;
                     // call accept as many times as we can
                     for (;;)
                     {
@@ -207,6 +209,7 @@ int socket_acceptConnsAsync(socket_AsyncServerConf *conf)
                 }
             }
             // handle client
+            if (!is_server_fd)
             {
                 int result = socket_read(events[i].data.fd, conf->requestHandler, conf->handlers_args);
                 if (result == -1)
