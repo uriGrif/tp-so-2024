@@ -8,8 +8,8 @@
 int main(int argc, char *argv[])
 {
 
-    int fd = socket_connectToServer(NULL, "5678");
-    if (fd == -1)
+    int fd_cpu = socket_connectToServer(NULL, "5678");
+    if (fd_cpu == -1)
     {
         printf("err: %s", strerror(errno));
         return 1;
@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     packet_addString(packet, "hello from cpu");
     packet_addUInt32(packet, 100);
     packet_addString(packet,"chau cpu");
-    packet_send(packet, fd);
+    packet_send(packet, fd_cpu);
     printf("packet sent\n");
     packet_free(packet);
 

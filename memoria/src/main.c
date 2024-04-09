@@ -31,10 +31,9 @@ void init_memory(){
         exit(1);
     }
 
-    char * ip = config_get_string_value(config,"IP");
     char * port = config_get_string_value(config,"PUERTO_ESCUCHA");
 
-    fd_server = socket_createTcpServer(ip,port);
+    fd_server = socket_createTcpServer(NULL,port);
 
     if(fd_server == -1){
         log_error(logger,"error %s",strerror(errno));
