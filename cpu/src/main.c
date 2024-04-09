@@ -21,14 +21,14 @@ void cpu_init(){
     config = config_create(CONFIG_PATH);
     if(!config){
         perror("error al cargar el config");
-        exit(-1);
+        exit(1);
     }
 
     logger = log_create(LOG_PATH,PROCESS_NAME,1,LOG_LEVEL);
     if(!logger)
     {
         perror("error al crear el logger");
-        exit(-1);
+        exit(1);
     }
     char * server_ip = config_get_string_value(config,"IP_CPU");
     char * dispatch_port = config_get_string_value(config,"PUERTO_ESCUCHA_DISPATCH");
@@ -40,7 +40,7 @@ void cpu_init(){
     if (dispatch_fd == -1 || interrupt_fd == -1)
     {
         printf("error: %s", strerror(errno));
-        exit(-1);
+        exit(1);
     }
 
     log_info(logger,"server starting");

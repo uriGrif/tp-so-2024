@@ -97,17 +97,17 @@ void socket_freeConn(int socket_cliente)
     close(socket_cliente);
 }
 
-void server_listen(int fd, void (*connection_handler)(int*)){
-    int * client_fd;
+void server_listen(int fd,t_log* logger, void (*connection_handler)(void*)){
     while(fd != -1){
-        client_fd = malloc(sizeof(int));
-        *client_fd = socket_acceptConns(fd);
-        if(*client_fd == -1){
-            free(client_fd);
+        int client_fd = socket_acceptConns(fd);
+        if(client_fd == -1)
             continue;
-        }
+
+        t_process_conn_args* args = malloc(sizeof(t_process_conn_args));
+        args->fd = client_fd;
+        args->logger = logger;
         pthread_t client_thread;
-        pthread_create(&client_thread,NULL,(void*)connection_handler,(void *)client_fd);
+        pthread_create(&client_thread,NULL,(void*)connection_handler,(void *)args);
         pthread_detach(client_thread);
     }
 }
