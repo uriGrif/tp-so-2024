@@ -15,10 +15,10 @@ void process_conn(void * void_args){
             return;
         }
         switch(packet->op_code){
-             case SAVE_CONTEXT: {
-                uint32_t x = packet_getUInt32(packet->buffer);
-                uint32_t y = packet_getUInt32(packet->buffer);
-                log_info(logger,"nro 1 : %d, nro 2: %d",x,y);
+           case IO_GEN_SLEEP: {
+                uint32_t secs = packet_getUInt32(packet->buffer);
+                log_info(logger,"voy a dormir %d segundos",secs);
+                sleep(secs);
                 break;
             }
             case -1:
