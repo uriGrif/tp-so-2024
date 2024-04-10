@@ -1,41 +1,47 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <sockets/sockets.h>
-#include <proto/proto.h>
-#include <errno.h>
-#include <commons/log.h>
-#include <commons/config.h>
-#include<sys/select.h>
+#include <main.h>
 
-#define CONFIG_PATH  "cpu.config"
-#define LOG_LEVEL  LOG_LEVEL_INFO
-#define LOG_PATH "cpu.log"
-#define PROCESS_NAME "CPU"
-
-t_log * logger;
-static t_config* config;
+t_log *logger;
 static int dispatch_fd;
 static int interrupt_fd;
+static t_CPU_config *cfg_CPU;
 
-void cpu_init(){
+void config_init()
+{
+
+    t_config *config;
     config = config_create(CONFIG_PATH);
-    if(!config){
+    if (!config)
+    {
         perror("error al cargar el config");
         exit(1);
     }
 
-    logger = log_create(LOG_PATH,PROCESS_NAME,1,LOG_LEVEL);
-    if(!logger)
+    cfg_CPU = malloc(sizeof(t_CPU_config));
+
+    cfg_CPU->ip_memoria = config_get_string_value(config, "IP_MEMORIA");
+    cfg_CPU->puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+    cfg_CPU->puerto_escucha_dispatch = config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH");
+    cfg_CPU->puerto_escucha_interrupt = config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT");
+    cfg_CPU->cantidad_entradas_tlb = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
+    cfg_CPU->algoritmo_tlb = config_get_string_value(config, "ALGORITMO_TLB");
+
+    printf("puerto me %s %s\n", cfg_CPU->puerto_escucha_interrupt, cfg_CPU->puerto_escucha_dispatch);
+
+    config_destroy(config);
+}
+
+void cpu_init()
+{
+    config_init();
+    logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
+    if (!logger)
     {
         perror("error al crear el logger");
         exit(1);
     }
-    char * server_ip = config_get_string_value(config,"IP_CPU");
-    char * dispatch_port = config_get_string_value(config,"PUERTO_ESCUCHA_DISPATCH");
-    char * interrupt_port = config_get_string_value(config,"PUERTO_ESCUCHA_INTERRUPT");
 
-    dispatch_fd = socket_createTcpServer(server_ip,dispatch_port);
-    interrupt_fd = socket_createTcpServer(server_ip,interrupt_port);
+    dispatch_fd = socket_createTcpServer(NULL, cfg_CPU->puerto_escucha_dispatch);
+    interrupt_fd = socket_createTcpServer(NULL, cfg_CPU->puerto_escucha_interrupt);
 
     if (dispatch_fd == -1 || interrupt_fd == -1)
     {
@@ -43,19 +49,27 @@ void cpu_init(){
         exit(1);
     }
 
-    log_info(logger,"server starting");
-
+    log_info(logger, "server starting");
 }
 
-void cpu_close(){
+void cpu_close()
+{
     log_destroy(logger);
-    config_destroy(config);
+    free(cfg_CPU);
 }
 
 int main(int argc, char *argv[])
 {
-
     cpu_init();
+
+    int fd_memoria = socket_connectToServer(cfg_CPU->ip_memoria, cfg_CPU->puerto_memoria);
+    t_packet *packet = packet_new(READ_MEM);
+    packet_addString(packet, "Hello Memory! I'm the CPU!");
+    packet_send(packet, fd_memoria);
+    packet_free(packet);
+
+    // POR AHORA NOMAS
+    socket_freeConn(fd_memoria);
 
     fd_set readset, tempset;
     struct timeval tv;
@@ -64,106 +78,117 @@ int main(int argc, char *argv[])
     int maxfd;
     int result;
 
-
     FD_ZERO(&readset);
-    FD_SET(dispatch_fd,&readset);
-    FD_SET(interrupt_fd,&readset);
+    FD_SET(dispatch_fd, &readset);
+    FD_SET(interrupt_fd, &readset);
     maxfd = dispatch_fd > interrupt_fd ? dispatch_fd : interrupt_fd;
 
-      do{
-        memcpy(&tempset,&readset,sizeof(tempset));
+    do
+    {
+        memcpy(&tempset, &readset, sizeof(tempset));
         tv.tv_sec = 30;
-        tv.tv_usec =0;
-        result = select(maxfd + 1,&tempset,NULL,NULL,&tv);
+        tv.tv_usec = 0;
+        result = select(maxfd + 1, &tempset, NULL, NULL, &tv);
 
-        if(0 == result)
-            log_warning(logger,"Select timeout!");
-        
-        else if(result < 0 && errno != EINTR)
-            log_error(logger,"Select error");
-        else if(result > 0){
-            if(FD_ISSET(dispatch_fd,&tempset)){
+        if (0 == result)
+            log_warning(logger, "Select timeout!");
+
+        else if (result < 0 && errno != EINTR)
+            log_error(logger, "Select error");
+        else if (result > 0)
+        {
+            if (FD_ISSET(dispatch_fd, &tempset))
+            {
                 cli_dispatch_fd = socket_acceptConns(dispatch_fd);
-                
-                if(cli_dispatch_fd < 0){
-                    log_error(logger,"error en accept");
+
+                if (cli_dispatch_fd < 0)
+                {
+                    log_error(logger, "error en accept");
                 }
-                else {
-                    FD_SET(cli_dispatch_fd,&tempset);
-                    maxfd = (maxfd < cli_dispatch_fd) ? cli_dispatch_fd: maxfd;
+                else
+                {
+                    FD_SET(cli_dispatch_fd, &tempset);
+                    maxfd = (maxfd < cli_dispatch_fd) ? cli_dispatch_fd : maxfd;
                 }
-                FD_CLR(dispatch_fd,&tempset);
+                FD_CLR(dispatch_fd, &tempset);
             }
-            if(FD_ISSET(interrupt_fd,&tempset)){
+            if (FD_ISSET(interrupt_fd, &tempset))
+            {
                 cli_intr_fd = socket_acceptConns(interrupt_fd);
-                
-                if(cli_intr_fd < 0){
-                    log_error(logger,"error en accept");
+
+                if (cli_intr_fd < 0)
+                {
+                    log_error(logger, "error en accept");
                 }
-                else {
-                    FD_SET(cli_intr_fd,&tempset);
-                    maxfd = (maxfd < cli_intr_fd) ? cli_intr_fd: maxfd;
+                else
+                {
+                    FD_SET(cli_intr_fd, &tempset);
+                    maxfd = (maxfd < cli_intr_fd) ? cli_intr_fd : maxfd;
                 }
-                FD_CLR(interrupt_fd,&tempset);
+                FD_CLR(interrupt_fd, &tempset);
             }
 
-            for(int i =0; i<maxfd + 1; i++){
-                if(FD_ISSET(i,&tempset)){
-                    t_packet* packet = packet_new(0);
-                    if(packet_recv(i,packet) != -1){
-                        switch(packet->op_code){
-                            case EXEC_PROCESS:
-                                 log_info(logger,"EXEC PROCESS\n");
-                                char *str = packet_getString(packet->buffer);
-                                uint32_t value = packet_getUInt32(packet->buffer);
-                                char *str2 = packet_getString(packet->buffer);
-                                log_info(logger,"string: %s\n", str);
-                                log_info(logger,"number: %d\n", value);
-                                log_info(logger,"string2: %s\n", str2);
-                                free(str);
-                                free(str2);
-                                break; 
-                            case -1: 
-                                log_error(logger,"client disconnect");
-                                packet_free(packet);
-                                continue;
-                        
-                            default:
-                                log_error(logger, "undefined behaviour cop: %d",packet->op_code);
-                                packet_free(packet);
-                                continue;;
+            for (int i = 0; i < maxfd + 1; i++)
+            {
+                if (FD_ISSET(i, &tempset))
+                {
+                    t_packet *packet = packet_new(0);
+                    if (packet_recv(i, packet) != -1)
+                    {
+                        switch (packet->op_code)
+                        {
+                        case EXEC_PROCESS:
+                        {
+                            log_info(logger, "EXEC PROCESS\n");
+                            char *str = packet_getString(packet->buffer);
+                            uint32_t value = packet_getUInt32(packet->buffer);
+                            char *str2 = packet_getString(packet->buffer);
+                            log_info(logger, "string: %s\n", str);
+                            log_info(logger, "number: %d\n", value);
+                            log_info(logger, "string2: %s\n", str2);
+                            free(str);
+                            free(str2);
+                            break;
+                        }
+                        case INTERRUPT_EXEC:
+                        {
+                            log_info(logger, "INTERRUPT EXEC\n");
+                            char *str = packet_getString(packet->buffer);
+                            uint32_t value = packet_getUInt32(packet->buffer);
+                            char *str2 = packet_getString(packet->buffer);
+                            log_info(logger, "string: %s\n", str);
+                            log_info(logger, "number: %d\n", value);
+                            log_info(logger, "string2: %s\n", str2);
+                            free(str);
+                            free(str2);
+                            break;
+                        }
+                        case -1:
+                            log_error(logger, "client disconnect");
+                            packet_free(packet);
+                            continue;
+
+                        default:
+                            log_error(logger, "undefined behaviour cop: %d", packet->op_code);
+                            packet_free(packet);
+                            continue;
+                            ;
                         }
 
                         packet_free(packet);
                     }
-                    else {
-                       packet_free(packet);
+                    else
+                    {
+                        packet_free(packet);
                         close(i);
-                        FD_CLR(i,&readset);
+                        FD_CLR(i, &readset);
                     }
                 }
             }
-            }
-    }while(1);
+        }
+    } while (1);
 
     cpu_close();
-
-    // int fd = socket_connectToServer(NULL, "8888");
-    // // int fd = crear_conexionNULL, "8888");
-    // if (fd == -1)
-    // {
-    //     printf("err: %s", strerror(errno));
-    //     return 1;
-    // }
-    // printf("connected to server\n");
-
-    // t_packet *packet = packet_new(EXEC_PROCESS);
-    // packet_addString(packet, "hello from cpu");
-    // packet_addUInt32(packet, 100);
-    // packet_addString(packet,"chau cpu");
-    // packet_send(packet, fd);
-    // printf("packet sent\n");
-    // packet_free(packet);
 
     return 0;
 }

@@ -1,4 +1,54 @@
 #include <sockets/sockets.h>
+#include <proto/proto.h>
+
+int iniciar_server(char *ip, char *puerto)
+{
+    int socket_servidor;
+
+    struct addrinfo hints, *servinfo, *p;
+
+    // inicializo hints
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    // recibe la address info
+    getaddrinfo(ip, puerto, &hints, &servinfo);
+
+    bool conecto = false;
+
+    // Itera por cada addrinfo devuelto
+    for (p = servinfo; p != NULL; p = p->ai_next)
+    {
+        socket_servidor = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (socket_servidor == -1) // fallo de crear socket
+            continue;
+
+        if (bind(socket_servidor, p->ai_addr, p->ai_addrlen) == -1)
+        {
+            // Si entra aca fallo el bind
+            close(socket_servidor);
+            continue;
+        }
+        // Ni bien conecta uno nos vamos del for
+        conecto = true;
+        break;
+    }
+    if (!conecto)
+    {
+        freeaddrinfo(servinfo);
+        return 0;
+    }
+
+    // Escuchamos las conexiones entrantes
+
+    listen(socket_servidor, SOMAXCONN);
+
+    freeaddrinfo(servinfo);
+
+    return socket_servidor;
+}
 
 int socket_createTcpServer(char *host, char *port)
 {
@@ -97,17 +147,55 @@ void socket_freeConn(int socket_cliente)
     close(socket_cliente);
 }
 
-void server_listen(int fd,t_log* logger, void (*connection_handler)(void*)){
-    while(fd != -1){
+/**
+ * @param requestHandler pass NULL if you don't expect a response from the server.
+ * @returns `-1` when client is closed
+ */
+int socket_read(int fd, t_requestHandler requestHandler, void *args)
+{
+    t_packet *packet = packet_new(-1);
+    if (packet == NULL)
+        return 0;
+    // op code and buffer size must always be explicit in the messages
+    int bytes_read;
+    bytes_read = recv(fd, &(packet->op_code), sizeof(uint8_t), 0);
+    bytes_read = recv(fd, &(packet->buffer->size), sizeof(uint32_t), 0);
+    packet->buffer->stream = malloc(packet->buffer->size);
+    if (packet->buffer->size != 0)
+        bytes_read = recv(fd, packet->buffer->stream, packet->buffer->size, 0);
+
+    // no data was sent
+    if (bytes_read == -1)
+        return 0;
+    // connection closed
+    if (bytes_read == 0)
+        return -1;
+
+    // everything alright call the requestHandler
+    requestHandler(fd, packet->op_code, packet->buffer, args);
+    packet_free(packet);
+    return 0;
+};
+
+void socket_acceptOnDemand(int fd, t_log *logger, void (*connection_handler)(void *))
+{
+    while (fd != -1)
+    {
         int client_fd = socket_acceptConns(fd);
-        if(client_fd == -1)
+
+        if (client_fd == -1)
             continue;
 
-        t_process_conn_args* args = malloc(sizeof(t_process_conn_args));
+        t_process_conn_args *args = malloc(sizeof(t_process_conn_args));
+        if (args == NULL)
+        {
+            close(client_fd);
+            continue;
+        }
         args->fd = client_fd;
         args->logger = logger;
         pthread_t client_thread;
-        pthread_create(&client_thread,NULL,(void*)connection_handler,(void *)args);
+        pthread_create(&client_thread, NULL, (void *)connection_handler, (void *)args);
         pthread_detach(client_thread);
     }
 }

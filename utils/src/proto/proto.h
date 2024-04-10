@@ -56,12 +56,11 @@ int packet_add(t_packet *packet, void *value, int size);
 
 int packet_send(t_packet *packet, int client_fd);
 
-
 /**
  * @fn    packet_get
  * @brief del principio del stream saca una parte de tam size y lo guarda en dest
  */
-void packet_get(t_buffer* buffer, void* dest, int size);
+void packet_get(t_buffer *buffer, void *dest, int size);
 
 int packet_recv(int fd, t_packet *packet);
 
@@ -69,7 +68,8 @@ uint32_t packet_getUInt32(t_buffer *buffer);
 char *packet_getString(t_buffer *buffer);
 
 int packet_addString(t_packet *packet, char *str);
-int packet_addUInt32(t_packet *packet, uint32_t value);
 
+typedef void (*t_requestHandler)(uint8_t client_fd, uint8_t operation, t_buffer *buffer, void *args);
+int socket_read(int fd, t_requestHandler requestHandler, void *args);
 
 #endif
