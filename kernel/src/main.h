@@ -9,7 +9,9 @@
 #include <proto/proto.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include<commons/string.h>
 #include <sys/signal.h>
+#include<string.h>
 #include <communications.h>
 
 #define CONFIG_PATH "kernel.config"

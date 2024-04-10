@@ -3,12 +3,11 @@
 t_log *logger;
 static int dispatch_fd;
 static int interrupt_fd;
-static t_CPU_config *cfg_CPU;
+static t_config *config;
+static t_cpu_config* cfg_cpu;
 
 void config_init()
 {
-
-    t_config *config;
     config = config_create(CONFIG_PATH);
     if (!config)
     {
@@ -16,19 +15,19 @@ void config_init()
         exit(1);
     }
 
-    cfg_CPU = malloc(sizeof(t_CPU_config));
+    cfg_cpu = malloc(sizeof(t_cpu_config));
 
-    cfg_CPU->ip_memoria = config_get_string_value(config, "IP_MEMORIA");
-    cfg_CPU->puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    cfg_CPU->puerto_escucha_dispatch = config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH");
-    cfg_CPU->puerto_escucha_interrupt = config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT");
-    cfg_CPU->cantidad_entradas_tlb = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
-    cfg_CPU->algoritmo_tlb = config_get_string_value(config, "ALGORITMO_TLB");
+    cfg_cpu->ip_memoria = config_get_string_value(config, "IP_MEMORIA");
+    cfg_cpu->puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+    cfg_cpu->puerto_escucha_dispatch = config_get_string_value(config, "PUERTO_ESCUCHA_DISPATCH");
+    cfg_cpu->puerto_escucha_interrupt = config_get_string_value(config, "PUERTO_ESCUCHA_INTERRUPT");
+    cfg_cpu->cantidad_entradas_tlb = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
+    cfg_cpu->algoritmo_tlb = config_get_string_value(config, "ALGORITMO_TLB");
 
-    printf("puerto me %s %s\n", cfg_CPU->puerto_escucha_interrupt, cfg_CPU->puerto_escucha_dispatch);
+    //printf("puerto me %s %s\n", cfg_CPU->puerto_escucha_interrupt, cfg_CPU->puerto_escucha_dispatch);
 
-    config_destroy(config);
 }
+
 
 void cpu_init()
 {
@@ -40,8 +39,8 @@ void cpu_init()
         exit(1);
     }
 
-    dispatch_fd = socket_createTcpServer(NULL, cfg_CPU->puerto_escucha_dispatch);
-    interrupt_fd = socket_createTcpServer(NULL, cfg_CPU->puerto_escucha_interrupt);
+    dispatch_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_dispatch);
+    interrupt_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_interrupt);
 
     if (dispatch_fd == -1 || interrupt_fd == -1)
     {
@@ -55,14 +54,15 @@ void cpu_init()
 void cpu_close()
 {
     log_destroy(logger);
-    free(cfg_CPU);
+    free(cfg_cpu);
+    config_destroy(config);
 }
 
 int main(int argc, char *argv[])
 {
     cpu_init();
 
-    int fd_memoria = socket_connectToServer(cfg_CPU->ip_memoria, cfg_CPU->puerto_memoria);
+    int fd_memoria = socket_connectToServer(cfg_cpu->ip_memoria, cfg_cpu->puerto_memoria);
     t_packet *packet = packet_new(READ_MEM);
     packet_addString(packet, "Hello Memory! I'm the CPU!");
     packet_send(packet, fd_memoria);

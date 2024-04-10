@@ -2,6 +2,9 @@
     "files.associations": {
         "type_traits": "c",
         "init.h": "c",
-        "select.h": "c"
+        "select.h": "c",
+        "main.h": "c",
+        "string.h": "c",
+        "config.h": "c"
     }
 }

@@ -23,6 +23,10 @@ void process_conn(void *void_args)
             uint32_t secs = packet_getUInt32(packet->buffer);
             log_info(logger, "voy a dormir %d segundos", secs);
             sleep(secs);
+            t_packet* p = packet_new(DESTROY_PROCESS);
+            packet_addString(p,"Hello from Kernel!");
+            packet_send(p,client_fd);
+            packet_free(p);
             break;
         }
         case -1:

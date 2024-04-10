@@ -26,6 +26,6 @@ typedef struct
     char *path_base_dialfs;
     int block_size;
     int block_count;
-} t_IO_config;
+} t_io_config;
 
 #endif

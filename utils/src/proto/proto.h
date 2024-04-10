@@ -67,6 +67,7 @@ int packet_recv(int fd, t_packet *packet);
 uint32_t packet_getUInt32(t_buffer *buffer);
 char *packet_getString(t_buffer *buffer);
 
+int packet_addUInt32(t_packet *packet, uint32_t value);
 int packet_addString(t_packet *packet, char *str);
 
 typedef void (*t_requestHandler)(uint8_t client_fd, uint8_t operation, t_buffer *buffer, void *args);

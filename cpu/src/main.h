@@ -9,6 +9,7 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <sys/select.h>
+#include<string.h>
 
 #define CONFIG_PATH "cpu.config"
 #define LOG_LEVEL LOG_LEVEL_INFO
@@ -23,6 +24,6 @@ typedef struct
     char *puerto_escucha_interrupt;
     int cantidad_entradas_tlb;
     char *algoritmo_tlb;
-} t_CPU_config;
+} t_cpu_config;
 
 #endif

@@ -11,9 +11,19 @@
 #include <communications.h>
 #include <sys/signal.h>
 
-#define CONFIG_PATH "memoria.config"
+#define CONFIG_PATH "mem.config"
 #define LOG_LEVEL LOG_LEVEL_INFO
-#define LOG_PATH "memoria.log"
-#define PROCESS_NAME "Memoria"
+#define LOG_PATH "mem.log"
+#define PROCESS_NAME "MEMORIA"
+
+typedef struct 
+{
+char * puerto_escucha;
+int tam_memoria;
+int tam_pagina;
+char* path_instrucciones;
+int retardo_respuesta;
+}t_mem_config;
+
 
 #endif

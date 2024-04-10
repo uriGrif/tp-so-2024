@@ -1,33 +1,31 @@
 #include <main.h>
 
 static t_log *logger;
-static t_IO_config *cfg_IO;
+static t_config *config;
+static t_io_config *cfg_io;
 
 void config_init()
 {
-    t_config *config;
     config = config_create(CONFIG_PATH);
     if (!config)
     {
         perror("error al cargar el config");
         exit(1);
     }
-    cfg_IO = malloc(sizeof(t_IO_config));
+    cfg_io = malloc(sizeof(t_io_config));
 
-    cfg_IO->tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
-    cfg_IO->unidad_trabajo = config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO");
-    cfg_IO->ip_kernel = config_get_string_value(config, "IP_KERNEL");
-    cfg_IO->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
-    cfg_IO->ip_memoria = config_get_string_value(config, "IP_MEMORIA");
-    cfg_IO->puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
-    cfg_IO->path_base_dialfs = config_get_string_value(config, "PATH_BASE_DIALFS");
-    cfg_IO->block_size = config_get_int_value(config, "BLOCK_SIZE");
-    cfg_IO->block_count = config_get_int_value(config, "BLOCK_COUNT");
-
-    config_destroy(config);
+    cfg_io->tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
+    cfg_io->unidad_trabajo = config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO");
+    cfg_io->ip_kernel = config_get_string_value(config, "IP_KERNEL");
+    cfg_io->puerto_kernel = config_get_string_value(config, "PUERTO_KERNEL");
+    cfg_io->ip_memoria = config_get_string_value(config, "IP_MEMORIA");
+    cfg_io->puerto_memoria = config_get_string_value(config, "PUERTO_MEMORIA");
+    cfg_io->path_base_dialfs = config_get_string_value(config, "PATH_BASE_DIALFS");
+    cfg_io->block_size = config_get_int_value(config, "BLOCK_SIZE");
+    cfg_io->block_count = config_get_int_value(config, "BLOCK_COUNT");
 }
 
-void IO_init()
+void io_init()
 {
     config_init();
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
@@ -39,10 +37,11 @@ void IO_init()
     }
 }
 
-void IO_close()
+void io_close()
 {
     log_destroy(logger);
-    free(cfg_IO);
+    free(cfg_io);
+    config_destroy(config);
 }
 
 struct kernel_incoming_message_args
@@ -57,10 +56,10 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
 
     switch (operation)
     {
-    case IO_GEN_SLEEP:
-        sleep(5);
-        t_packet *packet = packet_new(IO_GEN_SLEEP);
-        packet_send(packet, args->kernel_fd);
+    case DESTROY_PROCESS:
+        char* response = packet_getString(buffer);
+        log_info(logger,"Hi I am IO i received %s",response);
+        free(response);
         break;
     }
 }
@@ -68,10 +67,10 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
 int main(int argc, char *argv[])
 {
     // basic setup
-    IO_init();
+    io_init();
 
-    int memory_fd = socket_connectToServer(cfg_IO->ip_memoria, cfg_IO->puerto_memoria);
-    int kernel_fd = socket_connectToServer(cfg_IO->ip_kernel, cfg_IO->puerto_kernel);
+    int memory_fd = socket_connectToServer(cfg_io->ip_memoria, cfg_io->puerto_memoria);
+    int kernel_fd = socket_connectToServer(cfg_io->ip_kernel, cfg_io->puerto_kernel);
     if (memory_fd == -1 || kernel_fd == -1)
     {
         log_error(logger, "err: %s", strerror(errno));
@@ -106,7 +105,7 @@ int main(int argc, char *argv[])
 
     log_error(logger, "lost connection with the kernel");
 
-    IO_close();
+    io_close();
 
     return 0;
 }

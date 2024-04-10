@@ -28,7 +28,6 @@ void config_init()
     cfg_kernel->instancias_recursos = config_get_array_value(config, "INSTANCIAS_RECURSOS");
     cfg_kernel->grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
 
-    config_destroy(config);
 }
 
 void init_kernel()
@@ -55,7 +54,10 @@ void init_kernel()
 void kernel_close()
 {
     log_destroy(logger);
+    string_array_destroy(cfg_kernel->recursos);
+    string_array_destroy(cfg_kernel->instancias_recursos);
     free(cfg_kernel);
+    config_destroy(config);
     close(server_fd);
 }
 
@@ -70,12 +72,15 @@ int main(int argc, char *argv[])
     signal(SIGINT, sighandler);
     init_kernel();
 
+    //printf("puertos cpu: %s y %s\n",cfg_kernel->puerto_cpu_interrupt, cfg_kernel->puerto_cpu_dispatch);
+
     int fd_interrupt = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_interrupt);
-    int fd_dispatch = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_interrupt);
+    int fd_dispatch = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_dispatch);
     int fd_memory = socket_connectToServer(cfg_kernel->ip_memoria, cfg_kernel->puerto_memoria);
 
     if (fd_interrupt == -1 || fd_dispatch == -1 || fd_memory == -1)
     {
+        //printf(" interrupt: %d . dispatch: %d, memoria: %d\n",fd_interrupt,fd_dispatch,fd_memory);
         log_error(logger, "err: %s", strerror(errno));
         return 1;
     }

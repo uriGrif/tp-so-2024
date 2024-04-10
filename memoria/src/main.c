@@ -2,17 +2,28 @@
 
 static t_log *logger;
 static t_config *config;
+static t_mem_config *cfg_mem;
 static int fd_server;
 
-void init_memory()
+void config_init()
 {
     config = config_create(CONFIG_PATH);
     if (!config)
     {
-        perror("error al cargar el config");
+        log_error(logger, "error al cargar el config");
         exit(1);
     }
 
+    cfg_mem = malloc(sizeof(t_mem_config));
+    cfg_mem->puerto_escucha = config_get_string_value(config, "PUERTO_ESCUCHA");
+    cfg_mem->tam_memoria = config_get_int_value(config, "TAM_MEMORIA");
+    cfg_mem->tam_pagina = config_get_int_value(config, "TAM_PAGINA");
+    cfg_mem->path_instrucciones = config_get_string_value(config, "PATH_INSTRUCCIONES");
+    cfg_mem->retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
+}
+
+void init_memory()
+{
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
     {
@@ -20,9 +31,9 @@ void init_memory()
         exit(1);
     }
 
-    char *port = config_get_string_value(config, "PUERTO_ESCUCHA");
+    config_init();
 
-    fd_server = socket_createTcpServer(NULL, port);
+    fd_server = socket_createTcpServer(NULL, cfg_mem->puerto_escucha);
 
     if (fd_server == -1)
     {
@@ -36,6 +47,7 @@ void init_memory()
 void memory_close()
 {
     log_destroy(logger);
+    free(cfg_mem);
     config_destroy(config);
 }
 

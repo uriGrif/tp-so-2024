@@ -28,12 +28,14 @@ void process_conn(void *void_args)
         case READ_MEM:{
             char * result = packet_getString(packet->buffer);
             log_info(logger,"me llego: %s",result);
+            free(result);
             break;
         }
         case CREATE_PROCESS:{
             log_info(logger, "CREATE PROCESS");
             char * result = packet_getString(packet->buffer);
             log_info(logger,"me llego: %s",result);
+            free(result);
             break;
         }
         case -1:
