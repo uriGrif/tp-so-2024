@@ -35,51 +35,6 @@ int packet_add(t_packet *packet, void *value, int size)
     return 0;
 }
 
-int packet_addString(t_packet *packet, char *str)
-{
-    uint32_t length = strlen(str) + 1;
-    packet_add(packet, &length, sizeof(uint32_t));
-    packet_add(packet, str, length);
-
-    return 0;
-}
-
-char *packet_getString(t_buffer *buffer)
-{
-    char * result;
-    uint32_t size;
-    packet_get(buffer,&size,sizeof(uint32_t));
-    result = malloc(size);
-    packet_get(buffer,result,size);
-    return result;
-    // void *stream = buffer->stream;
-    // uint32_t length = packet_getUInt32(buffer);
-
-    // char *str = malloc(length);
-    // memcpy(str, stream + buffer->offset, sizeof(char) * length);
-
-    // buffer->offset += length;
-    // return str;
-}
-
-int packet_addUInt32(t_packet *packet, uint32_t value)
-{
-    packet_add(packet, &value, sizeof(uint32_t));
-
-    return 0;
-}
-
-uint32_t packet_getUInt32(t_buffer *buffer)
-{
-    uint32_t value;
-    packet_get(buffer,&value,sizeof(uint32_t));
-    // void *stream = buffer->stream;
-    // memcpy(&value, stream + buffer->offset, sizeof(uint32_t));
-    // buffer->offset += sizeof(uint32_t);
-
-    return value;
-}
-
 void *packet_serialize(t_packet *packet, uint32_t bytes)
 {
     void *serialized = malloc(bytes);
@@ -136,4 +91,54 @@ void packet_get(t_buffer* buffer, void* dest, int size) {
     buffer->size -= size;
     memmove(buffer->stream, buffer->stream + size, buffer->size);
     buffer->stream = realloc(buffer->stream, buffer->size);
+}
+
+
+int packet_addString(t_packet *packet, char *str)
+{
+    uint32_t length = strlen(str) + 1;
+    packet_add(packet, &length, sizeof(uint32_t));
+    packet_add(packet, str, length);
+
+    return 0;
+}
+
+char *packet_getString(t_buffer *buffer)
+{
+    char * result;
+    uint32_t size;
+    packet_get(buffer,&size,sizeof(uint32_t));
+    result = malloc(size);
+    packet_get(buffer,result,size);
+    return result;
+    // void *stream = buffer->stream;
+    // uint32_t length = packet_getUInt32(buffer);
+
+    // char *str = malloc(length);
+    // memcpy(str, stream + buffer->offset, sizeof(char) * length);
+
+    // buffer->offset += length;
+    // return str;
+}
+
+int packet_addUInt32(t_packet *packet, uint32_t value)
+{
+    return packet_add(packet, &value, sizeof(uint32_t));
+}
+
+uint32_t packet_getUInt32(t_buffer *buffer)
+{
+    uint32_t value;
+    packet_get(buffer,&value,sizeof(uint32_t));
+    return value;
+}
+
+int packet_add_uint8(t_packet* packet, uint8_t value){
+    return packet_add(packet,&value,sizeof(uint8_t));
+}
+
+uint8_t packet_get_uint8(t_buffer* buffer){
+    uint8_t value;
+    packet_get(buffer,&value,sizeof(uint8_t));
+    return value;
 }
