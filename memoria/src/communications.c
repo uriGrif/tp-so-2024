@@ -25,17 +25,26 @@ void process_conn(void *void_args)
             log_info(logger, "nro 1 : %d, nro 2: %d", x, y);
             break;
         }
-        case READ_MEM:{
-            char * result = packet_getString(packet->buffer);
-            log_info(logger,"me llego: %s",result);
+        case READ_MEM:
+        {
+            char *result = packet_getString(packet->buffer);
+            log_info(logger, "me llego: %s", result);
             free(result);
             break;
         }
-        case CREATE_PROCESS:{
+        case CREATE_PROCESS:
+        {
             log_info(logger, "CREATE PROCESS");
-            char * result = packet_getString(packet->buffer);
-            log_info(logger,"me llego: %s",result);
-            free(result);
+            char **result = packet_get_string_arr(packet->buffer);
+
+            void print_str(char *str)
+            {
+                printf("%s ", str);
+            }
+            log_info(logger,"procedo a leer el array de strings que me llego");
+            string_iterate_lines(result, print_str);
+            printf("\n");
+            string_array_destroy(result);
             break;
         }
         case -1:

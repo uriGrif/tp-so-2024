@@ -5,6 +5,7 @@
         "select.h": "c",
         "main.h": "c",
         "string.h": "c",
-        "config.h": "c"
+        "config.h": "c",
+        "functional": "c"
     }
 }

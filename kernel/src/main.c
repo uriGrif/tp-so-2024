@@ -103,7 +103,8 @@ int main(int argc, char *argv[])
     packet_free(packet);
 
     packet = packet_new(CREATE_PROCESS);
-    packet_addString(packet, "hello memory ! I'm the kernel");
+    char * arr_prueba[] = {"hello","memory !","I'm the kernel",NULL};
+    packet_add_string_arr(packet, arr_prueba);
     packet_send(packet, fd_memory);
     printf("packet sent\n");
     packet_free(packet);
