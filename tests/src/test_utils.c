@@ -25,6 +25,5 @@ context(utils){
             should_string(result) be equal to("[]");
             free(result);
         } end
-
     } end
 }
