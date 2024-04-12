@@ -1,6 +1,8 @@
 #include<utils/utlis.h>
 
 char * string_arr_as_string(char ** string_arr){
+    if(!string_arr) return NULL;
+    
     char * result = strdup("[");
     for(int i =0 ; string_arr[i] != NULL; i++){
         string_append(&result,string_arr[i]);

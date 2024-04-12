@@ -6,6 +6,13 @@
         "main.h": "c",
         "string.h": "c",
         "config.h": "c",
-        "functional": "c"
+        "functional": "c",
+        "array": "c",
+        "deque": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "vector": "c",
+        "string_view": "c",
+        "initializer_list": "c"
     }
 }

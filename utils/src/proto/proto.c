@@ -117,6 +117,7 @@ int packet_add_string_arr(t_packet* packet, char** string_arr){
     char* strings = string_arr_as_string(string_arr);
     packet_addString(packet,strings);
     free(strings);
+    return 0;
 }
 
 char** packet_get_string_arr(t_buffer* buffer){
