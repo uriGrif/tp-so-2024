@@ -41,7 +41,7 @@ void process_conn(void *void_args)
             {
                 printf("%s ", str);
             }
-            log_info(logger,"procedo a leer el array de strings que me llego");
+            log_info(logger, "procedo a leer el array de strings que me llego");
             string_iterate_lines(result, print_str);
             printf("\n");
             string_array_destroy(result);

@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <pthread.h>
-#include <proto/proto.h>
+
 
 typedef struct
 {

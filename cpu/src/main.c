@@ -4,7 +4,8 @@ t_log *logger;
 static int dispatch_fd;
 static int interrupt_fd;
 static t_config *config;
-static t_cpu_config* cfg_cpu;
+static t_cpu_config *cfg_cpu;
+static pthread_t thread_intr;
 
 void config_init()
 {
@@ -24,10 +25,8 @@ void config_init()
     cfg_cpu->cantidad_entradas_tlb = config_get_int_value(config, "CANTIDAD_ENTRADAS_TLB");
     cfg_cpu->algoritmo_tlb = config_get_string_value(config, "ALGORITMO_TLB");
 
-    //printf("puerto me %s %s\n", cfg_CPU->puerto_escucha_interrupt, cfg_CPU->puerto_escucha_dispatch);
-
+    // printf("puerto me %s %s\n", cfg_CPU->puerto_escucha_interrupt, cfg_CPU->puerto_escucha_dispatch);
 }
-
 
 void cpu_init()
 {
@@ -51,144 +50,53 @@ void cpu_init()
     log_info(logger, "server starting");
 }
 
+void start_interrupt_listener()
+{
+    // hago el accept y el manejo de las interrupts en otro hilo
+    t_process_conn_args *interrupt_args = malloc(sizeof(t_process_conn_args));
+    interrupt_args->logger = logger;
+    interrupt_args->fd = interrupt_fd;
+
+    pthread_create(&thread_intr, NULL, (void *)handle_interrupt, (void *)interrupt_args);
+    pthread_detach(thread_intr);
+}
+
 void cpu_close()
 {
+    pthread_cancel(thread_intr);
     log_destroy(logger);
     free(cfg_cpu);
     config_destroy(config);
 }
 
+void sighandler(int signal)
+{
+    cpu_close();
+    close(dispatch_fd);
+    close(interrupt_fd);
+}
+
 int main(int argc, char *argv[])
 {
-    cpu_init();
 
+    signal(SIGINT, sighandler);
+    // dejo en listen los fds dispatch e interrupt
+    cpu_init();
+    start_interrupt_listener();
+
+    // me conecto a memoria
     int fd_memoria = socket_connectToServer(cfg_cpu->ip_memoria, cfg_cpu->puerto_memoria);
     t_packet *packet = packet_new(READ_MEM);
     packet_addString(packet, "Hello Memory! I'm the CPU!");
     packet_send(packet, fd_memoria);
     packet_free(packet);
 
-    // POR AHORA NOMAS
-    socket_freeConn(fd_memoria);
+    // espero a que el kernel se conecte a dispatc
 
-    fd_set readset, tempset;
-    struct timeval tv;
-    int cli_dispatch_fd;
-    int cli_intr_fd;
-    int maxfd;
-    int result;
+    // arranco el ciclo...
+    socket_acceptOnDemand(dispatch_fd, logger, process_dispatch_conn);
 
-    FD_ZERO(&readset);
-    FD_SET(dispatch_fd, &readset);
-    FD_SET(interrupt_fd, &readset);
-    maxfd = dispatch_fd > interrupt_fd ? dispatch_fd : interrupt_fd;
-
-    do
-    {
-        memcpy(&tempset, &readset, sizeof(tempset));
-        tv.tv_sec = 30;
-        tv.tv_usec = 0;
-        result = select(maxfd + 1, &tempset, NULL, NULL, &tv);
-
-        if (0 == result)
-            log_warning(logger, "Select timeout!");
-
-        else if (result < 0 && errno != EINTR)
-            log_error(logger, "Select error");
-        else if (result > 0)
-        {
-            if (FD_ISSET(dispatch_fd, &tempset))
-            {
-                cli_dispatch_fd = socket_acceptConns(dispatch_fd);
-
-                if (cli_dispatch_fd < 0)
-                {
-                    log_error(logger, "error en accept");
-                }
-                else
-                {
-                    FD_SET(cli_dispatch_fd, &tempset);
-                    maxfd = (maxfd < cli_dispatch_fd) ? cli_dispatch_fd : maxfd;
-                }
-                FD_CLR(dispatch_fd, &tempset);
-            }
-            if (FD_ISSET(interrupt_fd, &tempset))
-            {
-                cli_intr_fd = socket_acceptConns(interrupt_fd);
-
-                if (cli_intr_fd < 0)
-                {
-                    log_error(logger, "error en accept");
-                }
-                else
-                {
-                    FD_SET(cli_intr_fd, &tempset);
-                    maxfd = (maxfd < cli_intr_fd) ? cli_intr_fd : maxfd;
-                }
-                FD_CLR(interrupt_fd, &tempset);
-            }
-
-            for (int i = 0; i < maxfd + 1; i++)
-            {
-                if (FD_ISSET(i, &tempset))
-                {
-                    t_packet *packet = packet_new(0);
-                    if (packet_recv(i, packet) != -1)
-                    {
-                        switch (packet->op_code)
-                        {
-                        case EXEC_PROCESS:
-                        {
-                            log_info(logger, "EXEC PROCESS\n");
-                            char *str = packet_getString(packet->buffer);
-                            uint32_t value = packet_getUInt32(packet->buffer);
-                            char *str2 = packet_getString(packet->buffer);
-                            log_info(logger, "string: %s\n", str);
-                            log_info(logger, "number: %d\n", value);
-                            log_info(logger, "string2: %s\n", str2);
-                            free(str);
-                            free(str2);
-                            break;
-                        }
-                        case INTERRUPT_EXEC:
-                        {
-                            log_info(logger, "INTERRUPT EXEC\n");
-                            char *str = packet_getString(packet->buffer);
-                            uint32_t value = packet_getUInt32(packet->buffer);
-                            char *str2 = packet_getString(packet->buffer);
-                            log_info(logger, "string: %s\n", str);
-                            log_info(logger, "number: %d\n", value);
-                            log_info(logger, "string2: %s\n", str2);
-                            free(str);
-                            free(str2);
-                            break;
-                        }
-                        case -1:
-                            log_error(logger, "client disconnect");
-                            packet_free(packet);
-                            continue;
-
-                        default:
-                            log_error(logger, "undefined behaviour cop: %d", packet->op_code);
-                            packet_free(packet);
-                            continue;
-                            ;
-                        }
-
-                        packet_free(packet);
-                    }
-                    else
-                    {
-                        packet_free(packet);
-                        close(i);
-                        FD_CLR(i, &readset);
-                    }
-                }
-            }
-        }
-    } while (1);
-
-    cpu_close();
+    // cpu_close();
 
     return 0;
 }

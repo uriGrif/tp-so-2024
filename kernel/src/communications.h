@@ -1,5 +1,5 @@
-#ifndef COMMUNICATIONS_H
-#define COMMUNICATIONS_H
+#ifndef COMMUNICATIONS_H_KERNEL
+#define COMMUNICATIONS_H_KERNEL
 
 #include <proto/proto.h>
 #include <sockets/sockets.h>

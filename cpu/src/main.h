@@ -7,9 +7,11 @@
 #include <proto/proto.h>
 #include <errno.h>
 #include <commons/log.h>
+#include <sys/signal.h>
 #include <commons/config.h>
-#include <sys/select.h>
-#include<string.h>
+#include <string.h>
+#include <interrupt.h>
+#include <dispatch.h>
 
 #define CONFIG_PATH "cpu.config"
 #define LOG_LEVEL LOG_LEVEL_INFO
