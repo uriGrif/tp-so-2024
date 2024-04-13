@@ -41,6 +41,12 @@ void cpu_init()
     dispatch_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_dispatch);
     interrupt_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_interrupt);
 
+    const int enable = 1;
+    if (setsockopt(dispatch_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        perror("setsockopt(SO_REUSEADDR) failed");
+     if (setsockopt(interrupt_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        perror("setsockopt(SO_REUSEADDR) failed");
+
     if (dispatch_fd == -1 || interrupt_fd == -1)
     {
         printf("error: %s", strerror(errno));
@@ -74,6 +80,7 @@ void sighandler(int signal)
     cpu_close();
     close(dispatch_fd);
     close(interrupt_fd);
+    exit(0);
 }
 
 int main(int argc, char *argv[])

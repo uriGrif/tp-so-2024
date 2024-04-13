@@ -35,7 +35,7 @@ void process_interrupt_conn(int fd, t_log *logger)
             log_error(logger, "undefined behaviour cop: %d", packet->op_code);
             break;
         }
-
+        log_debug(logger,"hola estoy aca");
         packet_free(packet);
     }
 }

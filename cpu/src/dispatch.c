@@ -42,5 +42,6 @@ void process_dispatch_conn(void *void_args)
         }
 
         packet_free(packet);
+        return;
     }
 }
