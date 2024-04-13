@@ -117,7 +117,8 @@ int main(int argc, char *argv[])
     printf("packet sent\n");
     packet_free(packet);
 
-    while(1);
+    start_console();
+    
     kernel_close();
 
     return 0;

@@ -19,6 +19,10 @@
         "sockets.h": "c",
         "comms_kernel.h": "c",
         "stdlib.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "utlis.h": "c",
+        "readline.h": "c",
+        "signal.h": "c",
+        "console.h": "c"
     }
 }

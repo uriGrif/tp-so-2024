@@ -14,6 +14,7 @@
 #include<pthread.h>
 #include<string.h>
 #include <comms_kernel.h>
+#include<console.h>
 
 #define CONFIG_PATH "kernel.config"
 #define LOG_LEVEL LOG_LEVEL_INFO
