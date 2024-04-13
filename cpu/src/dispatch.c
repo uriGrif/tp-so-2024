@@ -7,9 +7,9 @@ void process_dispatch_conn(void *void_args)
     int client_fd = args->fd;
     free(args);
 
-    t_packet *packet = packet_new(0);
     while (client_fd != -1)
     {
+        t_packet *packet = packet_new(0);
         if (packet_recv(client_fd, packet) == -1)
         {
             packet_free(packet);
@@ -33,15 +33,13 @@ void process_dispatch_conn(void *void_args)
         case -1:
             log_error(logger, "client disconnect");
             packet_free(packet);
-            return;
-
+            return; 
         default:
             log_error(logger, "undefined behaviour cop: %d", packet->op_code);
             packet_free(packet);
-            return;
+            break;
         }
 
         packet_free(packet);
-        return;
     }
 }

@@ -48,14 +48,13 @@ void init_kernel()
         log_error(logger, "error: %s", strerror(errno));
         exit(1);
     }
-    t_process_conn_args* args = malloc(sizeof(t_process_conn_args));
-    args->fd = server_fd;
-    args->logger = logger;
+    t_process_conn_args args;
+    args.fd = server_fd;
+    args.logger = logger;
 
     // spawn a thread for the server 
-    pthread_create(&LISTENER_THREAD,NULL,(void*) handle_connections,(void*) args);
+    pthread_create(&LISTENER_THREAD,NULL,(void*) handle_connections,(void*) &args);
     pthread_detach(LISTENER_THREAD);
-    free(args);
     
     log_info(logger, "server starting");
 }
@@ -110,7 +109,7 @@ int main(int argc, char *argv[])
     packet_send(packet, fd_dispatch);
     printf("packet sent\n");
     packet_free(packet);
-
+    
     packet = packet_new(CREATE_PROCESS);
     char * arr_prueba[] = {"hello","memory !","I'm the kernel",NULL};
     packet_add_string_arr(packet, arr_prueba);
