@@ -8,7 +8,7 @@
 #include <sockets/sockets.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include <communications.h>
+#include <comms_mem.h>
 #include <sys/signal.h>
 
 #define CONFIG_PATH "mem.config"

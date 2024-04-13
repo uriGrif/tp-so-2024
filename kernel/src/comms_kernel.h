@@ -4,6 +4,6 @@
 #include <proto/proto.h>
 #include <sockets/sockets.h>
 
-void process_conn(void *void_args);
+void handle_connections(void * void_args);
 
 #endif

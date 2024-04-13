@@ -1,4 +1,4 @@
-#include <communications.h>
+#include <comms_kernel.h>
 
 void process_conn(void *void_args)
 {
@@ -43,4 +43,9 @@ void process_conn(void *void_args)
         packet_free(packet);
         return;
     }
+}
+
+void handle_connections(void * void_args){
+    t_process_conn_args* args = (t_process_conn_args* )void_args;
+    socket_acceptOnDemand(args->fd,args->logger,process_conn);
 }

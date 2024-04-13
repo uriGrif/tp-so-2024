@@ -4,6 +4,7 @@ static t_log *logger;
 static t_config *config;
 static int server_fd;
 static t_kernel_config *cfg_kernel;
+pthread_t LISTENER_THREAD;
 
 void config_init()
 {
@@ -47,7 +48,15 @@ void init_kernel()
         log_error(logger, "error: %s", strerror(errno));
         exit(1);
     }
+    t_process_conn_args* args = malloc(sizeof(t_process_conn_args));
+    args->fd = server_fd;
+    args->logger = logger;
 
+    // spawn a thread for the server 
+    pthread_create(&LISTENER_THREAD,NULL,(void*) handle_connections,(void*) args);
+    pthread_detach(LISTENER_THREAD);
+    free(args);
+    
     log_info(logger, "server starting");
 }
 
@@ -63,6 +72,7 @@ void kernel_close()
 
 void sighandler(int signal)
 {
+    pthread_cancel(LISTENER_THREAD);
     kernel_close();
     exit(0);
 }
@@ -72,18 +82,17 @@ int main(int argc, char *argv[])
     signal(SIGINT, sighandler);
     init_kernel();
 
-    //printf("puertos cpu: %s y %s\n",cfg_kernel->puerto_cpu_interrupt, cfg_kernel->puerto_cpu_dispatch);
-
     int fd_interrupt = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_interrupt);
     int fd_dispatch = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_dispatch);
     int fd_memory = socket_connectToServer(cfg_kernel->ip_memoria, cfg_kernel->puerto_memoria);
 
     if (fd_interrupt == -1 || fd_dispatch == -1 || fd_memory == -1)
     {
-        //printf(" interrupt: %d . dispatch: %d, memoria: %d\n",fd_interrupt,fd_dispatch,fd_memory);
         log_error(logger, "err: %s", strerror(errno));
+        kernel_close();
         return 1;
     }
+    
     log_info(logger, "connected to server\n");
 
     t_packet *packet = packet_new(INTERRUPT_EXEC);
@@ -109,7 +118,7 @@ int main(int argc, char *argv[])
     printf("packet sent\n");
     packet_free(packet);
 
-    socket_acceptOnDemand(server_fd, logger, process_conn);
+    while(1);
     kernel_close();
 
     return 0;

@@ -1,4 +1,4 @@
-#include <communications.h>
+#include <comms_mem.h>
 
 void process_conn(void *void_args)
 {

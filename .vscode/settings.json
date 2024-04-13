@@ -13,6 +13,12 @@
         "unordered_map": "c",
         "vector": "c",
         "string_view": "c",
-        "initializer_list": "c"
+        "initializer_list": "c",
+        "communications.h": "c",
+        "proto.h": "c",
+        "sockets.h": "c",
+        "comms_kernel.h": "c",
+        "stdlib.h": "c",
+        "stdio.h": "c"
     }
 }
