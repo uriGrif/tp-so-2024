@@ -41,6 +41,10 @@ void init_memory()
         exit(1);
     }
 
+    const int enable = 1;
+    if (setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        log_error(logger, "setsockopt(SO_REUSEADDR) failed");
+
     log_info(logger, "server starting");
 }
 

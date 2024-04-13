@@ -12,6 +12,7 @@ void process_dispatch_conn(void *void_args)
         t_packet *packet = packet_new(0);
         if (packet_recv(client_fd, packet) == -1)
         {
+            log_error(logger, "Se desconecto el kernel de dispatch\n");
             packet_free(packet);
             return;
         }
@@ -36,7 +37,6 @@ void process_dispatch_conn(void *void_args)
             return; 
         default:
             log_error(logger, "undefined behaviour cop: %d", packet->op_code);
-            packet_free(packet);
             break;
         }
 

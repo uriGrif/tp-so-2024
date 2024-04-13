@@ -9,12 +9,12 @@
 #include <proto/proto.h>
 #include <commons/log.h>
 #include <commons/config.h>
-#include<commons/string.h>
+#include <commons/string.h>
 #include <sys/signal.h>
-#include<pthread.h>
-#include<string.h>
+#include <pthread.h>
+#include <string.h>
 #include <comms_kernel.h>
-#include<console.h>
+#include <console.h>
 
 #define CONFIG_PATH "kernel.config"
 #define LOG_LEVEL LOG_LEVEL_INFO

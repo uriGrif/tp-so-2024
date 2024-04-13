@@ -13,6 +13,7 @@ void process_conn(void *void_args)
     {
         if (packet_recv(client_fd, packet) == -1)
         {
+            log_warning(logger, "client disconnect");
             packet_free(packet);
             return;
         }
@@ -54,11 +55,8 @@ void process_conn(void *void_args)
 
         default:
             log_error(logger, "undefined behaviour with opcode: %d", packet->op_code);
-            packet_free(packet);
-            return;
+            break;
         }
-        log_warning(logger, "client disconnect");
         packet_free(packet);
-        return;
     }
 }

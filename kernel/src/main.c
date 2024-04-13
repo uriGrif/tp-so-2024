@@ -28,7 +28,6 @@ void config_init()
     cfg_kernel->recursos = config_get_array_value(config, "RECURSOS");
     cfg_kernel->instancias_recursos = config_get_array_value(config, "INSTANCIAS_RECURSOS");
     cfg_kernel->grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
-
 }
 
 void init_kernel()
@@ -48,14 +47,17 @@ void init_kernel()
         log_error(logger, "error: %s", strerror(errno));
         exit(1);
     }
+    const int enable = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        log_error(logger,"setsockopt(SO_REUSEADDR) failed");
     t_process_conn_args args;
     args.fd = server_fd;
     args.logger = logger;
 
-    // spawn a thread for the server 
-    pthread_create(&LISTENER_THREAD,NULL,(void*) handle_connections,(void*) &args);
+    // spawn a thread for the server
+    pthread_create(&LISTENER_THREAD, NULL, (void *)handle_connections, (void *)&args);
     pthread_detach(LISTENER_THREAD);
-    
+
     log_info(logger, "server starting");
 }
 
@@ -91,7 +93,7 @@ int main(int argc, char *argv[])
         kernel_close();
         return 1;
     }
-    
+
     log_info(logger, "connected to server\n");
 
     t_packet *packet = packet_new(INTERRUPT_EXEC);
@@ -109,16 +111,16 @@ int main(int argc, char *argv[])
     packet_send(packet, fd_dispatch);
     printf("packet sent\n");
     packet_free(packet);
-    
+
     packet = packet_new(CREATE_PROCESS);
-    char * arr_prueba[] = {"hello","memory !","I'm the kernel",NULL};
+    char *arr_prueba[] = {"hello", "memory !", "I'm the kernel", NULL};
     packet_add_string_arr(packet, arr_prueba);
     packet_send(packet, fd_memory);
     printf("packet sent\n");
     packet_free(packet);
 
     start_console();
-    
+
     kernel_close();
 
     return 0;

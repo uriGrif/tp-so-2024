@@ -86,13 +86,13 @@ int packet_recv(int fd, t_packet *packet)
     return 0;
 }
 
-void packet_get(t_buffer* buffer, void* dest, int size) {
+void packet_get(t_buffer *buffer, void *dest, int size)
+{
     memcpy(dest, buffer->stream, size);
     buffer->size -= size;
     memmove(buffer->stream, buffer->stream + size, buffer->size);
     buffer->stream = realloc(buffer->stream, buffer->size);
 }
-
 
 int packet_addString(t_packet *packet, char *str)
 {
@@ -105,24 +105,26 @@ int packet_addString(t_packet *packet, char *str)
 
 char *packet_getString(t_buffer *buffer)
 {
-    char * result;
+    char *result;
     uint32_t size;
-    packet_get(buffer,&size,sizeof(uint32_t));
+    packet_get(buffer, &size, sizeof(uint32_t));
     result = malloc(size);
-    packet_get(buffer,result,size);
+    packet_get(buffer, result, size);
     return result;
 }
 
-int packet_add_string_arr(t_packet* packet, char** string_arr){
-    char* strings = string_arr_as_string(string_arr);
-    packet_addString(packet,strings);
+int packet_add_string_arr(t_packet *packet, char **string_arr)
+{
+    char *strings = string_arr_as_string(string_arr);
+    packet_addString(packet, strings);
     free(strings);
     return 0;
 }
 
-char** packet_get_string_arr(t_buffer* buffer){
-    char * str_as_arr = packet_getString(buffer);
-    char** arr = string_get_string_as_array(str_as_arr);
+char **packet_get_string_arr(t_buffer *buffer)
+{
+    char *str_as_arr = packet_getString(buffer);
+    char **arr = string_get_string_as_array(str_as_arr);
     free(str_as_arr);
     return arr;
 }
@@ -135,16 +137,18 @@ int packet_addUInt32(t_packet *packet, uint32_t value)
 uint32_t packet_getUInt32(t_buffer *buffer)
 {
     uint32_t value;
-    packet_get(buffer,&value,sizeof(uint32_t));
+    packet_get(buffer, &value, sizeof(uint32_t));
     return value;
 }
 
-int packet_add_uint8(t_packet* packet, uint8_t value){
-    return packet_add(packet,&value,sizeof(uint8_t));
+int packet_add_uint8(t_packet *packet, uint8_t value)
+{
+    return packet_add(packet, &value, sizeof(uint8_t));
 }
 
-uint8_t packet_get_uint8(t_buffer* buffer){
+uint8_t packet_get_uint8(t_buffer *buffer)
+{
     uint8_t value;
-    packet_get(buffer,&value,sizeof(uint8_t));
+    packet_get(buffer, &value, sizeof(uint8_t));
     return value;
 }

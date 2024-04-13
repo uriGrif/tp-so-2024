@@ -7,10 +7,11 @@
 #include <commons/string.h>
 #include <stdlib.h>
 
-typedef struct{
-    char* name;
+typedef struct
+{
+    char *name;
     void (*func)(char *);
-    char* doc;
+    char *doc;
     int expects_parameter;
 } t_command;
 

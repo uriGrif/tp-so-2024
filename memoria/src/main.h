@@ -16,14 +16,13 @@
 #define LOG_PATH "mem.log"
 #define PROCESS_NAME "MEMORIA"
 
-typedef struct 
+typedef struct
 {
-char * puerto_escucha;
-int tam_memoria;
-int tam_pagina;
-char* path_instrucciones;
-int retardo_respuesta;
-}t_mem_config;
-
+    char *puerto_escucha;
+    int tam_memoria;
+    int tam_pagina;
+    char *path_instrucciones;
+    int retardo_respuesta;
+} t_mem_config;
 
 #endif

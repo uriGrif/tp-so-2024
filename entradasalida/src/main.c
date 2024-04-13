@@ -57,9 +57,12 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     switch (operation)
     {
     case DESTROY_PROCESS:
-        char* response = packet_getString(buffer);
-        log_info(logger,"Hi I am IO i received %s",response);
+        char *response = packet_getString(buffer);
+        log_info(logger, "Hi I am IO i received %s", response);
         free(response);
+        break;
+    default:
+        log_error(logger, "undefined behaviour with opcode: %d", operation);
         break;
     }
 }
