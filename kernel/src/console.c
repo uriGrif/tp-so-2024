@@ -145,4 +145,5 @@ void execute_script(char *file_path)
 
     list_iterate(commands, exec_comm);
     list_destroy_and_destroy_elements(commands, free);
+    fclose(f);
 }
