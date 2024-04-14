@@ -6,6 +6,8 @@
 #include <string.h>
 #include <commons/string.h>
 #include <stdlib.h>
+#include <commons/collections/list.h>
+#include <commands.h>
 
 typedef struct
 {
@@ -14,6 +16,8 @@ typedef struct
     char *doc;
     int expects_parameter;
 } t_command;
+
+#define BUFFER_MAX_LENGTH 100
 
 void start_console(void);
 

@@ -2,6 +2,8 @@
 
 // este array para readline
 
+void execute_script(char *file_path);
+
 char *COMMAND_NAMES[] = {
     "EJECUTAR_SCRIPT",
     "INICIAR_PROCESO",
@@ -21,13 +23,13 @@ void do_nothing(char *algo)
 }
 
 t_command COMMANDS[] = {
-    {"EJECUTAR_SCRIPT", do_nothing, "Execute a script", 1},
-    {"INICIAR_PROCESO", do_nothing, "Execute a script", 1},
-    {"FINALIZAR_PROCESO", do_nothing, "Execute a script", 1},
-    {"DETENER_PLANIFICACION", do_nothing, "Execute a script", 0},
-    {"INICIAR_PLANIFICACION", do_nothing, "Execute a script", 0},
-    {"MULTIPROGRAMACION", do_nothing, "Execute a script", 1},
-    {"PROCESO_ESTADO", do_nothing, "Execute a script", 0},
+    {"EJECUTAR_SCRIPT", execute_script, "Execute a script", 1},
+    {"INICIAR_PROCESO", init_process, "Init a process", 1},
+    {"FINALIZAR_PROCESO", end_process, "Terminate a process", 1},
+    {"DETENER_PLANIFICACION", stop_scheduler, "stop the short term scheduler", 0},
+    {"INICIAR_PLANIFICACION", start_scheduler, "start or restart the short term scheduler", 0},
+    {"MULTIPROGRAMACION", multiprogramacion, "change multiprogramacion value", 1},
+    {"PROCESO_ESTADO", list_processes_by_state, "list processes by their current state", 0},
     {NULL, NULL}};
 
 char *generator(const char *text, int state)
@@ -69,6 +71,11 @@ void parse_command(char *string)
                 printf("esperaba un parametro, ");
                 break;
             }
+            if (!COMMANDS[i].expects_parameter && param != NULL)
+            {
+                printf("no esperaba parametros, ");
+                break;
+            }
             COMMANDS[i].func(param);
             string_array_destroy(command_split);
             return;
@@ -107,4 +114,35 @@ void start_console(void)
 
         free(line);
     }
+}
+
+// JUSTO ESTE COMANDO LA TENGO QUE PONER ACA POR TEMA DE INCLUDES
+
+void execute_script(char *file_path)
+{
+    FILE *f = fopen(file_path, "r");
+    char buffer[BUFFER_MAX_LENGTH];
+    if (!f)
+    {
+        printf("script no encontrado\n");
+        return;
+    }
+    t_list *commands = list_create();
+    while (!feof(f))
+    {
+        fgets(buffer, BUFFER_MAX_LENGTH, f);
+        if ('\n' == buffer[strlen(buffer) - 1])
+            buffer[strlen(buffer) - 1] = '\0';
+
+        list_add(commands, strdup(buffer));
+    }
+
+    void exec_comm(void *comm)
+    {
+        char *command = (char *)comm;
+        parse_command(command);
+    }
+
+    list_iterate(commands, exec_comm);
+    list_destroy_and_destroy_elements(commands, free);
 }
