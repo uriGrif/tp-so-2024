@@ -60,6 +60,7 @@ void parse_command(char *string)
     char **command_split = string_n_split(string, 2, " ");
     char *name = command_split[0];
     char *param = command_split[1];
+    char *error_str = string_new();
 
     // check for names
     for (int i = 0; COMMANDS[i].name != NULL; i++)
@@ -68,21 +69,24 @@ void parse_command(char *string)
         {
             if (COMMANDS[i].expects_parameter && param == NULL)
             {
-                printf("esperaba un parametro, ");
+                string_append(&error_str, "esperaba un parametro, ");
                 break;
             }
             if (!COMMANDS[i].expects_parameter && param != NULL)
             {
-                printf("no esperaba parametros, ");
+                string_append(&error_str, "no esperaba un parametro, ");
                 break;
             }
             COMMANDS[i].func(param);
             string_array_destroy(command_split);
+            free(error_str);
             return;
         }
     }
 
-    printf("comando invalido\n");
+    string_append(&error_str, "comando invalido");
+    printf("%s\n", error_str);
+    free(error_str);
     string_array_destroy(command_split);
 }
 

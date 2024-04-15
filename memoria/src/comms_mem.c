@@ -7,10 +7,9 @@ void process_conn(void *void_args)
     int client_fd = args->fd;
     free(args);
 
-    t_packet *packet = packet_new(0);
-
     while (client_fd != -1)
     {
+        t_packet *packet = packet_new(0);
         if (packet_recv(client_fd, packet) == -1)
         {
             log_warning(logger, "client disconnect");
