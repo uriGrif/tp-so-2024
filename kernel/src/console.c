@@ -124,22 +124,10 @@ void start_console(void)
 
 void execute_script(char *file_path)
 {
-    FILE *f = fopen(file_path, "r");
-    char buffer[BUFFER_MAX_LENGTH];
-    if (!f)
-    {
-        printf("script no encontrado\n");
-        return;
-    }
-    t_list *commands = list_create();
-    while (!feof(f))
-    {
-        fgets(buffer, BUFFER_MAX_LENGTH, f);
-        if ('\n' == buffer[strlen(buffer) - 1])
-            buffer[strlen(buffer) - 1] = '\0';
+    t_list *commands = get_list_of_lines(file_path);
 
-        list_add(commands, strdup(buffer));
-    }
+    if (list_is_empty(commands))
+        printf("script no encontrado\n");
 
     void exec_comm(void *comm)
     {
@@ -149,5 +137,4 @@ void execute_script(char *file_path)
 
     list_iterate(commands, exec_comm);
     list_destroy_and_destroy_elements(commands, free);
-    fclose(f);
 }

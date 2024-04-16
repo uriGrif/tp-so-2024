@@ -7,6 +7,7 @@
 #include <commons/string.h>
 #include <stdlib.h>
 #include <commons/collections/list.h>
+#include<utils/utlis.h>
 #include <commands.h>
 
 typedef struct
