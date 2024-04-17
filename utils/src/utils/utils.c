@@ -16,7 +16,7 @@ char *string_arr_as_string(char **string_arr)
     return result;
 }
 
-t_list *get_list_of_lines(char *file_path)
+t_list *file_get_list_of_lines(char *file_path)
 {
     char buffer[BUFFER_MAX_LENGTH];
     t_list *list = list_create();
@@ -33,4 +33,29 @@ t_list *get_list_of_lines(char *file_path)
     }
     fclose(f);
     return list;
+}
+
+char *file_get_nth_line(char *file_path, int n)
+{
+    char buffer[BUFFER_MAX_LENGTH];
+    FILE *f = fopen(file_path, "r");
+    if (!f)
+        return NULL;
+    uint8_t i = 0;
+    while (fgets(buffer, BUFFER_MAX_LENGTH, f))
+    {
+        if (i == n)
+        {
+            // ENCONTRE
+            if ('\n' == buffer[strlen(buffer) - 1])
+                buffer[strlen(buffer) - 1] = '\0';
+            fclose(f);
+            return strdup(buffer);
+        }
+
+        i++;
+    }
+    // LINEA NO ENCONTRADA
+    fclose(f);
+    return NULL;
 }
