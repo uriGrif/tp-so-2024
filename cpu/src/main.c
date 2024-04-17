@@ -62,6 +62,9 @@ void start_interrupt_listener()
     t_process_conn_args *interrupt_args = malloc(sizeof(t_process_conn_args));
     interrupt_args->logger = logger;
     interrupt_args->fd = interrupt_fd;
+    
+    // TODO: agregar la queue en los argumentos y un mutex
+
 
     pthread_create(&thread_intr, NULL, (void *)handle_interrupt, (void *)interrupt_args);
     pthread_detach(thread_intr);
@@ -83,6 +86,11 @@ void sighandler(int signal)
     exit(0);
 }
 
+void load_pcb(t_packet* pcb, int32_t* pid, t_registers* registers) {
+    // TODO
+    // leo el packet y cargo el contexto que me llego
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -99,10 +107,35 @@ int main(int argc, char *argv[])
     packet_free(packet);
 
     // espero a que el kernel se conecte a dispatc
+    int cli_dispatch_fd;
+    socket_acceptConns(dispatch_fd);
+
+    // declaro variables importantes
+    int32_t current_pid = -1;
+    t_registers registers;
+    t_instruction current_instruction;
+    char *instruction_text;
+    t_queue interruption_queue = queue_create();
+
+    t_packet pcb_packet;
 
     // arranco el ciclo...
-    socket_acceptOnDemand(dispatch_fd, logger, process_dispatch_conn);
+    while (1)
+    {
+        if (current_pid == -1) {
+            packet_recv(cli_dispatch_fd, &pcb_packet); // es bloqueante
+            load_pcb(&pcb_packet, &current_pid, &registers);
+        }
 
+        instruction_text = fetch(fd_memoria, registers.pc);
+
+        current_instruction = decode(instruction_text, &registers);
+
+        execute(&current_instruction);
+
+        check_interrupt(&interruption_queue, cli_dispatch_fd);
+    }
+    
     // cpu_close();
 
     return 0;
