@@ -13,7 +13,8 @@
 #include <interrupt.h>
 #include <dispatch.h>
 #include <instr_cycle.h>
-#include <commons/collections>
+#include <commons/collections/queue.h>
+#include<registers.h>
 
 #define CONFIG_PATH "cpu.config"
 #define LOG_LEVEL LOG_LEVEL_INFO
@@ -30,18 +31,6 @@ typedef struct
     char *algoritmo_tlb;
 } t_cpu_config;
 
-typedef struct {
-    uint32_t pc;
-    uint8_t ax;
-    uint8_t bx;
-    uint8_t cx;
-    uint8_t dx;
-    uint32_t eax;
-    uint32_t ebx;
-    uint32_t ecx;
-    uint32_t edx;
-    uint32_t si;
-    uint32_t di;
-} t_registers;
+
 
 #endif

@@ -6,6 +6,7 @@ static int interrupt_fd;
 static t_config *config;
 static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
+t_cpu_registers registers;
 
 void config_init()
 {
@@ -112,10 +113,9 @@ int main(int argc, char *argv[])
 
     // declaro variables importantes
     int32_t current_pid = -1;
-    t_registers registers;
     t_instruction current_instruction;
     char *instruction_text;
-    t_queue interruption_queue = queue_create();
+    t_queue* interruption_queue = queue_create();
 
     t_packet pcb_packet;
 
