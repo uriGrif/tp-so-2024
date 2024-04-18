@@ -11,6 +11,8 @@ typedef struct
     pthread_mutex_t mutex;
 } t_sync_queue;
 
+t_sync_queue *sync_queue_create();
+
 void queue_sync_push(t_sync_queue *self, void *element);
 
 void *queue_sync_pop(t_sync_queue *self);
