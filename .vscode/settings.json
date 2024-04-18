@@ -23,6 +23,9 @@
         "utlis.h": "c",
         "readline.h": "c",
         "signal.h": "c",
-        "console.h": "c"
+        "console.h": "c",
+        "instr_set.h": "c",
+        "instr_parser.h": "c",
+        "registers.h": "c"
     }
 }

@@ -3,6 +3,7 @@
 
 #include<stdint.h>
 #include<stdlib.h>
+#include<string.h>
 
 typedef struct {
     uint32_t pc;
@@ -27,6 +28,7 @@ typedef struct{
 
 extern t_cpu_registers registers;
 
-extern const t_register REGISTERS[];
+extern t_register REGISTERS[];
+t_register *register_get_by_name(char *name);
 
 #endif

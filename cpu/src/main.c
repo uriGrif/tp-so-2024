@@ -87,7 +87,7 @@ void sighandler(int signal)
     exit(0);
 }
 
-void load_pcb(t_packet* pcb, int32_t* pid, t_registers* registers) {
+void load_pcb(t_packet* pcb, int32_t* pid, t_register* registers) {
     // TODO
     // leo el packet y cargo el contexto que me llego
 }
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 
     // espero a que el kernel se conecte a dispatc
     int cli_dispatch_fd;
-    socket_acceptConns(dispatch_fd);
+    cli_dispatch_fd = socket_acceptConns(dispatch_fd);
 
     // declaro variables importantes
     int32_t current_pid = -1;
@@ -119,21 +119,22 @@ int main(int argc, char *argv[])
 
     t_packet pcb_packet;
 
+
     // arranco el ciclo...
     while (1)
     {
-        if (current_pid == -1) {
-            packet_recv(cli_dispatch_fd, &pcb_packet); // es bloqueante
-            load_pcb(&pcb_packet, &current_pid, &registers);
-        }
+        // if (current_pid == -1) {
+        //     packet_recv(cli_dispatch_fd, &pcb_packet); // es bloqueante
+        //     load_pcb(&pcb_packet, &current_pid, &registers);
+        // }
 
-        instruction_text = fetch(fd_memoria, registers.pc);
+        //instruction_text = fetch(fd_memoria, registers.pc);
 
-        current_instruction = decode(instruction_text, &registers);
+        // current_instruction = decode(instruction_text, &registers);
 
-        execute(&current_instruction);
+        // execute(&current_instruction);
 
-        check_interrupt(&interruption_queue, cli_dispatch_fd);
+        // check_interrupt(&interruption_queue, cli_dispatch_fd);
     }
     
     // cpu_close();

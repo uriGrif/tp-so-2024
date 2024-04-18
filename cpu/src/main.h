@@ -12,7 +12,7 @@
 #include <string.h>
 #include <interrupt.h>
 #include <dispatch.h>
-#include <instr_cycle.h>
+#include <instr_loop.h>
 #include <commons/collections/queue.h>
 #include<registers.h>
 
