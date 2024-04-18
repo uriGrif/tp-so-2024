@@ -2,7 +2,7 @@
 
 static t_log *logger;
 static t_config *config;
-static t_mem_config *cfg_mem;
+t_mem_config *cfg_mem;
 static int fd_server;
 
 void config_init()

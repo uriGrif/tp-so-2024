@@ -7,8 +7,9 @@
 #include<commons/string.h>
 #include<stdio.h>
 #include<utils/utlis.h>
+#include<proto/proto.h>
 
-char *fetch(int fd_memoria);
+char *fetch(int fd_memoria,uint32_t pid);
 
 void decode_and_execute(char *instruction);
 

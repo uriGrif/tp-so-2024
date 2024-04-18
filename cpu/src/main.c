@@ -107,6 +107,14 @@ int main(int argc, char *argv[])
     packet_send(packet, fd_memoria);
     packet_free(packet);
 
+    for(; registers.pc<3; registers.pc++){
+    char* next_instruction = fetch(fd_memoria,3);
+    decode_and_execute(next_instruction);
+    }
+   
+    log_debug(logger,"AX: %d BX: %d",registers.ax,registers.bx);
+
+
     // espero a que el kernel se conecte a dispatc
     int cli_dispatch_fd;
     cli_dispatch_fd = socket_acceptConns(dispatch_fd);

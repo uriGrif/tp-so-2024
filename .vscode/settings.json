@@ -26,6 +26,7 @@
         "console.h": "c",
         "instr_set.h": "c",
         "instr_parser.h": "c",
-        "registers.h": "c"
+        "registers.h": "c",
+        "utils.h": "c"
     }
 }

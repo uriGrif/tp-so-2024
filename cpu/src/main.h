@@ -17,7 +17,7 @@
 #include<registers.h>
 
 #define CONFIG_PATH "cpu.config"
-#define LOG_LEVEL LOG_LEVEL_INFO
+#define LOG_LEVEL LOG_LEVEL_DEBUG
 #define LOG_PATH "cpu.log"
 #define PROCESS_NAME "CPU"
 

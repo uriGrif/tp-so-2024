@@ -1,4 +1,5 @@
 #include <comms_mem.h>
+#include <utils.h>
 
 void process_conn(void *void_args)
 {
@@ -45,6 +46,25 @@ void process_conn(void *void_args)
             string_iterate_lines(result, print_str);
             printf("\n");
             string_array_destroy(result);
+            break;
+        }
+        case NEXT_INSTRUCTION:
+        {
+            log_info(logger, "NEXT_INSTRUCTION");
+            uint32_t pid = packet_getUInt32(packet->buffer);
+            uint32_t pc = packet_getUInt32(packet->buffer);
+            // BUSCO CUAL DEL LOS ARCHIVOS ESTA EN EXEC
+            char* text_name = mount_instructions_directory("ejemplo1.txt");
+            char* next_instruction = file_get_nth_line(text_name,pc);
+            free(text_name);
+            if(!next_instruction){
+                // mandame un error o algo no se
+                log_warning(logger,"no hay proxima instruccion");
+                break;
+            }
+            packet_addString(packet,next_instruction);
+            packet_send(packet,client_fd);
+            free(next_instruction);
             break;
         }
         case -1:
