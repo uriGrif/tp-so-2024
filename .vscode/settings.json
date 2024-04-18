@@ -23,6 +23,7 @@
         "utlis.h": "c",
         "readline.h": "c",
         "signal.h": "c",
-        "console.h": "c"
+        "console.h": "c",
+        "sync_queue.h": "c"
     }
 }
