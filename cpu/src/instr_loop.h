@@ -6,12 +6,13 @@
 #include<registers.h>
 #include<commons/string.h>
 #include<stdio.h>
+#include<commons/log.h>
 #include<utils/utlis.h>
 #include<proto/proto.h>
 
-char *fetch(int fd_memoria,uint32_t pid);
+char *fetch(int fd_memoria,uint32_t pid,t_log* logger);
 
-void decode_and_execute(char *instruction);
+void decode_and_execute(char *instruction,uint32_t pid,t_log* logger);
 
 //void execute(t_instruction* instruction);
 

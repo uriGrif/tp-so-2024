@@ -108,8 +108,8 @@ int main(int argc, char *argv[])
     packet_free(packet);
 
     for(; registers.pc<3; registers.pc++){
-    char* next_instruction = fetch(fd_memoria,3);
-    decode_and_execute(next_instruction);
+    char* next_instruction = fetch(fd_memoria,3,logger);
+    decode_and_execute(next_instruction,3,logger);
     }
    
     log_debug(logger,"AX: %d BX: %d",registers.ax,registers.bx);
