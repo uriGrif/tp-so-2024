@@ -24,7 +24,7 @@ void start_scheduler(char *x)
     printf("arranco la planificacion\n");
 }
 
-void multiprogramacion(char *value)
+void multiprogramming(char *value)
 {
     int new_grade = atoi(value);
     printf("voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);

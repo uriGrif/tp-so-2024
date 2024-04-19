@@ -9,7 +9,7 @@ void init_process(char *path);
 void end_process(char *pid);
 void stop_scheduler(char *);
 void start_scheduler(char *);
-void multiprogramacion(char *value);
+void multiprogramming(char *value);
 void list_processes_by_state(char *);
 
 #endif
