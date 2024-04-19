@@ -4,10 +4,11 @@
 #include<string.h>
 #include<stdlib.h>
 #include<register.h>
+#include<commons/log.h>
 
 typedef struct {
     char* name;
-    void (*instr)(char** args);
+    void (*instr)(char** args,t_log* logger);
 } t_instruction;
 
 extern t_instruction INSTRUCTION_SET[];

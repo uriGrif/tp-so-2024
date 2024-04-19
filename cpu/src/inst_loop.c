@@ -1,7 +1,7 @@
 #include <instr_loop.h>
 
 static char* args_as_string(char** args);
-void execute(void (*instr)(char** args), char** args);
+void execute(void (*instr)(char** args,t_log*logger), char** args,t_log* logger);
 
 char *fetch(int fd_memoria,t_log* logger)
 {
@@ -35,14 +35,14 @@ void decode_and_execute(char *instruction,t_log* logger){
     char * string_of_args = args_as_string(args);
     t_instruction *inst = instruction_get_by_name(instr_name);
     log_info(logger,"PID: %d - Ejecutando: %s - %s",context.pid,instr_name,string_of_args);
-    execute(inst->instr, args);
+    execute(inst->instr, args,logger);
     free(string_of_args);
     string_array_destroy(tokens);
     free(instruction);
 }
 
-void execute(void (*instr)(char** args), char** args){
-    instr(args);
+void execute(void (*instr)(char** args,t_log* logger), char** args,t_log* logger){
+    instr(args,logger);
 }
 
 void check_interrupt(t_queue* interruption_queue, int dispatch_fd){
