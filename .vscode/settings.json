@@ -31,5 +31,6 @@
         "atomic": "c",
         "context.h": "c",
         "queue.h": "c"
+        "sync_queue.h": "c"
     }
 }
