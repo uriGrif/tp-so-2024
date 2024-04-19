@@ -1,0 +1,3 @@
+SET AX 3
+SET BX 2
+SUB AX BX

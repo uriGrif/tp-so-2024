@@ -29,7 +29,7 @@ void process_interrupt_conn(int fd, t_log *logger)
         case -1:
             log_error(logger, "client disconnect");
             packet_free(packet);
-            break;
+            return;
 
         default:
             log_error(logger, "undefined behaviour cop: %d", packet->op_code);

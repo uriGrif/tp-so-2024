@@ -12,9 +12,12 @@
 #include <string.h>
 #include <interrupt.h>
 #include <dispatch.h>
+#include <instr_loop.h>
+#include <commons/collections/queue.h>
+#include <context/context.h>
 
 #define CONFIG_PATH "cpu.config"
-#define LOG_LEVEL LOG_LEVEL_INFO
+#define LOG_LEVEL LOG_LEVEL_DEBUG
 #define LOG_PATH "cpu.log"
 #define PROCESS_NAME "CPU"
 
@@ -27,5 +30,7 @@ typedef struct
     int cantidad_entradas_tlb;
     char *algoritmo_tlb;
 } t_cpu_config;
+
+
 
 #endif

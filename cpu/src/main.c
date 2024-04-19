@@ -6,6 +6,7 @@ static int interrupt_fd;
 static t_config *config;
 static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
+t_exec_context context;
 
 void config_init()
 {
@@ -62,6 +63,9 @@ void start_interrupt_listener()
     t_process_conn_args *interrupt_args = malloc(sizeof(t_process_conn_args));
     interrupt_args->logger = logger;
     interrupt_args->fd = interrupt_fd;
+    
+    // TODO: agregar la queue en los argumentos y un mutex
+
 
     pthread_create(&thread_intr, NULL, (void *)handle_interrupt, (void *)interrupt_args);
     pthread_detach(thread_intr);
@@ -83,6 +87,11 @@ void sighandler(int signal)
     exit(0);
 }
 
+void load_pcb(t_packet* pcb) {
+    // TODO
+    // leo el packet y cargo el contexto que me llego
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -97,12 +106,46 @@ int main(int argc, char *argv[])
     packet_addString(packet, "Hello Memory! I'm the CPU!");
     packet_send(packet, fd_memoria);
     packet_free(packet);
+    // PRUEBA MEMORIA
+    context.pid = 3;
+    for(; context.registers.pc<3; context.registers.pc++){
+    char* next_instruction = fetch(fd_memoria,logger);
+    decode_and_execute(next_instruction,logger);
+    }
+   
+    log_debug(logger,"AX: %d BX: %d", context.registers.ax, context.registers.bx);
+    log_debug(logger,"EL BX del context: %d", context.registers.bx);
 
-    // espero a que el kernel se conecte a dispatc
+    // espero a que el kernel se conecte a dispatch
+    int cli_dispatch_fd = -1;
 
-    // arranco el ciclo...
-    socket_acceptOnDemand(dispatch_fd, logger, process_dispatch_conn);
+    // declaro variables importantes
 
+
+    // intento recibir la conexion del kernel
+    while (cli_dispatch_fd == -1) {
+        cli_dispatch_fd = socket_acceptConns(dispatch_fd);
+    
+        // arranco el ciclo...
+        while (1)
+        {
+            if (context.pid == 0) {
+                t_packet* packet = packet_new(-1);
+                if (packet_recv(cli_dispatch_fd, packet)==-1) { // es bloqueante
+                    log_error(logger,"error al recibir el contexto del kernel");
+                }
+                packet_get_context(packet->buffer, &context);
+            }
+
+            char *instruction_text = fetch(fd_memoria, logger);
+            decode_and_execute(instruction_text, logger);
+
+            // check_interrupt(&interruption_queue, cli_dispatch_fd);
+        }
+        
+
+    }       
+        
     // cpu_close();
 
     return 0;

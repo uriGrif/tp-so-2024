@@ -28,7 +28,7 @@ t_command COMMANDS[] = {
     {"FINALIZAR_PROCESO", end_process, "Terminate a process", 1},
     {"DETENER_PLANIFICACION", stop_scheduler, "stop the short term scheduler", 0},
     {"INICIAR_PLANIFICACION", start_scheduler, "start or restart the short term scheduler", 0},
-    {"MULTIPROGRAMACION", multiprogramacion, "change multiprogramacion value", 1},
+    {"MULTIPROGRAMACION", multiprogramming, "change multiprogramming value", 1},
     {"PROCESO_ESTADO", list_processes_by_state, "list processes by their current state", 0},
     {NULL, NULL}};
 
