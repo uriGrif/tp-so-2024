@@ -12,12 +12,12 @@ char *fetch(int fd_memoria,uint32_t pid,t_log* logger)
     packet_free(request);
     request = packet_new(-1);
     if(packet_recv(fd_memoria,request) == -1){
-        printf("no me llego nada\n");
+        log_error(logger,"no me llego nada\n");
         packet_free(request);
         return NULL;
     }
     if(request->op_code != NEXT_INSTRUCTION){
-        printf("opcode invaliido\n");
+        log_error(logger,"opcode invaliido\n");
         packet_free(request);
         return NULL;
     }
