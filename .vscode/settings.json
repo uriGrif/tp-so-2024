@@ -28,6 +28,8 @@
         "instr_parser.h": "c",
         "registers.h": "c",
         "utils.h": "c",
-        "atomic": "c"
+        "atomic": "c",
+        "context.h": "c",
+        "queue.h": "c"
     }
 }

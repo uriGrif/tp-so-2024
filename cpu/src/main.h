@@ -14,8 +14,7 @@
 #include <dispatch.h>
 #include <instr_loop.h>
 #include <commons/collections/queue.h>
-#include<context.h>
-#include<registers.h>
+#include <context/context.h>
 
 #define CONFIG_PATH "cpu.config"
 #define LOG_LEVEL LOG_LEVEL_DEBUG

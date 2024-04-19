@@ -6,7 +6,6 @@ static int interrupt_fd;
 static t_config *config;
 static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
-t_cpu_registers registers;
 t_exec_context context;
 
 void config_init()
@@ -32,7 +31,6 @@ void config_init()
 
 void cpu_init()
 {
-    context.registers = &registers;
     config_init();
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
@@ -108,45 +106,46 @@ int main(int argc, char *argv[])
     packet_addString(packet, "Hello Memory! I'm the CPU!");
     packet_send(packet, fd_memoria);
     packet_free(packet);
+    // PRUEBA MEMORIA
     context.pid = 3;
-    for(; registers.pc<3; registers.pc++){
+    for(; context.registers.pc<3; context.registers.pc++){
     char* next_instruction = fetch(fd_memoria,logger);
     decode_and_execute(next_instruction,logger);
     }
    
-    log_debug(logger,"AX: %d BX: %d",registers.ax,registers.bx);
+    log_debug(logger,"AX: %d BX: %d", context.registers.ax, context.registers.bx);
+    log_debug(logger,"EL BX del context: %d", context.registers.bx);
 
-
-    // espero a que el kernel se conecte a dispatc
-    int cli_dispatch_fd;
-    cli_dispatch_fd = socket_acceptConns(dispatch_fd);
+    // espero a que el kernel se conecte a dispatch
+    int cli_dispatch_fd = -1;
 
     // declaro variables importantes
-    int32_t current_pid = -1;
-    t_instruction current_instruction;
-    char *instruction_text;
-    t_queue* interruption_queue = queue_create();
-
-    t_packet pcb_packet;
 
 
-    // arranco el ciclo...
-    while (1)
-    {
-        // if (current_pid == -1) {
-        //     packet_recv(cli_dispatch_fd, &pcb_packet); // es bloqueante
-        //     load_pcb(&pcb_packet, &current_pid);
-        // }
-
-        //instruction_text = fetch(fd_memoria, registers.pc);
-
-        // current_instruction = decode(instruction_text, &registers);
-
-        // execute(&current_instruction);
-
-        // check_interrupt(&interruption_queue, cli_dispatch_fd);
-    }
+    // intento recibir la conexion del kernel
+    while (cli_dispatch_fd == -1) {
+        cli_dispatch_fd = socket_acceptConns(dispatch_fd);
     
+        // arranco el ciclo...
+        while (1)
+        {
+            if (context.pid == 0) {
+                t_packet* packet = packet_new(-1);
+                if (packet_recv(cli_dispatch_fd, packet)==-1) { // es bloqueante
+                    log_error(logger,"error al recibir el contexto del kernel");
+                }
+                packet_get_context(packet->buffer, &context);
+            }
+
+            char *instruction_text = fetch(fd_memoria, logger);
+            decode_and_execute(instruction_text, logger);
+
+            // check_interrupt(&interruption_queue, cli_dispatch_fd);
+        }
+        
+
+    }       
+        
     // cpu_close();
 
     return 0;

@@ -1,9 +1,9 @@
 #ifndef INSTR_SET_CPU_H
 #define INSTR_SET_CPU_H
 
-#include<registers.h>
 #include<string.h>
 #include<stdlib.h>
+#include<register.h>
 
 typedef struct {
     char* name;

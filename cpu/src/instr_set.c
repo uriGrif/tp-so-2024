@@ -91,17 +91,18 @@ void sub(char **args)
 }
 
 void jnz(char **args)
-{
+{   
+    uint32_t* pc = &context.registers.pc;
     t_register *reg = register_get_by_name(args[0]);
     if (sizeof(uint8_t) == reg->size)
     {
         uint8_t *value = (uint8_t *)reg->address;
-        registers.pc = *value ? atoi(args[1]) : registers.pc;
+        *pc = *value ? atoi(args[1]) : *pc;
         return;
     }
 
     uint32_t *value = (uint32_t *)reg->address;
-    registers.pc = *value ? atoi(args[1]) : registers.pc;
+    *pc = *value ? atoi(args[1]) : *pc;
 }
 
 void io_gen_sleep(char **args)
