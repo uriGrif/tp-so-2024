@@ -21,3 +21,9 @@ void *queue_sync_pop(t_sync_queue *self)
     pthread_mutex_unlock(&self->mutex);
     return elem;
 }
+
+void sync_queue_destroy(t_sync_queue* self){
+    pthread_mutex_destroy(&self->mutex);
+    queue_destroy(self->queue);
+    free(self);
+}

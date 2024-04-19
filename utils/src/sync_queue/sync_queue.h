@@ -17,4 +17,6 @@ void queue_sync_push(t_sync_queue *self, void *element);
 
 void *queue_sync_pop(t_sync_queue *self);
 
+void sync_queue_destroy(t_sync_queue* self);
+
 #endif
