@@ -1,4 +1,4 @@
-#include <sync_queue.h>
+#include <sync_queue/sync_queue.h>
 
 t_sync_queue *sync_queue_create()
 {
