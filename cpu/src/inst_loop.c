@@ -2,11 +2,11 @@
 
 static char* args_as_string(char** args);
 
-char *fetch(int fd_memoria,uint32_t pid,t_log* logger)
+char *fetch(int fd_memoria,t_log* logger)
 {
-    log_info(logger,"PID: %d - FETCH - Program Counter: %d",pid,registers.pc);
+    log_info(logger,"PID: %d - FETCH - Program Counter: %d",context.pid,registers.pc);
     t_packet* request = packet_new(NEXT_INSTRUCTION);
-    packet_addUInt32(request,pid);
+    packet_addUInt32(request,context.pid);
     packet_addUInt32(request,registers.pc);
     packet_send(request,fd_memoria);
     packet_free(request);
@@ -29,14 +29,14 @@ char *fetch(int fd_memoria,uint32_t pid,t_log* logger)
 
 }
 
-void decode_and_execute(char *instruction,uint32_t pid,t_log* logger)
+void decode_and_execute(char *instruction,t_log* logger)
 {
     char **tokens = string_split(instruction, " ");
     char *instr_name = tokens[0];
     char **args = tokens + 1;
     char * string_of_args = args_as_string(args);
     t_instruction *inst = instruction_get_by_name(instr_name);
-    log_info(logger,"PID: %d - Ejecutando: %s - %s",pid,instr_name,string_of_args);
+    log_info(logger,"PID: %d - Ejecutando: %s - %s",context.pid,instr_name,string_of_args);
     free(string_of_args);
     inst->instr(args);
     string_array_destroy(tokens);

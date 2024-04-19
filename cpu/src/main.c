@@ -7,6 +7,7 @@ static t_config *config;
 static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
 t_cpu_registers registers;
+t_exec_context context;
 
 void config_init()
 {
@@ -31,6 +32,7 @@ void config_init()
 
 void cpu_init()
 {
+    context.registers = &registers;
     config_init();
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
@@ -87,7 +89,7 @@ void sighandler(int signal)
     exit(0);
 }
 
-void load_pcb(t_packet* pcb, int32_t* pid, t_register* registers) {
+void load_pcb(t_packet* pcb) {
     // TODO
     // leo el packet y cargo el contexto que me llego
 }
@@ -106,10 +108,10 @@ int main(int argc, char *argv[])
     packet_addString(packet, "Hello Memory! I'm the CPU!");
     packet_send(packet, fd_memoria);
     packet_free(packet);
-
+    context.pid = 3;
     for(; registers.pc<3; registers.pc++){
-    char* next_instruction = fetch(fd_memoria,3,logger);
-    decode_and_execute(next_instruction,3,logger);
+    char* next_instruction = fetch(fd_memoria,logger);
+    decode_and_execute(next_instruction,logger);
     }
    
     log_debug(logger,"AX: %d BX: %d",registers.ax,registers.bx);
@@ -133,7 +135,7 @@ int main(int argc, char *argv[])
     {
         // if (current_pid == -1) {
         //     packet_recv(cli_dispatch_fd, &pcb_packet); // es bloqueante
-        //     load_pcb(&pcb_packet, &current_pid, &registers);
+        //     load_pcb(&pcb_packet, &current_pid);
         // }
 
         //instruction_text = fetch(fd_memoria, registers.pc);
