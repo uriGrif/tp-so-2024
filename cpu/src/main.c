@@ -3,7 +3,7 @@
 t_log *logger;
 static int dispatch_fd;
 static int interrupt_fd;
-static int cli_dispatch_fd = -1;
+int cli_dispatch_fd = -1;
 static t_config *config;
 static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
@@ -46,7 +46,7 @@ void cpu_init()
     const int enable = 1;
     if (setsockopt(dispatch_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
         perror("setsockopt(SO_REUSEADDR) failed");
-     if (setsockopt(interrupt_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    if (setsockopt(interrupt_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
         perror("setsockopt(SO_REUSEADDR) failed");
 
     if (dispatch_fd == -1 || interrupt_fd == -1)
@@ -61,18 +61,12 @@ void cpu_init()
 void start_interrupt_listener()
 {
     // hago el accept y el manejo de las interrupts en otro hilo
-    // t_process_conn_args *interrupt_args = malloc(sizeof(t_process_conn_args));
-    // interrupt_args->logger = logger;
-    // interrupt_args->fd = interrupt_fd;
 
-    t_process_interrupt_args* interrupt_args = malloc(sizeof(t_process_interrupt_args));
+    t_process_conn_args *interrupt_args = malloc(sizeof(t_process_conn_args));
+    interrupt_args->fd = interrupt_fd;
     interrupt_args->logger = logger;
-    interrupt_args->server_fd = interrupt_fd;
-    interrupt_args->dispatch_fd = &cli_dispatch_fd;
 
-    
     // TODO: agregar la queue en los argumentos y un mutex
-
 
     pthread_create(&thread_intr, NULL, (void *)handle_interrupt, (void *)interrupt_args);
     pthread_detach(thread_intr);
@@ -95,7 +89,8 @@ void sighandler(int signal)
     exit(0);
 }
 
-void load_pcb(t_packet* pcb) {
+void load_pcb(t_packet *pcb)
+{
     // TODO
     // leo el packet y cargo el contexto que me llego
 }
@@ -120,49 +115,49 @@ int main(int argc, char *argv[])
     // // char* next_instruction = fetch(fd_memoria,logger);
     // // decode_and_execute(next_instruction,logger);
     // // }
-   
+
     // // log_debug(logger,"AX: %d BX: %d", context.registers.ax, context.registers.bx);
     // // log_debug(logger,"EL BX del context: %d", context.registers.bx);
 
     // espero a que el kernel se conecte a dispatch
-   
 
     // declaro variables importantes
 
-
     // intento recibir la conexion del kernel
-    while (cli_dispatch_fd == -1) {
+    while (cli_dispatch_fd == -1)
+    {
         cli_dispatch_fd = socket_acceptConns(dispatch_fd);
-    
+
         // arranco el ciclo...
         while (1)
         {
-            if (context.pid == 0) {
-                t_packet* packet = packet_new(-1);
-                if (packet_recv(cli_dispatch_fd, packet)==-1) { // es bloqueante
-                    log_error(logger,"se desconecto el kernel de dispatch");
+            if (context.pid == 0)
+            {
+                t_packet *packet = packet_new(-1);
+                if (packet_recv(cli_dispatch_fd, packet) == -1)
+                { // es bloqueante
+                    log_error(logger, "se desconecto el kernel de dispatch");
                     packet_free(packet);
                     cli_dispatch_fd = -1;
                     break;
                 }
                 packet_get_context(packet->buffer, &context);
                 packet_free(packet);
-                log_debug(logger,"me llego: pid: %d, quantum: %d",context.pid,context.quantum);
+                log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
             }
             char *next_instruction = fetch(fd_memoria, logger);
             context.registers.pc++;
             decode_and_execute(next_instruction, logger);
             check_interrupt();
-           
-            if(context.registers.pc == 7){
-                log_debug(logger,"AX: %d",context.registers.ax);
-                context.pid =0;
-            } 
-        }
-        
 
-    }       
-        
+            if (context.registers.pc == 7)
+            {
+                log_debug(logger, "AX: %d", context.registers.ax);
+                context.pid = 0;
+            }
+        }
+    }
+
     // cpu_close();
 
     return 0;

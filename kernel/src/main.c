@@ -96,21 +96,20 @@ int main(int argc, char *argv[])
 
     log_info(logger, "connected to server\n");
 
-    t_packet* packet = packet_new(INTERRUPT_EXEC);
-    packet_addString(packet, "hello interrupt port! I'm the kernel");
-    packet_addUInt32(packet, 100);
-    packet_addString(packet, "bye interrupt port! See u again!");
-    packet_send(packet, fd_interrupt);
-    log_info(logger,"packet sent");
-    packet_free(packet);
+    // t_packet* packet = packet_new(INTERRUPT_EXEC);
+    // packet_addString(packet, "hello interrupt port! I'm the kernel");
+    // packet_addUInt32(packet, 100);
+    // packet_addString(packet, "bye interrupt port! See u again!");
+    // packet_send(packet, fd_interrupt);
+    // log_info(logger,"packet sent");
+    // packet_free(packet);
     
 
-    packet = packet_new(EXEC_PROCESS);
+    t_packet* packet = packet_new(EXEC_PROCESS);
     t_pcb* a_process = pcb_create();
     packet_add_context(packet,a_process->context);
     packet_send(packet, fd_dispatch);
     log_info(logger,"packet sent");
-    pcb_destroy(a_process);
     packet_free(packet);
     
     packet = packet_new(INTERRUPT_EXEC);
@@ -118,8 +117,14 @@ int main(int argc, char *argv[])
     packet_addUInt32(packet, 75);
     packet_addString(packet, "bye interrupt port! See u again!");
     packet_send(packet, fd_interrupt);
-    log_info(logger,"packet sent");
     packet_free(packet);
+    log_info(logger,"packet sent");
+    packet = packet_new(-1);
+    packet_recv(fd_dispatch,packet);
+    packet_get_context(packet->buffer,a_process->context);
+    log_info(logger,"motivo: %d, ax: %d",packet->op_code,a_process->context->registers.ax);
+    packet_free(packet);
+    pcb_destroy(a_process);
 
     packet = packet_new(CREATE_PROCESS);
     char *arr_prueba[] = {"hello", "memory !", "I'm the kernel", NULL};

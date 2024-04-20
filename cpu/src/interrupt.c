@@ -1,10 +1,10 @@
 #include <interrupt.h>
 
-int interrupt_flag=0;
+int interrupt_flag = 0;
 sem_t sem_interrupt;
 sem_t sem_interrupt_done;
 
-void process_interrupt_conn(int fd,int* dispatch_fd, t_log *logger)
+void process_interrupt_conn(int fd, t_log *logger)
 {
     while (1)
     {
@@ -28,6 +28,7 @@ void process_interrupt_conn(int fd,int* dispatch_fd, t_log *logger)
             log_info(logger, "string: %s\n", str);
             log_info(logger, "number: %d\n", value);
             log_info(logger, "string2: %s\n", str2);
+            send_dispatch_reason(END_PROCESS, &context);
             free(str);
             free(str2);
             break;
@@ -41,7 +42,7 @@ void process_interrupt_conn(int fd,int* dispatch_fd, t_log *logger)
             log_error(logger, "undefined behaviour cop: %d", packet->op_code);
             break;
         }
-        //log_debug(logger,"hola estoy aca");
+        // log_debug(logger,"hola estoy aca");
         packet_free(packet);
         sem_post(&sem_interrupt_done);
     }
@@ -49,10 +50,9 @@ void process_interrupt_conn(int fd,int* dispatch_fd, t_log *logger)
 
 void handle_interrupt(void *_args)
 {
-    t_process_interrupt_args *args = _args;
+    t_process_conn_args *args = _args;
     t_log *logger = args->logger;
-    int server_fd = args->server_fd;
-    int *cli_dispatch_fd = args->dispatch_fd;
+    int server_fd = args->fd;
 
     free(args);
 
@@ -62,17 +62,18 @@ void handle_interrupt(void *_args)
         if (client_fd == -1)
             continue;
 
-        process_interrupt_conn(client_fd,cli_dispatch_fd,logger);
+        process_interrupt_conn(client_fd, logger);
     }
 }
 
-void init_sem_interrupt(){
-    sem_init(&sem_interrupt,0,0);
-    sem_init(&sem_interrupt_done,0,0);
+void init_sem_interrupt()
+{
+    sem_init(&sem_interrupt, 0, 0);
+    sem_init(&sem_interrupt_done, 0, 0);
 }
 
-
-void close_sem_interrupt(){
+void close_sem_interrupt()
+{
     sem_destroy(&sem_interrupt);
     sem_destroy(&sem_interrupt_done);
 }
