@@ -159,5 +159,8 @@ void io_fs_read(char **args,t_log* logger){
 }
 // para no tener conflitcto
 void instruction_exit(char **args,t_log* logger){
-
+    //TODO POR AHORA ES UNA CONDICION FALOPA
+    //deberia hacer algo como esto
+    //send_dispatch_reason(END_PROCESS,&context);
+    context.pid = 0;
 }

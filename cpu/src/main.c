@@ -149,12 +149,6 @@ int main(int argc, char *argv[])
             context.registers.pc++;
             decode_and_execute(next_instruction, logger);
             check_interrupt();
-
-            if (context.registers.pc == 7)
-            {
-                log_debug(logger, "AX: %d", context.registers.ax);
-                context.pid = 0;
-            }
         }
     }
 
