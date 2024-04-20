@@ -49,13 +49,13 @@ void execute(void (*instr)(char **args, t_log *logger), char **args, t_log *logg
     instr(args, logger);
 }
 
-void check_interrupt()
+void check_interrupt(t_log *logger)
 {
-    if (interrupt_flag)
-    {
-        sem_post(&sem_interrupt);
+    if (interrupt_flag) {
         interrupt_flag = 0;
-        sem_wait(&sem_interrupt_done);
+        send_dispatch_reason(INTERRUPT_EXEC,&context);
+        log_info(logger, "PID: %d - Fue interrumpido", context.pid);
+        wait_for_context(&context);
     }
 }
 

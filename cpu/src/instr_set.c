@@ -1,5 +1,7 @@
 #include <instr_set.h>
 
+int current_exec_process_has_finished = 0;
+
 void set(char **args,t_log* logger);
 void sum(char **args,t_log* logger);
 void sub(char **args,t_log* logger);
@@ -161,6 +163,6 @@ void io_fs_read(char **args,t_log* logger){
 void instruction_exit(char **args,t_log* logger){
     //TODO POR AHORA ES UNA CONDICION FALOPA
     //deberia hacer algo como esto
-    //send_dispatch_reason(END_PROCESS,&context);
-    context.pid = 0;
+    send_dispatch_reason(END_PROCESS,&context);
+    current_exec_process_has_finished = 1;
 }

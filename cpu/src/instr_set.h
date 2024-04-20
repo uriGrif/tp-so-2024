@@ -15,4 +15,6 @@ typedef struct {
 extern t_instruction INSTRUCTION_SET[];
 t_instruction *instruction_get_by_name(char *name);
 
+extern int current_exec_process_has_finished;
+
 #endif

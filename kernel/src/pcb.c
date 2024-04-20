@@ -27,8 +27,9 @@ void init_context(t_exec_context *context)
     t_cpu_registers reg = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     context->registers = reg;
 }
+
 uint32_t get_next_pid()
 {
-    // TODO SANTI
-    return 3;
+    static uint32_t pid_counter =0;
+    return ++pid_counter;
 }

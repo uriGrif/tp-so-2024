@@ -54,7 +54,6 @@ void cpu_init()
         printf("error: %s", strerror(errno));
         exit(1);
     }
-    init_sem_interrupt();
     log_info(logger, "server starting");
 }
 
@@ -74,7 +73,6 @@ void start_interrupt_listener()
 
 void cpu_close()
 {
-    close_sem_interrupt();
     pthread_cancel(thread_intr);
     log_destroy(logger);
     free(cfg_cpu);
@@ -87,12 +85,6 @@ void sighandler(int signal)
     close(dispatch_fd);
     close(interrupt_fd);
     exit(0);
-}
-
-void load_pcb(t_packet *pcb)
-{
-    // TODO
-    // leo el packet y cargo el contexto que me llego
 }
 
 int main(int argc, char *argv[])
@@ -109,19 +101,7 @@ int main(int argc, char *argv[])
     packet_addString(packet, "Hello Memory! I'm the CPU!");
     packet_send(packet, fd_memoria);
     packet_free(packet);
-    // // PRUEBA MEMORIA
-    // context.pid = 3;
-    // // for(; context.registers.pc<3; context.registers.pc++){
-    // // char* next_instruction = fetch(fd_memoria,logger);
-    // // decode_and_execute(next_instruction,logger);
-    // // }
 
-    // // log_debug(logger,"AX: %d BX: %d", context.registers.ax, context.registers.bx);
-    // // log_debug(logger,"EL BX del context: %d", context.registers.bx);
-
-    // espero a que el kernel se conecte a dispatch
-
-    // declaro variables importantes
 
     // intento recibir la conexion del kernel
     while (cli_dispatch_fd == -1)
@@ -131,24 +111,22 @@ int main(int argc, char *argv[])
         // arranco el ciclo...
         while (1)
         {
-            if (context.pid == 0)
+            current_exec_process_has_finished = 0;
+            if (wait_for_context(&context) == -1)
             {
-                t_packet *packet = packet_new(-1);
-                if (packet_recv(cli_dispatch_fd, packet) == -1)
-                { // es bloqueante
-                    log_error(logger, "se desconecto el kernel de dispatch");
-                    packet_free(packet);
-                    cli_dispatch_fd = -1;
-                    break;
-                }
-                packet_get_context(packet->buffer, &context);
-                packet_free(packet);
-                log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+                log_error(logger, "se desconecto el kernel de dispatch");
+                cli_dispatch_fd = -1;
+                break;
             }
-            char *next_instruction = fetch(fd_memoria, logger);
-            context.registers.pc++;
-            decode_and_execute(next_instruction, logger);
-            check_interrupt();
+            log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+
+            while (!current_exec_process_has_finished)
+            {
+                char *next_instruction = fetch(fd_memoria, logger);
+                context.registers.pc++;
+                decode_and_execute(next_instruction, logger);
+                check_interrupt(logger);
+            };
         }
     }
 

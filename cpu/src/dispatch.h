@@ -7,6 +7,6 @@
 extern int cli_dispatch_fd;
 
 void send_dispatch_reason(t_opcode reason,t_exec_context* contxt);
-
+int wait_for_context(t_exec_context* contxt);
 
 #endif

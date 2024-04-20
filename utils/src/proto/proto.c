@@ -74,8 +74,12 @@ int packet_recv(int fd, t_packet *packet)
     // RECIBO EL size DEL BUFFER
     if (recv(fd, &size, sizeof(uint32_t), 0) != sizeof(uint32_t))
         return -1;
+    
+    if(size == 0) return 0;
 
     packet->buffer->size = size;
+
+    
     // log_debug(logger,"size: %d",packet->buffer->size);
     packet->buffer->stream = malloc(size);
 
