@@ -3,7 +3,7 @@
 static t_log *logger;
 static t_config *config;
 static int server_fd;
-static t_kernel_config *cfg_kernel;
+t_kernel_config *cfg_kernel;
 pthread_t LISTENER_THREAD;
 
 void config_init()
@@ -101,22 +101,22 @@ int main(int argc, char *argv[])
     packet_addUInt32(packet, 100);
     packet_addString(packet, "bye interrupt port! See u again!");
     packet_send(packet, fd_interrupt);
-    printf("packet sent\n");
+    log_info(logger,"packet sent");
     packet_free(packet);
 
     packet = packet_new(EXEC_PROCESS);
-    packet_addString(packet, "hello dispatch port! I'm the kernel");
-    packet_addUInt32(packet, 100);
-    packet_addString(packet, "bye dispatch port! See u again!");
+    t_pcb* a_process = pcb_create();
+    packet_add_context(packet,a_process->context);
     packet_send(packet, fd_dispatch);
-    printf("packet sent\n");
+    log_info(logger,"packet sent");
+    pcb_destroy(a_process);
     packet_free(packet);
 
     packet = packet_new(CREATE_PROCESS);
     char *arr_prueba[] = {"hello", "memory !", "I'm the kernel", NULL};
     packet_add_string_arr(packet, arr_prueba);
     packet_send(packet, fd_memory);
-    printf("packet sent\n");
+    log_info(logger,"packet sent");
     packet_free(packet);
 
     start_console();

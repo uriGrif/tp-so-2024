@@ -14,6 +14,8 @@
 #include <pthread.h>
 #include <string.h>
 #include <comms_kernel.h>
+#include<config.h>
+#include<pcb.h>
 #include <console.h>
 
 #define CONFIG_PATH "kernel.config"
@@ -21,19 +23,6 @@
 #define LOG_PATH "kernel.log"
 #define PROCESS_NAME "Kernel"
 
-typedef struct
-{
-    char *puerto_escucha;
-    char *ip_memoria;
-    char *puerto_memoria;
-    char *ip_cpu;
-    char *puerto_cpu_dispatch;
-    char *puerto_cpu_interrupt;
-    char *algoritmo_planificacion;
-    int quantum;
-    char **recursos;
-    char **instancias_recursos;
-    int grado_multiprogramacion;
-} t_kernel_config;
+
 
 #endif

@@ -106,15 +106,15 @@ int main(int argc, char *argv[])
     packet_addString(packet, "Hello Memory! I'm the CPU!");
     packet_send(packet, fd_memoria);
     packet_free(packet);
-    // PRUEBA MEMORIA
-    context.pid = 3;
-    for(; context.registers.pc<3; context.registers.pc++){
-    char* next_instruction = fetch(fd_memoria,logger);
-    decode_and_execute(next_instruction,logger);
-    }
+    // // PRUEBA MEMORIA
+    // context.pid = 3;
+    // // for(; context.registers.pc<3; context.registers.pc++){
+    // // char* next_instruction = fetch(fd_memoria,logger);
+    // // decode_and_execute(next_instruction,logger);
+    // // }
    
-    log_debug(logger,"AX: %d BX: %d", context.registers.ax, context.registers.bx);
-    log_debug(logger,"EL BX del context: %d", context.registers.bx);
+    // // log_debug(logger,"AX: %d BX: %d", context.registers.ax, context.registers.bx);
+    // // log_debug(logger,"EL BX del context: %d", context.registers.bx);
 
     // espero a que el kernel se conecte a dispatch
     int cli_dispatch_fd = -1;
@@ -132,14 +132,23 @@ int main(int argc, char *argv[])
             if (context.pid == 0) {
                 t_packet* packet = packet_new(-1);
                 if (packet_recv(cli_dispatch_fd, packet)==-1) { // es bloqueante
-                    log_error(logger,"error al recibir el contexto del kernel");
+                    log_error(logger,"se desconecto el kernel de dispatch");
+                    packet_free(packet);
+                    cli_dispatch_fd = -1;
+                    break;
                 }
                 packet_get_context(packet->buffer, &context);
+                packet_free(packet);
+                log_debug(logger,"me llego: pid: %d, quantum: %d",context.pid,context.quantum);
             }
-
-            char *instruction_text = fetch(fd_memoria, logger);
-            decode_and_execute(instruction_text, logger);
-
+            char *next_instruction = fetch(fd_memoria, logger);
+            context.registers.pc++;
+            decode_and_execute(next_instruction, logger);
+           
+            if(context.registers.pc == 7){
+                log_debug(logger,"AX: %d",context.registers.ax);
+                context.pid =0;
+            } 
             // check_interrupt(&interruption_queue, cli_dispatch_fd);
         }
         
