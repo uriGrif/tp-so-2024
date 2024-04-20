@@ -9,12 +9,13 @@
 #include<commons/log.h>
 #include<utils/utlis.h>
 #include<context/context.h>
+#include<interrupt.h>
 #include<proto/proto.h>
 
 char *fetch(int fd_memoria,t_log* logger);
 
 void decode_and_execute(char *instruction,t_log* logger);
 
-void check_interrupt(t_queue* interruption_queue, int dispatch_fd);
+void check_interrupt();
 
 #endif

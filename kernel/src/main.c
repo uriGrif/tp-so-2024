@@ -96,13 +96,15 @@ int main(int argc, char *argv[])
 
     log_info(logger, "connected to server\n");
 
-    t_packet *packet = packet_new(INTERRUPT_EXEC);
+    t_packet* packet = packet_new(INTERRUPT_EXEC);
     packet_addString(packet, "hello interrupt port! I'm the kernel");
     packet_addUInt32(packet, 100);
     packet_addString(packet, "bye interrupt port! See u again!");
     packet_send(packet, fd_interrupt);
     log_info(logger,"packet sent");
     packet_free(packet);
+    usleep(1);
+    
 
     packet = packet_new(EXEC_PROCESS);
     t_pcb* a_process = pcb_create();
@@ -110,6 +112,14 @@ int main(int argc, char *argv[])
     packet_send(packet, fd_dispatch);
     log_info(logger,"packet sent");
     pcb_destroy(a_process);
+    packet_free(packet);
+    
+    packet = packet_new(INTERRUPT_EXEC);
+    packet_addString(packet, "hello interrupt port! I'm the kernel");
+    packet_addUInt32(packet, 75);
+    packet_addString(packet, "bye interrupt port! See u again!");
+    packet_send(packet, fd_interrupt);
+    log_info(logger,"packet sent");
     packet_free(packet);
 
     packet = packet_new(CREATE_PROCESS);

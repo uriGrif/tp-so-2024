@@ -3,6 +3,7 @@
 t_log *logger;
 static int dispatch_fd;
 static int interrupt_fd;
+static int cli_dispatch_fd = -1;
 static t_config *config;
 static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
@@ -53,16 +54,22 @@ void cpu_init()
         printf("error: %s", strerror(errno));
         exit(1);
     }
-
+    init_sem_interrupt();
     log_info(logger, "server starting");
 }
 
 void start_interrupt_listener()
 {
     // hago el accept y el manejo de las interrupts en otro hilo
-    t_process_conn_args *interrupt_args = malloc(sizeof(t_process_conn_args));
+    // t_process_conn_args *interrupt_args = malloc(sizeof(t_process_conn_args));
+    // interrupt_args->logger = logger;
+    // interrupt_args->fd = interrupt_fd;
+
+    t_process_interrupt_args* interrupt_args = malloc(sizeof(t_process_interrupt_args));
     interrupt_args->logger = logger;
-    interrupt_args->fd = interrupt_fd;
+    interrupt_args->server_fd = interrupt_fd;
+    interrupt_args->dispatch_fd = &cli_dispatch_fd;
+
     
     // TODO: agregar la queue en los argumentos y un mutex
 
@@ -73,6 +80,7 @@ void start_interrupt_listener()
 
 void cpu_close()
 {
+    close_sem_interrupt();
     pthread_cancel(thread_intr);
     log_destroy(logger);
     free(cfg_cpu);
@@ -117,7 +125,7 @@ int main(int argc, char *argv[])
     // // log_debug(logger,"EL BX del context: %d", context.registers.bx);
 
     // espero a que el kernel se conecte a dispatch
-    int cli_dispatch_fd = -1;
+   
 
     // declaro variables importantes
 
@@ -144,12 +152,12 @@ int main(int argc, char *argv[])
             char *next_instruction = fetch(fd_memoria, logger);
             context.registers.pc++;
             decode_and_execute(next_instruction, logger);
+            check_interrupt();
            
             if(context.registers.pc == 7){
                 log_debug(logger,"AX: %d",context.registers.ax);
                 context.pid =0;
             } 
-            // check_interrupt(&interruption_queue, cli_dispatch_fd);
         }
         
 
