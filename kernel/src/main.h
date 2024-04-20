@@ -10,7 +10,6 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <commons/string.h>
-#include <unistd.h>
 #include <sys/signal.h>
 #include <pthread.h>
 #include <string.h>

@@ -103,7 +103,6 @@ int main(int argc, char *argv[])
     packet_send(packet, fd_interrupt);
     log_info(logger,"packet sent");
     packet_free(packet);
-    usleep(1);
     
 
     packet = packet_new(EXEC_PROCESS);
