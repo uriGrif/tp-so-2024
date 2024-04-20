@@ -10,7 +10,7 @@
 - [ ] instruccion io gen_sleep Entrada y salida 2)
 
 ### Memoria
-- [ ] agregar lista de procesos para saber encontrar por pid (sin orden particular)
+- [ ] agregar lista de procesos para saber encontrar por pid (sin orden particular) MATI
 
 ### I/O
 - [ ] Interfaz generica 1)
