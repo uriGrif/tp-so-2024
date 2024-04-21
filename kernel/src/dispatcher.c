@@ -21,10 +21,6 @@ int wait_for_dispatch_reason(t_log *logger)
 
     switch (packet->op_code)
     {
-    case INTERRUPT_EXEC:{
-        log_info(logger,"me devolvieron el contexto por interrupcion");
-        break;
-    }
     case END_PROCESS:
     {
         t_exec_context *contxt = malloc(sizeof(t_exec_context));
@@ -49,18 +45,23 @@ int wait_for_dispatch_reason(t_log *logger)
         //  intentar hacer sleep y si no coincide lo mando a exit
         //  hacer el sleep
     }
-    case END_OF_QUANTUM:
-    {
-        // tocar grado multiprogramacion
-        //  actualizar context del pcb
-        //  pasar el proceso a ready
-        break;
-    }
-
     default:
         log_error(logger, "operacion desconocida opcode: %d", packet->op_code);
         break;
     }
 
     packet_free(packet);
+}
+
+int wait_for_context_no_reason(t_pcb* pcb){
+    t_packet *packet = packet_new(-1);
+    if (packet_recv(fd_dispatch, packet) == -1)
+    {
+        packet_free(packet);
+        return -1;
+    }
+
+    packet_get_context(packet->buffer,pcb->context);
+    packet_free(packet);
+    return 0;
 }
