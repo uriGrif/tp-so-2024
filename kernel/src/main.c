@@ -41,6 +41,9 @@ void init_kernel(void)
 
     config_init();
 
+    // create interface resources
+    interface_init();
+
     server_fd = socket_createTcpServer(NULL, cfg_kernel->puerto_escucha);
     if (server_fd == -1)
     {
@@ -49,7 +52,7 @@ void init_kernel(void)
     }
     const int enable = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-        log_error(logger,"setsockopt(SO_REUSEADDR) failed");
+        log_error(logger, "setsockopt(SO_REUSEADDR) failed");
     t_process_conn_args args;
     args.fd = server_fd;
     args.logger = logger;
@@ -66,6 +69,7 @@ void kernel_close(void)
 {
     destroy_queues();
     log_destroy(logger);
+    destroy_interface_dictionary();
     string_array_destroy(cfg_kernel->recursos);
     string_array_destroy(cfg_kernel->instancias_recursos);
     free(cfg_kernel);
@@ -102,14 +106,13 @@ int main(int argc, char *argv[])
     send_context_to_cpu(a_process->context);
     log_info(logger,"packet sent");
     
-    send_interrupt();
+    send_interrupt(a_process);
     log_info(logger,"packet sent");
-    wait_for_context_no_reason(a_process);
     log_info(logger, "me llego PID: %d AX: %d", a_process->context->pid, a_process->context->registers.ax);
 
     send_context_to_cpu(a_process->context);
+    wait_for_dispatch_reason(a_process,logger);
     pcb_destroy(a_process);
-    wait_for_dispatch_reason(logger);
 
     start_console(logger);
 

@@ -18,15 +18,20 @@ void process_conn(void *void_args)
         }
         switch (packet->op_code)
         {
-        case IO_GEN_SLEEP:
+        case NEW_INTERFACE:
         {
-            uint32_t secs = packet_getUInt32(packet->buffer);
-            log_info(logger, "voy a dormir %d segundos", secs);
-            sleep(secs);
-            t_packet *p = packet_new(DESTROY_PROCESS);
-            packet_addString(p, "Hello from Kernel!");
-            packet_send(p, client_fd);
-            packet_free(p);
+            t_interface *interface = malloc(sizeof(t_interface));
+            interface->fd = client_fd;
+            interface_decode_new(packet->buffer, interface);
+            interface_add(interface);
+            log_info(logger, "New interface registered: name: %s - type: %s", interface->name, interface->type);
+            break;
+        }
+        case IO_GEN_SLEEP_DONE:
+        {
+            // now we should move the process waiting for this i/o to finish from blocked to ready.
+            uint32_t pid = packet_getUInt32(packet->buffer);
+            log_info(logger, "I/O operation for process with PID %d has finished", pid);
             break;
         }
         case -1:

@@ -3,14 +3,13 @@
 
 #include <string.h>
 #include <commons/string.h>
-#include<commons/collections/list.h>
-#include<stdio.h>
-#include<sys/stat.h>
-#include<errno.h>
-#include<stdint.h>
+#include <commons/collections/list.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <stdint.h>
 
 #define BUFFER_MAX_LENGTH 100
-
 
 /**
  * @fn    string_arr_as_string
@@ -28,8 +27,8 @@ t_list *file_get_list_of_lines(char *file_path);
  * @fn    file_get_nth_line
  * @brief de un archivo, devuelve la enesima linea sin el '\n' arranca en 0
  */
-char* file_get_nth_line(char* file_path, int n);
+char *file_get_nth_line(char *file_path, int n);
 
-
+int msToSeconds(int seconds);
 
 #endif
