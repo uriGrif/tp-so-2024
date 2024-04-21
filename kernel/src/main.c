@@ -41,6 +41,9 @@ void init_kernel(void)
 
     config_init();
 
+    // create interface resources
+    interface_init();
+
     server_fd = socket_createTcpServer(NULL, cfg_kernel->puerto_escucha);
     if (server_fd == -1)
     {
@@ -49,7 +52,7 @@ void init_kernel(void)
     }
     const int enable = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-        log_error(logger,"setsockopt(SO_REUSEADDR) failed");
+        log_error(logger, "setsockopt(SO_REUSEADDR) failed");
     t_process_conn_args args;
     args.fd = server_fd;
     args.logger = logger;

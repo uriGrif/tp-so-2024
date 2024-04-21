@@ -17,16 +17,13 @@
 #include <pthread.h>
 #include <string.h>
 #include <comms_kernel.h>
-#include<config.h>
-#include<state_queues.h>
-#include<pcb.h>
+#include <config.h>
+#include <pcb.h>
 #include <console.h>
 
 #define CONFIG_PATH "kernel.config"
 #define LOG_LEVEL LOG_LEVEL_INFO
 #define LOG_PATH "kernel.log"
 #define PROCESS_NAME "Kernel"
-
-
 
 #endif

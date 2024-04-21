@@ -27,5 +27,6 @@ void socket_acceptOnDemand(int fd, t_log *logger, void (*connection_handler)(voi
 // CLIENT
 int socket_connectToServer(char *host, char *port);
 void socket_freeConn(int socket_cliente);
+int socket_isConnected(int fd);
 
 #endif
