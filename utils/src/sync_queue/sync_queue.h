@@ -2,6 +2,7 @@
 #define SYNC_QUEUE_H
 
 #include <commons/collections/queue.h>
+#include <commons/collections/list.h>
 #include <pthread.h>
 #include <stdlib.h>
 
@@ -17,6 +18,14 @@ void queue_sync_push(t_sync_queue *self, void *element);
 
 void *queue_sync_pop(t_sync_queue *self);
 
-void sync_queue_destroy(t_sync_queue* self);
+void sync_queue_destroy(t_sync_queue *self);
+
+void sync_queue_destroy_with_destroyer(t_sync_queue *self, void (*destroyer)(void *));
+
+int sync_queue_length(t_sync_queue *self);
+
+void *sync_queue_find_elem(t_sync_queue *self, bool (*closure)(void *));
+
+void sync_queue_iterate(t_sync_queue *self, void (*iterator)(void *));
 
 #endif

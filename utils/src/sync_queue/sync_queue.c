@@ -5,6 +5,7 @@ t_sync_queue *sync_queue_create()
     t_sync_queue *s_queue = malloc(sizeof(t_sync_queue));
     s_queue->queue = queue_create();
     pthread_mutex_init(&s_queue->mutex, NULL);
+    return s_queue;
 }
 
 void queue_sync_push(t_sync_queue *self, void *element)
@@ -22,8 +23,39 @@ void *queue_sync_pop(t_sync_queue *self)
     return elem;
 }
 
-void sync_queue_destroy(t_sync_queue* self){
+void sync_queue_destroy(t_sync_queue *self)
+{
     pthread_mutex_destroy(&self->mutex);
-    queue_destroy(self->queue);
+    queue_destroy_and_destroy_elements(self->queue, free);
     free(self);
+}
+
+void sync_queue_destroy_with_destroyer(t_sync_queue *self, void (*destroyer)(void *))
+{
+    pthread_mutex_destroy(&self->mutex);
+    queue_destroy_and_destroy_elements(self->queue, destroyer);
+    free(self);
+}
+
+int sync_queue_length(t_sync_queue *self)
+{
+    pthread_mutex_lock(&self->mutex);
+    int length = queue_size(self->queue);
+    pthread_mutex_unlock(&self->mutex);
+    return length;
+}
+
+void *sync_queue_find_elem(t_sync_queue *self, bool (*closure)(void *))
+{
+    pthread_mutex_lock(&self->mutex);
+    void *elem = list_find(self->queue->elements, closure);
+    pthread_mutex_unlock(&self->mutex);
+    return elem;
+}
+
+void sync_queue_iterate(t_sync_queue *self, void (*iterator)(void *))
+{
+    pthread_mutex_lock(&self->mutex);
+    list_iterate(self->queue->elements, iterator);
+    pthread_mutex_unlock(&self->mutex);
 }
