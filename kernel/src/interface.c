@@ -2,7 +2,9 @@
 
 t_dictionary *interface_dictionary;
 
-void interface_init()
+static void interface_destroyer(t_interface* interface);
+
+void interface_init(void)
 {
     interface_dictionary = dictionary_create();
 }
@@ -50,7 +52,7 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
     {
         socket_freeConn(interface->fd);
         return NULL;
-    };
+    }
 
     if (!interface_can_run_instruction(interface, instruction_to_run))
         return NULL;
@@ -61,7 +63,7 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
 void interface_destroy(t_interface *interface)
 {
     t_interface *inter = dictionary_remove(interface_dictionary, interface->name);
-    free(inter);
+    interface_destroyer(inter);
 }
 
 /**
@@ -89,6 +91,18 @@ int interface_send_io_gen_sleep(int fd, uint32_t pid, uint32_t work_units)
     packet_addUInt32(packet, pid);
     packet_addUInt32(packet, work_units);
     int res = packet_send(packet, fd);
-    free(packet);
+    packet_free(packet);
     return res;
 }
+
+
+void destroy_interface_dictionary(void){
+    dictionary_destroy_and_destroy_elements(interface_dictionary,interface_destroyer);
+}
+
+static void interface_destroyer(t_interface* interface){
+    free(interface->name);
+    free(interface->type);
+    free(interface);
+}
+   

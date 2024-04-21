@@ -7,7 +7,7 @@ int registerResourceInKernel(int kernel_fd, t_log *logger, t_io_config *cfg_io)
     packet_addString(packet, cfg_io->name);
     packet_addString(packet, cfg_io->tipo_interfaz);
     int res = packet_send(packet, kernel_fd);
-    free(packet);
+    packet_free(packet);
 
     return res;
 }
@@ -28,7 +28,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     {
         t_packet *packet = packet_new(IO_GEN_SLEEP_DONE);
         packet_send(packet, kernel_fd);
-        free(packet);
+        packet_free(packet);
     }
 
     switch (operation)

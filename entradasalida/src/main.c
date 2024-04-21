@@ -3,6 +3,7 @@
 static t_log *logger;
 static t_config *config;
 static t_io_config *cfg_io;
+static char* interface_name;
 static char *config_path;
 int memory_fd;
 int kernel_fd;
@@ -16,6 +17,7 @@ void config_init(void)
         exit(1);
     }
     cfg_io = malloc(sizeof(t_io_config));
+    cfg_io->name = interface_name;
     cfg_io->tipo_interfaz = config_get_string_value(config, "TIPO_INTERFAZ");
     cfg_io->unidad_trabajo = config_get_int_value(config, "TIEMPO_UNIDAD_TRABAJO");
     cfg_io->ip_kernel = config_get_string_value(config, "IP_KERNEL");
@@ -42,7 +44,7 @@ void io_init(int argc, char **argv)
         log_error(logger, "You must provide the name and the path to the config file");
         exit(1);
     }
-    cfg_io->name = argv[1];
+    interface_name = argv[1];
     config_path = argv[2];
 
     config_init();

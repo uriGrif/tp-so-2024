@@ -69,6 +69,7 @@ void kernel_close(void)
 {
     destroy_queues();
     log_destroy(logger);
+    destroy_interface_dictionary();
     string_array_destroy(cfg_kernel->recursos);
     string_array_destroy(cfg_kernel->instancias_recursos);
     free(cfg_kernel);
@@ -110,8 +111,8 @@ int main(int argc, char *argv[])
     log_info(logger, "me llego PID: %d AX: %d", a_process->context->pid, a_process->context->registers.ax);
 
     send_context_to_cpu(a_process->context);
+    wait_for_dispatch_reason(a_process,logger);
     pcb_destroy(a_process);
-    wait_for_dispatch_reason(logger);
 
     start_console(logger);
 
