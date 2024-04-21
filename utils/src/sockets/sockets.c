@@ -199,3 +199,19 @@ void socket_acceptOnDemand(int fd, t_log *logger, void (*connection_handler)(voi
         pthread_detach(client_thread);
     }
 }
+
+int socket_isConnected(int fd)
+{
+    int error = 0;
+    socklen_t len = sizeof(error);
+    /**
+     * If getsockopt() returns 0 and error is 0,
+     * it means the socket is still connected.
+     * If error is not 0, it means there was an error, and the socket is not connected anymore.
+     */
+    int retval = getsockopt(fd, SOL_SOCKET, SO_ERROR, &error, &len);
+    if (retval != 0)
+        return 0;
+
+    return (error == 0);
+}

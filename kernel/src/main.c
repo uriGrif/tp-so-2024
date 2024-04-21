@@ -41,6 +41,9 @@ void init_kernel()
 
     config_init();
 
+    // create interface resources
+    interface_init();
+
     server_fd = socket_createTcpServer(NULL, cfg_kernel->puerto_escucha);
     if (server_fd == -1)
     {
@@ -49,7 +52,7 @@ void init_kernel()
     }
     const int enable = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-        log_error(logger,"setsockopt(SO_REUSEADDR) failed");
+        log_error(logger, "setsockopt(SO_REUSEADDR) failed");
     t_process_conn_args args;
     args.fd = server_fd;
     args.logger = logger;
@@ -103,28 +106,27 @@ int main(int argc, char *argv[])
     // packet_send(packet, fd_interrupt);
     // log_info(logger,"packet sent");
     // packet_free(packet);
-    
 
-    t_packet* packet = packet_new(EXEC_PROCESS);
-    t_pcb* a_process = pcb_create();
-    packet_add_context(packet,a_process->context);
+    t_packet *packet = packet_new(EXEC_PROCESS);
+    t_pcb *a_process = pcb_create();
+    packet_add_context(packet, a_process->context);
     packet_send(packet, fd_dispatch);
-    log_info(logger,"packet sent");
+    log_info(logger, "packet sent");
     packet_free(packet);
-    
+
     packet = packet_new(INTERRUPT_EXEC);
     packet_send(packet, fd_interrupt);
-    log_info(logger,"packet sent");
+    log_info(logger, "packet sent");
     packet_free(packet);
     packet = packet_new(-1);
-    packet_recv(fd_dispatch,packet);
-    packet_get_context(packet->buffer,a_process->context);
-    log_info(logger,"motivo: %d, ax: %d",packet->op_code,a_process->context->registers.ax);
+    packet_recv(fd_dispatch, packet);
+    packet_get_context(packet->buffer, a_process->context);
+    log_info(logger, "motivo: %d, ax: %d", packet->op_code, a_process->context->registers.ax);
     packet_free(packet);
 
     packet = packet_new(EXEC_PROCESS);
-    packet_add_context(packet,a_process->context);
-    packet_send(packet,fd_dispatch);
+    packet_add_context(packet, a_process->context);
+    packet_send(packet, fd_dispatch);
     packet_free(packet);
     pcb_destroy(a_process);
 
@@ -132,7 +134,7 @@ int main(int argc, char *argv[])
     char *arr_prueba[] = {"hello", "memory !", "I'm the kernel", NULL};
     packet_add_string_arr(packet, arr_prueba);
     packet_send(packet, fd_memory);
-    log_info(logger,"packet sent");
+    log_info(logger, "packet sent");
     packet_free(packet);
 
     start_console();
