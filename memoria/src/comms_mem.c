@@ -8,6 +8,8 @@ void process_conn(void *void_args)
     int client_fd = args->fd;
     free(args);
 
+    //t_list *process_list = list_create();
+
     while (client_fd != -1)
     {
         t_packet *packet = packet_new(0);
@@ -37,6 +39,7 @@ void process_conn(void *void_args)
         {
             uint32_t pid = packet_getUInt32(packet->buffer);
             char *text_path = packet_getString(packet->buffer);
+            //add_process(process_list, pid, text_path);
             log_info(logger, "CREATE PROCESS with pid: %d path: %s", pid, text_path);
             free(text_path);
             break;
@@ -78,4 +81,5 @@ void process_conn(void *void_args)
         }
         packet_free(packet);
     }
+    //list_destroy(process_list);
 }
