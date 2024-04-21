@@ -35,17 +35,16 @@ void process_conn(void *void_args)
         }
         case CREATE_PROCESS:
         {
-            log_info(logger, "CREATE PROCESS");
-            char **result = packet_get_string_arr(packet->buffer);
-
-            void print_str(char *str)
-            {
-                printf("%s ", str);
-            }
-            log_info(logger, "procedo a leer el array de strings que me llego");
-            string_iterate_lines(result, print_str);
-            printf("\n");
-            string_array_destroy(result);
+            uint32_t pid = packet_getUInt32(packet->buffer);
+            char *text_path = packet_getString(packet->buffer);
+            log_info(logger, "CREATE PROCESS with pid: %d path: %s", pid, text_path);
+            free(text_path);
+            break;
+        }
+        case END_PROCESS:
+        {
+            uint32_t pid = packet_getUInt32(packet->buffer);
+            log_info(logger, "ENDING PROCESS with pid: %d", pid);
             break;
         }
         case NEXT_INSTRUCTION:
@@ -54,16 +53,17 @@ void process_conn(void *void_args)
             uint32_t pid = packet_getUInt32(packet->buffer);
             uint32_t pc = packet_getUInt32(packet->buffer);
             // BUSCO CUAL DEL LOS ARCHIVOS ESTA EN EXEC
-            char* text_name = mount_instructions_directory("ejemplo1.txt");
-            char* next_instruction = file_get_nth_line(text_name,pc);
+            char *text_name = mount_instructions_directory("ejemplo1.txt");
+            char *next_instruction = file_get_nth_line(text_name, pc);
             free(text_name);
-            if(!next_instruction){
+            if (!next_instruction)
+            {
                 // mandame un error o algo no se
-                log_warning(logger,"no hay proxima instruccion");
+                log_warning(logger, "no hay proxima instruccion");
                 break;
             }
-            packet_addString(packet,next_instruction);
-            packet_send(packet,client_fd);
+            packet_addString(packet, next_instruction);
+            packet_send(packet, client_fd);
             free(next_instruction);
             break;
         }

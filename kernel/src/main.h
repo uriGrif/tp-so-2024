@@ -9,12 +9,14 @@
 #include <proto/proto.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include<memory_comms.h>
 #include <commons/string.h>
 #include <sys/signal.h>
 #include <pthread.h>
 #include <string.h>
 #include <comms_kernel.h>
 #include<config.h>
+#include<state_queues.h>
 #include<pcb.h>
 #include <console.h>
 

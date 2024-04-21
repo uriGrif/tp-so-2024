@@ -2,7 +2,7 @@
 
 // este array para readline
 
-void execute_script(char *file_path);
+void execute_script(char *file_path, t_log *logger);
 
 char *COMMAND_NAMES[] = {
     "EJECUTAR_SCRIPT",
@@ -55,7 +55,7 @@ char **completion(const char *text, int start, int end)
     return rl_completion_matches(text, generator);
 }
 
-void parse_command(char *string)
+void parse_command(char *string,t_log* logger)
 {
     char **command_split = string_n_split(string, 2, " ");
     char *name = command_split[0];
@@ -77,7 +77,7 @@ void parse_command(char *string)
                 string_append(&error_str, "no esperaba un parametro, ");
                 break;
             }
-            COMMANDS[i].func(param);
+            COMMANDS[i].func(param,logger);
             string_array_destroy(command_split);
             free(error_str);
             return;
@@ -90,7 +90,7 @@ void parse_command(char *string)
     string_array_destroy(command_split);
 }
 
-void start_console(void)
+void start_console(t_log* logger)
 {
 
     rl_bind_key('\t', rl_complete);
@@ -113,7 +113,7 @@ void start_console(void)
         if (*line)
         {
             add_history(line);
-            parse_command(line);
+            parse_command(line,logger);
         }
 
         free(line);
@@ -122,7 +122,7 @@ void start_console(void)
 
 // JUSTO ESTE COMANDO LA TENGO QUE PONER ACA POR TEMA DE INCLUDES
 
-void execute_script(char *file_path)
+void execute_script(char *file_path,t_log* logger)
 {
     t_list *commands = file_get_list_of_lines(file_path);
 
@@ -132,7 +132,7 @@ void execute_script(char *file_path)
     void exec_comm(void *comm)
     {
         char *command = (char *)comm;
-        parse_command(command);
+        parse_command(command,logger);
     }
 
     list_iterate(commands, exec_comm);

@@ -22,7 +22,7 @@ typedef struct
     // quizas algunas mas ahora no se
 } t_pcb;
 
-t_pcb *pcb_create();
+t_pcb *pcb_create(char* path);
 
 void pcb_destroy(t_pcb *pcb);
 

@@ -53,6 +53,7 @@ void init_kernel()
     t_process_conn_args args;
     args.fd = server_fd;
     args.logger = logger;
+    init_queues();
 
     // spawn a thread for the server
     pthread_create(&LISTENER_THREAD, NULL, (void *)handle_connections, (void *)&args);
@@ -63,6 +64,7 @@ void init_kernel()
 
 void kernel_close()
 {
+    destroy_queues();
     log_destroy(logger);
     string_array_destroy(cfg_kernel->recursos);
     string_array_destroy(cfg_kernel->instancias_recursos);
@@ -85,7 +87,7 @@ int main(int argc, char *argv[])
 
     int fd_interrupt = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_interrupt);
     int fd_dispatch = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_dispatch);
-    int fd_memory = socket_connectToServer(cfg_kernel->ip_memoria, cfg_kernel->puerto_memoria);
+    fd_memory = socket_connectToServer(cfg_kernel->ip_memoria, cfg_kernel->puerto_memoria);
 
     if (fd_interrupt == -1 || fd_dispatch == -1 || fd_memory == -1)
     {
@@ -106,7 +108,7 @@ int main(int argc, char *argv[])
     
 
     t_packet* packet = packet_new(EXEC_PROCESS);
-    t_pcb* a_process = pcb_create();
+    t_pcb* a_process = pcb_create("jjjj");
     packet_add_context(packet,a_process->context);
     packet_send(packet, fd_dispatch);
     log_info(logger,"packet sent");
@@ -128,14 +130,7 @@ int main(int argc, char *argv[])
     packet_free(packet);
     pcb_destroy(a_process);
 
-    packet = packet_new(CREATE_PROCESS);
-    char *arr_prueba[] = {"hello", "memory !", "I'm the kernel", NULL};
-    packet_add_string_arr(packet, arr_prueba);
-    packet_send(packet, fd_memory);
-    log_info(logger,"packet sent");
-    packet_free(packet);
-
-    start_console();
+    start_console(logger);
 
     kernel_close();
 

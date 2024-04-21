@@ -7,12 +7,13 @@
 #include <config.h>
 #include <pcb.h>
 #include <state_queues.h>
+#include <memory_comms.h>
 
-void init_process(char *path);
-void end_process(char *pid);
-void stop_scheduler(char *);
-void start_scheduler(char *);
-void multiprogramming(char *value);
-void list_processes_by_state(char *);
+void init_process(char *path, t_log *logger);
+void end_process(char *pid, t_log *logger);
+void stop_scheduler(char *, t_log *logger);
+void start_scheduler(char *, t_log *logger);
+void multiprogramming(char *value, t_log *logger);
+void list_processes_by_state(char *, t_log *logger);
 
 #endif
