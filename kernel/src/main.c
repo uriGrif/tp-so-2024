@@ -105,9 +105,8 @@ int main(int argc, char *argv[])
     send_context_to_cpu(a_process->context);
     log_info(logger,"packet sent");
     
-    send_interrupt();
+    send_interrupt(a_process);
     log_info(logger,"packet sent");
-    wait_for_context_no_reason(a_process);
     log_info(logger, "me llego PID: %d AX: %d", a_process->context->pid, a_process->context->registers.ax);
 
     send_context_to_cpu(a_process->context);

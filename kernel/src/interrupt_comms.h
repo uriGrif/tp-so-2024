@@ -2,9 +2,11 @@
 #define INTERRUPT_K_H
 
 #include<proto/proto.h>
+#include<dispatcher.h>
+#include<pcb.h>
 
 extern int fd_interrupt;
 
-void send_interrupt(void);
+void send_interrupt(t_pcb* pcb);
 
 #endif
