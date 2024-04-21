@@ -16,6 +16,6 @@ char *fetch(int fd_memoria,t_log* logger);
 
 void decode_and_execute(char *instruction,t_log* logger);
 
-void check_interrupt();
+void check_interrupt(t_log* logger);
 
 #endif

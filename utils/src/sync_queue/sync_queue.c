@@ -1,6 +1,6 @@
 #include <sync_queue/sync_queue.h>
 
-t_sync_queue *sync_queue_create()
+t_sync_queue *sync_queue_create(void)
 {
     t_sync_queue *s_queue = malloc(sizeof(t_sync_queue));
     s_queue->queue = queue_create();

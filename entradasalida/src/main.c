@@ -7,7 +7,7 @@ static char *config_path;
 int memory_fd;
 int kernel_fd;
 
-void config_init()
+void config_init(void)
 {
     config = config_create(config_path);
     if (!config)
@@ -48,7 +48,7 @@ void io_init(int argc, char **argv)
     config_init();
 }
 
-void io_close()
+void io_close(void)
 {
     log_destroy(logger);
     free(cfg_io);

@@ -6,7 +6,7 @@ static int server_fd;
 t_kernel_config *cfg_kernel;
 pthread_t LISTENER_THREAD;
 
-void config_init()
+void config_init(void)
 {
     config = config_create(CONFIG_PATH);
     if (!config)
@@ -30,7 +30,7 @@ void config_init()
     cfg_kernel->grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
 }
 
-void init_kernel()
+void init_kernel(void)
 {
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
@@ -56,6 +56,7 @@ void init_kernel()
     t_process_conn_args args;
     args.fd = server_fd;
     args.logger = logger;
+    init_queues();
 
     // spawn a thread for the server
     pthread_create(&LISTENER_THREAD, NULL, (void *)handle_connections, (void *)&args);
@@ -64,8 +65,9 @@ void init_kernel()
     log_info(logger, "server starting");
 }
 
-void kernel_close()
+void kernel_close(void)
 {
+    destroy_queues();
     log_destroy(logger);
     string_array_destroy(cfg_kernel->recursos);
     string_array_destroy(cfg_kernel->instancias_recursos);
@@ -86,9 +88,9 @@ int main(int argc, char *argv[])
     signal(SIGINT, sighandler);
     init_kernel();
 
-    int fd_interrupt = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_interrupt);
-    int fd_dispatch = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_dispatch);
-    int fd_memory = socket_connectToServer(cfg_kernel->ip_memoria, cfg_kernel->puerto_memoria);
+    fd_interrupt = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_interrupt);
+    fd_dispatch = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_dispatch);
+    fd_memory = socket_connectToServer(cfg_kernel->ip_memoria, cfg_kernel->puerto_memoria);
 
     if (fd_interrupt == -1 || fd_dispatch == -1 || fd_memory == -1)
     {
@@ -99,45 +101,20 @@ int main(int argc, char *argv[])
 
     log_info(logger, "connected to server\n");
 
-    // t_packet* packet = packet_new(INTERRUPT_EXEC);
-    // packet_addString(packet, "hello interrupt port! I'm the kernel");
-    // packet_addUInt32(packet, 100);
-    // packet_addString(packet, "bye interrupt port! See u again!");
-    // packet_send(packet, fd_interrupt);
-    // log_info(logger,"packet sent");
-    // packet_free(packet);
+    t_pcb* a_process = pcb_create("jjjj");
+    send_context_to_cpu(a_process->context);
+    log_info(logger,"packet sent");
+    
+    send_interrupt();
+    log_info(logger,"packet sent");
+    wait_for_context_no_reason(a_process);
+    log_info(logger, "me llego PID: %d AX: %d", a_process->context->pid, a_process->context->registers.ax);
 
-    t_packet *packet = packet_new(EXEC_PROCESS);
-    t_pcb *a_process = pcb_create();
-    packet_add_context(packet, a_process->context);
-    packet_send(packet, fd_dispatch);
-    log_info(logger, "packet sent");
-    packet_free(packet);
-
-    packet = packet_new(INTERRUPT_EXEC);
-    packet_send(packet, fd_interrupt);
-    log_info(logger, "packet sent");
-    packet_free(packet);
-    packet = packet_new(-1);
-    packet_recv(fd_dispatch, packet);
-    packet_get_context(packet->buffer, a_process->context);
-    log_info(logger, "motivo: %d, ax: %d", packet->op_code, a_process->context->registers.ax);
-    packet_free(packet);
-
-    packet = packet_new(EXEC_PROCESS);
-    packet_add_context(packet, a_process->context);
-    packet_send(packet, fd_dispatch);
-    packet_free(packet);
+    send_context_to_cpu(a_process->context);
     pcb_destroy(a_process);
+    wait_for_dispatch_reason(logger);
 
-    packet = packet_new(CREATE_PROCESS);
-    char *arr_prueba[] = {"hello", "memory !", "I'm the kernel", NULL};
-    packet_add_string_arr(packet, arr_prueba);
-    packet_send(packet, fd_memory);
-    log_info(logger, "packet sent");
-    packet_free(packet);
-
-    start_console();
+    start_console(logger);
 
     kernel_close();
 

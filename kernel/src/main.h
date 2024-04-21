@@ -9,6 +9,9 @@
 #include <proto/proto.h>
 #include <commons/log.h>
 #include <commons/config.h>
+#include<memory_comms.h>
+#include<interrupt_comms.h>
+#include<dispatcher.h>
 #include <commons/string.h>
 #include <sys/signal.h>
 #include <pthread.h>
