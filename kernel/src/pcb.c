@@ -1,6 +1,6 @@
 #include <pcb.h>
 
-uint32_t get_next_pid();
+uint32_t get_next_pid(void);
 void init_context(t_exec_context *context);
 
 t_pcb *pcb_create(char* path)
@@ -29,7 +29,7 @@ void init_context(t_exec_context *context)
     context->registers = reg;
 }
 
-uint32_t get_next_pid()
+uint32_t get_next_pid(void)
 {
     static uint32_t pid_counter =0;
     return ++pid_counter;

@@ -7,7 +7,7 @@ t_sync_queue *exit_queue;
 
 void pcb_destroyer(void* elem);
 
-void init_queues()
+void init_queues(void)
 {
     new_queue = sync_queue_create();
     ready_queue = sync_queue_create();
@@ -15,7 +15,7 @@ void init_queues()
     exit_queue = sync_queue_create();
 }
 
-void destroy_queues()
+void destroy_queues(void)
 {
     sync_queue_destroy_with_destroyer(new_queue,pcb_destroyer);
     sync_queue_destroy_with_destroyer(ready_queue,pcb_destroyer);

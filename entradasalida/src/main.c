@@ -4,7 +4,7 @@ static t_log *logger;
 static t_config *config;
 static t_io_config *cfg_io;
 
-void config_init()
+void config_init(void)
 {
     config = config_create(CONFIG_PATH);
     if (!config)
@@ -25,7 +25,7 @@ void config_init()
     cfg_io->block_count = config_get_int_value(config, "BLOCK_COUNT");
 }
 
-void io_init()
+void io_init(void)
 {
     config_init();
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
@@ -37,7 +37,7 @@ void io_init()
     }
 }
 
-void io_close()
+void io_close(void)
 {
     log_destroy(logger);
     free(cfg_io);

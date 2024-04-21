@@ -49,7 +49,7 @@ void process_conn(void *void_args)
         }
         case NEXT_INSTRUCTION:
         {
-            log_info(logger, "NEXT_INSTRUCTION");
+            log_debug(logger, "NEXT_INSTRUCTION");
             uint32_t pid = packet_getUInt32(packet->buffer);
             uint32_t pc = packet_getUInt32(packet->buffer);
             // BUSCO CUAL DEL LOS ARCHIVOS ESTA EN EXEC

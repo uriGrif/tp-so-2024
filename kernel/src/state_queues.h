@@ -9,7 +9,7 @@ extern t_sync_queue *ready_queue;
 extern t_sync_queue *blocked_queue;
 extern t_sync_queue *exit_queue;
 
-void init_queues();
-void destroy_queues();
+void init_queues(void);
+void destroy_queues(void);
 
 #endif
