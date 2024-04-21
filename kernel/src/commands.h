@@ -4,6 +4,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <config.h>
+#include <pcb.h>
+#include <state_queues.h>
 
 void init_process(char *path);
 void end_process(char *pid);
