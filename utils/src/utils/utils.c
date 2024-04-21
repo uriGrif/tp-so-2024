@@ -59,3 +59,5 @@ char *file_get_nth_line(char *file_path, int n)
     fclose(f);
     return NULL;
 }
+
+int msToSeconds(int ms) { return ms * 60; }
