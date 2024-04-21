@@ -19,13 +19,19 @@ typedef struct
 
 extern t_dictionary *interface_dictionary;
 
+struct req_io_gen_sleep
+{
+    char *interface_name;
+    uint32_t work_units;
+};
+
 void interface_decode_new(t_buffer *buffer, t_interface *interface);
-void interface_decode_io_gen_sleep(t_buffer *buffer, t_interface *interface);
+void interface_decode_io_gen_sleep(t_buffer *buffer, struct req_io_gen_sleep *params);
 void interface_init();
 void interface_add(t_interface *interface);
 t_interface *interface_validate(char *name, uint8_t instruction_to_run);
 t_interface *interface_get(char *name);
-int interface_is_connected(char *name);
+int interface_is_connected(t_interface *interface);
 int interface_can_run_instruction(t_interface *interface, uint8_t instruction_to_run);
 void interface_destroy(t_interface *interface);
 char *interface_get_type_name(enum interface_types type);

@@ -27,14 +27,14 @@ int interface_can_run_instruction(t_interface *interface, uint8_t instruction_to
     switch (instruction_to_run)
     {
     case IO_GEN_SLEEP:
-        return interface->type == "GENERICA";
+        return strcmp(interface->type, "GENERICA") == 0;
     case IO_STD_IN_READ:
-        return interface->type == "STDIN";
+        return strcmp(interface->type, "STDIN") == 0;
     case IO_STD_OUT_WRITE:
-        return interface->type == "STDOUT";
+        return strcmp(interface->type, "STDOUT") == 0;
     // the rest of instructions correspond to the file system
     default:
-        return interface->type == "DIALFS";
+        return strcmp(interface->type, "DIALFS") == 0;
     }
 }
 
@@ -46,7 +46,7 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
     if (interface == NULL)
         return NULL;
 
-    if (!interface_is_connected(name))
+    if (!interface_is_connected(interface))
     {
         socket_freeConn(interface->fd);
         return NULL;
@@ -60,7 +60,8 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
 
 void interface_destroy(t_interface *interface)
 {
-    dictionary_remove_and_destroy(interface_dictionary, interface->name, interface);
+    t_interface *inter = dictionary_remove(interface_dictionary, interface->name);
+    free(inter);
 }
 
 /**
@@ -73,6 +74,12 @@ void interface_decode_new(t_buffer *buffer, t_interface *interface)
 {
     interface->name = packet_getString(buffer);
     interface->type = packet_getString(buffer);
+}
+
+void interface_decode_io_gen_sleep(t_buffer *buffer, struct req_io_gen_sleep *params)
+{
+    params->interface_name = packet_getString(buffer);
+    params->work_units = packet_getUInt32(buffer);
 }
 
 int interface_send_io_gen_sleep(int fd, uint32_t pid, uint32_t work_units)
