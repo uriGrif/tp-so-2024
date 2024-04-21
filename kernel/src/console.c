@@ -69,12 +69,12 @@ void parse_command(char *string,t_log* logger)
         {
             if (COMMANDS[i].expects_parameter && param == NULL)
             {
-                string_append(&error_str, "esperaba un parametro, ");
+                string_append(&error_str, "esperaba un parametro");
                 break;
             }
             if (!COMMANDS[i].expects_parameter && param != NULL)
             {
-                string_append(&error_str, "no esperaba un parametro, ");
+                string_append(&error_str, "no esperaba un parametro");
                 break;
             }
             COMMANDS[i].func(param,logger);
@@ -84,8 +84,7 @@ void parse_command(char *string,t_log* logger)
         }
     }
 
-    string_append(&error_str, "comando invalido");
-    printf("%s\n", error_str);
+    log_warning(logger,"Comando: %s no es valido, %s",string, error_str);
     free(error_str);
     string_array_destroy(command_split);
 }

@@ -33,23 +33,10 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     case IO_GEN_SLEEP:
     {
-        int ok = 1;
         struct req_io_gen_sleep *params = malloc(sizeof(struct req_io_gen_sleep));
         interface_decode_io_gen_sleep(packet->buffer, params);
-        t_interface *interface = interface_get(params->interface_name);
-        if (interface == NULL)
-        {
-            ok = 0;
-        }
-        else if(!interface_is_connected(interface)){
-            ok = 0;
-            interface_destroy(interface);
-        }
-        else if(!interface_can_run_instruction(interface,IO_GEN_SLEEP)){
-            ok =0;
-        }
-
-        if(!ok){
+        t_interface *interface = interface_validate(params->interface_name,IO_GEN_SLEEP);
+        if(!interface){
             log_error(logger, "Validation for interface with name %s for instruction %s failed", params->interface_name, "IO_GEN_SLEEP");
             // mandar proceso a exit
             break;
