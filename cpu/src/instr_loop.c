@@ -51,8 +51,8 @@ void execute(void (*instr)(char **args, t_log *logger), char **args, t_log *logg
 
 void check_interrupt(t_log *logger)
 {
-    if (interrupt_flag) {
-        interrupt_flag = 0;
+    if (interrupt_flag()) {
+        clear_interrupt();
         send_dispatch_reason(INTERRUPT_EXEC,&context);
         log_info(logger, "PID: %d - Fue interrumpido", context.pid);
         wait_for_context(&context);

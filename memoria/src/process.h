@@ -1,7 +1,7 @@
 #ifndef PROCESS
 #define PROCESS
 
-#include <proto.h>
+#include <proto/proto.h>
 #include <utils.h>
 
 typedef struct{

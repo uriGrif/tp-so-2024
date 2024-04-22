@@ -1,6 +1,10 @@
 #include <interrupt.h>
 
-int interrupt_flag = 0;
+static int int_flag = 0;
+
+static pthread_mutex_t interrupt_mutex;
+
+void set_interrupt(void);
 
 void process_interrupt_conn(int fd, t_log *logger)
 {
@@ -13,7 +17,7 @@ void process_interrupt_conn(int fd, t_log *logger)
             log_error(logger, "Se desconecto el kernel de interrupt\n"); // cambiar por log
             break;
         }
-        interrupt_flag = 1;
+        set_interrupt();
         // log_debug(logger,"hola estoy aca");
         packet_free(packet);
     }
@@ -35,4 +39,31 @@ void handle_interrupt(void *_args)
 
         process_interrupt_conn(client_fd, logger);
     }
+}
+
+void interrupt_mutex_init(void){
+    pthread_mutex_init(&interrupt_mutex,NULL);
+}
+
+void interrupt_mutex_destroy(void){
+    pthread_mutex_destroy(&interrupt_mutex);
+}
+
+void set_interrupt(void){
+    pthread_mutex_lock(&interrupt_mutex);
+    int_flag = 1;
+    pthread_mutex_unlock(&interrupt_mutex);
+}
+
+void clear_interrupt(void){
+    pthread_mutex_lock(&interrupt_mutex);
+    int_flag = 0;
+    pthread_mutex_unlock(&interrupt_mutex);
+}
+
+int interrupt_flag(void){
+    pthread_mutex_lock(&interrupt_mutex);
+    int value = int_flag;
+    pthread_mutex_unlock(&interrupt_mutex);
+    return value;
 }

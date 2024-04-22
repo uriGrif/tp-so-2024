@@ -59,6 +59,7 @@ void cpu_init()
 
 void start_interrupt_listener()
 {
+    interrupt_mutex_init();
     // hago el accept y el manejo de las interrupts en otro hilo
 
     t_process_conn_args *interrupt_args = malloc(sizeof(t_process_conn_args));
@@ -73,6 +74,7 @@ void start_interrupt_listener()
 
 void cpu_close()
 {
+    interrupt_mutex_destroy();
     pthread_cancel(thread_intr);
     log_destroy(logger);
     free(cfg_cpu);
