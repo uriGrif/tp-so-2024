@@ -5,6 +5,10 @@ static t_config *config;
 static int server_fd;
 t_kernel_config *cfg_kernel;
 pthread_t LISTENER_THREAD;
+static pthread_t short_term_scheduler_thread;
+static pthread_t long_term_scheduler_thread;
+//int multiprogramacion_actual;
+
 
 void config_init(void)
 {
@@ -61,12 +65,19 @@ void init_kernel(void)
     // spawn a thread for the server
     pthread_create(&LISTENER_THREAD, NULL, (void *)handle_connections, (void *)&args);
     pthread_detach(LISTENER_THREAD);
+    
+    sem_init(&sem_scheduler_paused,0,0);
 
     log_info(logger, "server starting");
+
+    //multiprogramacion_actual = cfg_kernel->grado_multiprogramacion;
 }
 
 void kernel_close(void)
 {
+    pthread_cancel(short_term_scheduler_thread);
+    pthread_cancel(long_term_scheduler_thread);
+    sem_destroy(&sem_scheduler_paused);
     destroy_queues();
     log_destroy(logger);
     destroy_interface_dictionary();
@@ -117,6 +128,16 @@ int main(int argc, char *argv[])
     wait_for_dispatch_reason(a_process,logger);
     pcb_destroy(a_process);
 
+    
+    // inicio hilos de planificadores
+   
+    pthread_create(&long_term_scheduler_thread, NULL, (void *)handle_long_term_scheduler, NULL);
+    pthread_detach(long_term_scheduler_thread);
+
+    pthread_create(&short_term_scheduler_thread, NULL, (void *)handle_short_term_scheduler, (void*) logger);
+    pthread_detach(short_term_scheduler_thread);
+
+    // inicio la consola
     start_console(logger);
 
     kernel_close();

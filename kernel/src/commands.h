@@ -8,6 +8,7 @@
 #include <pcb.h>
 #include <state_queues.h>
 #include <memory_comms.h>
+#include <scheduler.h>
 
 void init_process(char *path, t_log *logger);
 void end_process(char *pid, t_log *logger);

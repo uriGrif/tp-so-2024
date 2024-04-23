@@ -41,6 +41,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             // mandar proceso a exit
             break;
         }
+        //exec_to_blocked(pcb);
         // here we would get the current exec pcb and move it to the blocked queue. that means we need to send a deallocation
         log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, params->interface_name);
         interface_send_io_gen_sleep(interface->fd, pcb->context->pid, params->work_units);
