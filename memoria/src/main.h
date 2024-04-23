@@ -11,6 +11,7 @@
 #include <comms_mem.h>
 #include<config.h>
 #include <sys/signal.h>
+#include <process.h>
 
 #define CONFIG_PATH "mem.config"
 #define LOG_LEVEL LOG_LEVEL_INFO

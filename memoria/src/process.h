@@ -1,16 +1,22 @@
-#ifndef PROCESS
-#define PROCESS
+#ifndef PROCESS_IN_MEM
+#define PROCESS_IN_MEM
 
-#include <proto/proto.h>
+#include <stdint.h>
 #include <utils.h>
+#include <stdlib.h>
+#include <commons/collections/list.h>
+#include <proto/proto.h>
 
 typedef struct{
     int pid;
     char* path;
 } t_process_in_mem;
 
-//t_process_in_mem new_process (uint32_t pid, char *path);
-void add_process (t_list *process_list, uint32_t pid, char *path);
-bool compare_pid (uint32_t pid, t_process_in_mem *process);
-t_process_in_mem *find_proc_through_pid (int pid, t_list *process_list);
+void init_process_list (void);
+t_process_in_mem *t_process_in_mem_create (void);
+void process_list_destroy (void);
+void packet_get_process_in_mem (t_buffer *buffer, t_process_in_mem *process);
+void add_process (t_process_in_mem *process);
+t_process_in_mem *find_process_by_pid (uint32_t pid);
+void remove_process_by_pid (uint32_t pid);
 #endif

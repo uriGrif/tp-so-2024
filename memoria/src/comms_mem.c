@@ -8,8 +8,6 @@ void process_conn(void *void_args)
     int client_fd = args->fd;
     free(args);
 
-    //t_list *process_list = list_create();
-
     while (client_fd != -1)
     {
         t_packet *packet = packet_new(0);
@@ -37,16 +35,16 @@ void process_conn(void *void_args)
         }
         case CREATE_PROCESS:
         {
-            uint32_t pid = packet_getUInt32(packet->buffer);
-            char *text_path = packet_getString(packet->buffer);
-            //add_process(process_list, pid, text_path);
-            log_info(logger, "CREATE PROCESS with pid: %d path: %s", pid, text_path);
-            free(text_path);
+            t_process_in_mem *process = t_process_in_mem_create();
+            packet_get_process_in_mem(packet->buffer, process);
+            log_info(logger, "CREATE PROCESS with pid: %d path: %s", process->pid, process->path);
+            add_process(process);
             break;
         }
         case END_PROCESS:
         {
             uint32_t pid = packet_getUInt32(packet->buffer);
+            remove_process_by_pid(pid);
             log_info(logger, "ENDING PROCESS with pid: %d", pid);
             break;
         }
@@ -56,7 +54,9 @@ void process_conn(void *void_args)
             uint32_t pid = packet_getUInt32(packet->buffer);
             uint32_t pc = packet_getUInt32(packet->buffer);
             // BUSCO CUAL DEL LOS ARCHIVOS ESTA EN EXEC
-            char *text_name = mount_instructions_directory("ejemplo1.txt");
+            char *text_name = mount_instructions_directory(
+                find_process_by_pid(pid)->path
+            );
             char *next_instruction = file_get_nth_line(text_name, pc);
             free(text_name);
             if (!next_instruction)
@@ -81,5 +81,4 @@ void process_conn(void *void_args)
         }
         packet_free(packet);
     }
-    //list_destroy(process_list);
 }

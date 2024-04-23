@@ -45,6 +45,8 @@ void init_memory(void)
     if (setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
         log_error(logger, "setsockopt(SO_REUSEADDR) failed");
 
+    init_process_list();
+
     log_info(logger, "server starting");
 }
 
@@ -53,6 +55,7 @@ void memory_close(void)
     log_destroy(logger);
     free(cfg_mem);
     config_destroy(config);
+    process_list_destroy();
 }
 
 void sighandler(int signal)
