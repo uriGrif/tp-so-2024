@@ -102,7 +102,10 @@ int main(int argc, char *argv[])
 
     log_info(logger, "connected to server\n");
 
-    t_pcb* a_process = pcb_create("jjjj");
+
+    t_pcb* a_process = pcb_create("ejemplo1.txt");
+    send_create_process(a_process);
+    sleep(1);
     send_context_to_cpu(a_process->context);
     log_info(logger,"packet sent");
     
