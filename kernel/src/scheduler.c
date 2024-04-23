@@ -2,32 +2,40 @@
 
 bool scheduler_paused = false;
 sem_t sem_scheduler_paused;
-typedef t_pcb* (*ready_to_exec_strategy)(void);
+t_scheduler scheduler;
 
-ready_to_exec_strategy r_to_ex_strategy; // para vos escobar
+ 
 
-
-t_pcb* ready_to_exec(void){
-    t_pcb* pcb = queue_sync_pop(ready_queue);
-    if(pcb){
-        queue_sync_push(exec_queue,pcb);
-        pcb->state = EXEC;
-        send_context_to_cpu(pcb->context);
+void set_scheduling_algorithm(void){
+    if(!strcmp(cfg_kernel->algoritmo_planificacion,"FIFO")){
+        scheduler.ready_to_exec = ready_to_exec_fifo;
+        scheduler.dispatch =  dispatch_fifo;
+        return;
     }
-    return pcb;
+    if(!strcmp(cfg_kernel->algoritmo_planificacion,"RR")){
+        scheduler.ready_to_exec = ready_to_exec_rr;
+        scheduler.dispatch =  dispatch_rr;
+        return;
+    }
+
+        // scheduler.ready_to_exec = ready_to_exec_vrr;
+        // scheduler.dispatch =  dispatch_vrr;
 }
+
+
+
 
 void handle_short_term_scheduler(void* args_logger) {
     t_log* logger = (t_log*) args_logger;
-    r_to_ex_strategy = ready_to_exec;
+    set_scheduling_algorithm();
     
     while(1){
         if (!scheduler_paused) sem_wait(&sem_scheduler_paused);
         if(sync_queue_length(exec_queue) == 0) {
-            t_pcb* pcb = r_to_ex_strategy();
+            t_pcb* pcb = scheduler.ready_to_exec();
             if(pcb){
                 log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid);
-                wait_for_dispatch_reason(pcb,logger);
+                scheduler.dispatch(pcb,logger);
             } 
             //popeo me guardo el pcb aca
         }
