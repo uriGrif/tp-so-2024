@@ -10,7 +10,7 @@ static pthread_t long_term_scheduler_thread;
 //int multiprogramacion_actual;
 
 
-void config_init(void)
+static void config_init(void)
 {
     config = config_create(CONFIG_PATH);
     if (!config)
@@ -34,7 +34,7 @@ void config_init(void)
     cfg_kernel->grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
 }
 
-void init_kernel(void)
+static void init_kernel(void)
 {
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
@@ -66,18 +66,18 @@ void init_kernel(void)
     pthread_create(&LISTENER_THREAD, NULL, (void *)handle_connections, (void *)&args);
     pthread_detach(LISTENER_THREAD);
     
-    sem_init(&sem_scheduler_paused,0,0);
+    init_scheduler_sems();
 
     log_info(logger, "server starting");
 
     //multiprogramacion_actual = cfg_kernel->grado_multiprogramacion;
 }
 
-void kernel_close(void)
+static void kernel_close(void)
 {
     pthread_cancel(short_term_scheduler_thread);
     pthread_cancel(long_term_scheduler_thread);
-    sem_destroy(&sem_scheduler_paused);
+    destroy_scheduler_sems();
     destroy_queues();
     log_destroy(logger);
     destroy_interface_dictionary();
@@ -93,6 +93,14 @@ void sighandler(int signal)
     pthread_cancel(LISTENER_THREAD);
     kernel_close();
     exit(0);
+}
+
+static void init_scheduler_threads(void){
+    pthread_create(&long_term_scheduler_thread, NULL, (void *)handle_long_term_scheduler, NULL);
+    pthread_detach(long_term_scheduler_thread);
+
+    pthread_create(&short_term_scheduler_thread, NULL, (void *)handle_short_term_scheduler, (void*) logger);
+    pthread_detach(short_term_scheduler_thread);
 }
 
 int main(int argc, char *argv[])
@@ -112,30 +120,24 @@ int main(int argc, char *argv[])
     }
 
     log_info(logger, "connected to server\n");
+    init_scheduler_threads();
 
-
-    t_pcb* a_process = pcb_create("ejemplo1.txt");
-    send_create_process(a_process);
-    sleep(1);
-    send_context_to_cpu(a_process->context);
-    log_info(logger,"packet sent");
+    // t_pcb* a_process = pcb_create("ejemplo1.txt");
+    // send_create_process(a_process);
+    // sleep(1);
+    // send_context_to_cpu(a_process->context);
+    // log_info(logger,"packet sent");
     
-    send_interrupt(a_process);
-    log_info(logger,"packet sent");
-    log_info(logger, "me llego PID: %d AX: %d", a_process->context->pid, a_process->context->registers.ax);
+    // send_interrupt(a_process);
+    // log_info(logger,"packet sent");
+    // log_info(logger, "me llego PID: %d AX: %d", a_process->context->pid, a_process->context->registers.ax);
 
-    send_context_to_cpu(a_process->context);
-    wait_for_dispatch_reason(a_process,logger);
-    pcb_destroy(a_process);
+    // send_context_to_cpu(a_process->context);
+    // wait_for_dispatch_reason(a_process,logger);
+    // pcb_destroy(a_process);
 
     
     // inicio hilos de planificadores
-   
-    pthread_create(&long_term_scheduler_thread, NULL, (void *)handle_long_term_scheduler, NULL);
-    pthread_detach(long_term_scheduler_thread);
-
-    pthread_create(&short_term_scheduler_thread, NULL, (void *)handle_short_term_scheduler, (void*) logger);
-    pthread_detach(short_term_scheduler_thread);
 
     // inicio la consola
     start_console(logger);

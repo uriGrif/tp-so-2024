@@ -9,7 +9,7 @@ static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
 t_exec_context context;
 
-void config_init()
+static void config_init()
 {
     config = config_create(CONFIG_PATH);
     if (!config)
@@ -30,7 +30,7 @@ void config_init()
     // printf("puerto me %s %s\n", cfg_CPU->puerto_escucha_interrupt, cfg_CPU->puerto_escucha_dispatch);
 }
 
-void cpu_init()
+static void cpu_init()
 {
     config_init();
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
@@ -57,7 +57,7 @@ void cpu_init()
     log_info(logger, "server starting");
 }
 
-void start_interrupt_listener()
+static void start_interrupt_listener()
 {
     interrupt_mutex_init();
     // hago el accept y el manejo de las interrupts en otro hilo
@@ -72,7 +72,7 @@ void start_interrupt_listener()
     pthread_detach(thread_intr);
 }
 
-void cpu_close()
+static void cpu_close()
 {
     interrupt_mutex_destroy();
     pthread_cancel(thread_intr);

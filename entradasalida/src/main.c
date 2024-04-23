@@ -8,7 +8,7 @@ static char *config_path;
 int memory_fd;
 int kernel_fd;
 
-void config_init(void)
+static void config_init(void)
 {
     config = config_create(config_path);
     if (!config)
@@ -29,7 +29,7 @@ void config_init(void)
     cfg_io->block_count = config_get_int_value(config, "BLOCK_COUNT");
 }
 
-void io_init(int argc, char **argv)
+static void io_init(int argc, char **argv)
 {
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
@@ -50,7 +50,7 @@ void io_init(int argc, char **argv)
     config_init();
 }
 
-void io_close(void)
+static void io_close(void)
 {
     log_destroy(logger);
     free(cfg_io);

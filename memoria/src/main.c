@@ -5,7 +5,7 @@ static t_config *config;
 t_mem_config *cfg_mem;
 static int fd_server;
 
-void config_init(void)
+static void config_init(void)
 {
     config = config_create(CONFIG_PATH);
     if (!config)
@@ -22,7 +22,7 @@ void config_init(void)
     cfg_mem->retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
 }
 
-void init_memory(void)
+static void init_memory(void)
 {
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
@@ -50,7 +50,7 @@ void init_memory(void)
     log_info(logger, "server starting");
 }
 
-void memory_close(void)
+static void memory_close(void)
 {
     log_destroy(logger);
     free(cfg_mem);

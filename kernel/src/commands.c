@@ -13,11 +13,12 @@ void init_process(char *path, t_log* logger)
     // }
 
     t_pcb *pcb = pcb_create(path);
-    log_info(logger,"path %s",pcb->text_path);
+    //log_info(logger,"path %s",pcb->text_path);
     // queue_sync_push(new_queue, pcb);
     //pcb->state = NEW;
     send_create_process(pcb);
-    queue_sync_push(ready_queue, pcb); // por ahora para probar
+    queue_sync_push(ready_queue, pcb);
+    sem_post(&sem_ready); // por ahora para probar
     //multiprogramming_controler++;
 
     log_info(logger,"Se crea el proceso %d en NEW", pcb->context->pid);
