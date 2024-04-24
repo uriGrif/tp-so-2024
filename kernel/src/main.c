@@ -66,7 +66,7 @@ static void init_kernel(void)
     pthread_create(&LISTENER_THREAD, NULL, (void *)handle_connections, (void *)&args);
     pthread_detach(LISTENER_THREAD);
     
-    init_scheduler_sems();
+    init_scheduler();
 
     log_info(logger, "server starting");
 
@@ -77,7 +77,7 @@ static void kernel_close(void)
 {
     pthread_cancel(short_term_scheduler_thread);
     pthread_cancel(long_term_scheduler_thread);
-    destroy_scheduler_sems();
+    destroy_scheduler();
     destroy_queues();
     log_destroy(logger);
     destroy_interface_dictionary();

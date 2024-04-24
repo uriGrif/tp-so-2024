@@ -3,11 +3,12 @@
 // TODO: ALGUNO DE ESTOS PROCESOS DEBERIAN TENER UN LOGGER DESPUES
 //  PODEMOS PENSAR SI EXPORTAMOS EL GLOBAL O CREAMOS OTROS NUEVOS
 
-static char* generate_string_of_pids(t_sync_queue* queue);
+static char *generate_string_of_pids(t_sync_queue *queue);
+static char *get_pids_of_blocked_queues(void);
 
 int multiprogramming_controler = 0;
 
-void init_process(char *path, t_log* logger)
+void init_process(char *path, t_log *logger)
 {
     // if(multiprogramming_controler == cfg_kernel->grado_multiprogramacion){
     //     printf("el grado de multiprogramacion no permite crear un nuevo proceso\n");
@@ -15,63 +16,92 @@ void init_process(char *path, t_log* logger)
     // }
 
     t_pcb *pcb = pcb_create(path);
-    //log_info(logger,"path %s",pcb->text_path);
-    // queue_sync_push(new_queue, pcb);
-    //pcb->state = NEW;
+    // log_info(logger,"path %s",pcb->text_path);
+    //  queue_sync_push(new_queue, pcb);
+    // pcb->state = NEW;
     send_create_process(pcb);
     queue_sync_push(ready_queue, pcb);
-    sem_post(&sem_ready); // por ahora para probar
-    //multiprogramming_controler++;
+    sem_post(&scheduler.sem_ready); // por ahora para probar
+    // multiprogramming_controler++;
 
-    log_info(logger,"Se crea el proceso %d en NEW", pcb->context->pid);
+    log_info(logger, "Se crea el proceso %d en NEW", pcb->context->pid);
 }
 
-void end_process(char *pid_str, t_log* logger)
+void end_process(char *pid_str, t_log *logger)
 {
     uint32_t pid = atoi(pid_str);
     send_end_process(pid);
-    //multiprogramming_controler--;
-    log_info(logger,"Finaliza el proceso %d (por consola) ", pid);
+    // multiprogramming_controler--;
+    log_info(logger, "Finaliza el proceso %d (por consola) ", pid);
 }
 
-void stop_scheduler(char *x, t_log* logger)
-{
+void stop_scheduler(char *x, t_log *logger)
+{  
     scheduler_paused = true;
-    log_info(logger,"se detuvo la planificacion\n");
+    log_info(logger, "se detuvo la planificacion\n");
 }
 
-void start_scheduler(char *x, t_log* logger)
+void start_scheduler(char *x, t_log *logger)
 {
-    if(scheduler_paused)
-        sem_post(&sem_scheduler_paused);
-    log_info(logger,"arranco la planificacion\n");
+    if (scheduler_paused){
+        sem_post(&scheduler.sem_scheduler_paused);
+        scheduler_paused = false;
+    }
+    log_info(logger, "arranco la planificacion\n");
 }
 
-void multiprogramming(char *value, t_log* logger)
+void multiprogramming(char *value, t_log *logger)
 {
     int new_grade = atoi(value);
-    log_info(logger,"voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
+    log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
 }
-void list_processes_by_state(char *x, t_log* logger)
+void list_processes_by_state(char *x, t_log *logger)
 {
-    //TODO
-    //log_info(logger,"voy a listar todos los procesos por estado\n");
-    
-    char* pids = generate_string_of_pids(ready_queue);
-    log_info(logger,"Estado READY: %s",pids);
+    // TODO
+    // log_info(logger,"voy a listar todos los procesos por estado\n");
+
+    char *pids = generate_string_of_pids(ready_queue);
+    log_info(logger, "Estado READY: %s", pids);
+    free(pids);
+    pids = get_pids_of_blocked_queues();
+    log_info(logger, "Estado BLOCKED: %s", pids);
     free(pids);
     // sync_queue_iterate(ready_queue, log_state);
     // sync_queue_iterate(exec_queue, log_state);
 }
 
-static char* generate_string_of_pids(t_sync_queue* queue){
-    char* pids = string_new();
-    string_append(&pids,"[");
-    void add_pid(void* elem){
-        t_pcb* pcb = (t_pcb*) elem;
-        string_append_with_format(&pids,"%d,",pcb->context->pid);
+static char *get_pids_of_blocked_queues(void)
+{
+    char *pids = strdup("[");
+
+    void gen_pids_one_queue(void *queue)
+    {
+        t_sync_queue *q = (t_sync_queue *)queue;
+        void add_pid(void *elem)
+        {
+            t_pcb *pcb = (t_pcb *)elem;
+            string_append_with_format(&pids, "%d,", pcb->context->pid);
+        }
+        sync_queue_iterate(q,add_pid);
+    }
+    blocked_queues_iterate(gen_pids_one_queue);
+    if(strlen(pids)>1)
+        pids[strlen(pids)-1] = ']';
+    else string_append(&pids,"]");
+    return pids;
+}
+
+static char *generate_string_of_pids(t_sync_queue *queue)
+{
+    char *pids = strdup("[");
+    void add_pid(void *elem)
+    {
+        t_pcb *pcb = (t_pcb *)elem;
+        string_append_with_format(&pids, "%d,", pcb->context->pid);
     }
     sync_queue_iterate(ready_queue, add_pid);
-    pids[strlen(pids)-1] = ']';
+    if(strlen(pids)>1)
+        pids[strlen(pids) - 1] = ']';
+    else string_append(&pids,"]");
     return pids;
 }

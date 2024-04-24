@@ -24,6 +24,7 @@ void process_conn(void *void_args)
             interface->fd = client_fd;
             interface_decode_new(packet->buffer, interface);
             interface_add(interface);
+            add_blocked_queue(interface->name);
             log_info(logger, "New interface registered: name: %s - type: %s", interface->name, interface->type);
             break;
         }
@@ -31,7 +32,8 @@ void process_conn(void *void_args)
         {
             char* resource_name = packet_getString(packet->buffer);
             log_info(logger,"Interface %s done",resource_name);
-            scheduler.block_to_ready(resource_name,logger);
+            scheduler.block_to_ready(resource_name, logger);
+            sem_post(&scheduler.sem_ready);
             free(resource_name);
             // now we should move the process waiting for this i/o to finish from blocked to ready.
             // uint32_t pid = packet_getUInt32(packet->buffer);

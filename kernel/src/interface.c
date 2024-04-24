@@ -63,6 +63,7 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
 
 void interface_destroy(t_interface *interface)
 {
+    // aca podriamos mandar a exit los procesos de la blocked queue de la interfaz
     t_interface *inter = dictionary_remove(interface_dictionary, interface->name);
     interface_destroyer(inter);
 }
@@ -85,7 +86,6 @@ static void interface_destroyer(void *_interface)
  * WRITE HERE THE CORRESPONDING FUNCTIONS TO SEND AND DECODE MESSAGES
  *
  */
-
 void interface_decode_new(t_buffer *buffer, t_interface *interface)
 {
     interface->name = packet_getString(buffer);

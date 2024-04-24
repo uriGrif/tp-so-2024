@@ -165,11 +165,15 @@ int socket_read(int fd, t_requestHandler requestHandler, void *args)
         bytes_read = recv(fd, packet->buffer->stream, packet->buffer->size, 0);
 
     // no data was sent
-    if (bytes_read == -1)
+    if (bytes_read == -1){
+        packet_free(packet);
         return 0;
+    }
     // connection closed
-    if (bytes_read == 0)
+    if (bytes_read == 0){
+        packet_free(packet);
         return -1;
+    }
 
     // everything alright call the requestHandler
     requestHandler(fd, packet->op_code, packet->buffer, args);

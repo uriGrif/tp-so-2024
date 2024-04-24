@@ -23,6 +23,8 @@ typedef struct
     ready_to_exec_strategy ready_to_exec;
     dispatch_strategy dispatch; // exec to blocked
     block_to_ready_strategy block_to_ready;
+    sem_t sem_scheduler_paused;
+    sem_t sem_ready;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
     // agregar los semaforos aca???
 } t_scheduler;
@@ -30,13 +32,13 @@ typedef struct
 extern t_scheduler scheduler;
 
 extern bool scheduler_paused;
-extern sem_t sem_scheduler_paused;
-extern sem_t sem_ready;
 
-void init_scheduler_sems(void);
-void destroy_scheduler_sems(void);
+void init_scheduler(void);
+void destroy_scheduler(void);
 
 void handle_short_term_scheduler(void *args_logger);
 void handle_long_term_scheduler(void *args_logger);
+
+int move_pcb_to_blocked(t_pcb* pcb, char* resource_name);
 
 #endif

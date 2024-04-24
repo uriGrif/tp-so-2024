@@ -115,6 +115,7 @@ void io_gen_sleep(char **args,t_log* logger)
     uint32_t work_units = atoi(args[1]);
     send_io_gen_sleep(interface_name, work_units);
     wait_for_context(&context);
+    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
 }
 
 void mov_in(char **args,t_log* logger){

@@ -25,6 +25,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     case END_PROCESS:
     {
         log_info(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
+        pcb_destroy(pcb);
         // tocar grado multiprogramacion
         //  actualizar context del pcb
         //  mandar proceso a exit
@@ -35,14 +36,20 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     {
         struct req_io_gen_sleep *params = malloc(sizeof(struct req_io_gen_sleep));
         interface_decode_io_gen_sleep(packet->buffer, params);
-        t_interface *interface = interface_validate(params->interface_name,IO_GEN_SLEEP);
-        if(!interface){
+        t_interface *interface = interface_validate(params->interface_name, IO_GEN_SLEEP);
+        if (!interface)
+        {
             log_error(logger, "Validation for interface with name %s for instruction %s failed", params->interface_name, "IO_GEN_SLEEP");
             // mandar proceso a exit
             interface_destroy_io_gen_sleep(params);
             break;
         }
-        //exec_to_blocked(pcb);
+        if (move_pcb_to_blocked(pcb, interface->name) == -1)
+        {
+            log_error(logger, "Could not find blocked queue for %s", params->interface_name);
+            // mandar proceso a exit
+            break;
+        }
         // here we would get the current exec pcb and move it to the blocked queue. that means we need to send a deallocation
         log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, params->interface_name);
         interface_send_io_gen_sleep(interface->fd, pcb->context->pid, params->work_units);
