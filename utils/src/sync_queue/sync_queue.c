@@ -53,6 +53,14 @@ void *sync_queue_find_elem(t_sync_queue *self, bool (*closure)(void *))
     return elem;
 }
 
+void *sync_queue_remove_by_condition(t_sync_queue *self, bool (*closure)(void *))
+{
+    pthread_mutex_lock(&self->mutex);
+    void *elem = list_remove_by_condition(self->queue->elements, closure);
+    pthread_mutex_unlock(&self->mutex);
+    return elem;
+}
+
 void sync_queue_iterate(t_sync_queue *self, void (*iterator)(void *))
 {
     pthread_mutex_lock(&self->mutex);

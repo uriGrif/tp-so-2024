@@ -37,7 +37,7 @@ void process_conn(void *void_args)
         {
             t_process_in_mem *process = t_process_in_mem_create();
             packet_get_process_in_mem(packet->buffer, process);
-            log_info(logger, "CREATE PROCESS with pid: %d path: %s", process->pid, process->path);
+            log_info(logger, "CREATE PROCESS with pid: %d - path: %s", process->pid, process->path);
             add_process(process);
             break;
         }

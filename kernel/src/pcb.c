@@ -3,7 +3,7 @@
 uint32_t get_next_pid(void);
 void init_context(t_exec_context *context);
 
-t_pcb *pcb_create(char* path)
+t_pcb *pcb_create(char *path)
 {
     t_pcb *pcb = malloc(sizeof(t_pcb));
     pcb->state = NEW;
@@ -31,6 +31,27 @@ void init_context(t_exec_context *context)
 
 uint32_t get_next_pid(void)
 {
-    static uint32_t pid_counter =0;
+    static uint32_t pid_counter = 0;
     return ++pid_counter;
+}
+
+char *pcb_state_to_string(t_pcb *pcb)
+{
+    if (!pcb)
+        return "";
+    switch (pcb->state)
+    {
+    case NEW:
+        return "NEW";
+    case READY:
+        return "READY";
+    case BLOCKED:
+        return "BLOCKED";
+    case EXEC:
+        return "EXEC";
+    case EXIT:
+        return "EXIT";
+    default:
+        return "";
+    }
 }

@@ -67,6 +67,19 @@ void interface_destroy(t_interface *interface)
     interface_destroyer(inter);
 }
 
+void destroy_interface_dictionary(void)
+{
+    dictionary_destroy_and_destroy_elements(interface_dictionary, interface_destroyer);
+}
+
+static void interface_destroyer(void *_interface)
+{
+    t_interface *interface = (t_interface *)_interface;
+    free(interface->name);
+    free(interface->type);
+    free(interface);
+}
+
 /**
  *
  * WRITE HERE THE CORRESPONDING FUNCTIONS TO SEND AND DECODE MESSAGES
@@ -85,6 +98,11 @@ void interface_decode_io_gen_sleep(t_buffer *buffer, struct req_io_gen_sleep *pa
     params->work_units = packet_getUInt32(buffer);
 }
 
+void interface_destroy_io_gen_sleep(struct req_io_gen_sleep *params) {
+    free(params->interface_name);
+    free(params);
+}
+
 int interface_send_io_gen_sleep(int fd, uint32_t pid, uint32_t work_units)
 {
     t_packet *packet = packet_new(IO_GEN_SLEEP);
@@ -96,15 +114,4 @@ int interface_send_io_gen_sleep(int fd, uint32_t pid, uint32_t work_units)
     return res;
 }
 
-void destroy_interface_dictionary(void)
-{
-    dictionary_destroy_and_destroy_elements(interface_dictionary, interface_destroyer);
-}
 
-static void interface_destroyer(void *_interface)
-{
-    t_interface *interface = (t_interface *)_interface;
-    free(interface->name);
-    free(interface->type);
-    free(interface);
-}

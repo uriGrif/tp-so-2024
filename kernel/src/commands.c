@@ -3,6 +3,8 @@
 // TODO: ALGUNO DE ESTOS PROCESOS DEBERIAN TENER UN LOGGER DESPUES
 //  PODEMOS PENSAR SI EXPORTAMOS EL GLOBAL O CREAMOS OTROS NUEVOS
 
+static char* generate_string_of_pids(t_sync_queue* queue);
+
 int multiprogramming_controler = 0;
 
 void init_process(char *path, t_log* logger)
@@ -54,10 +56,22 @@ void list_processes_by_state(char *x, t_log* logger)
 {
     //TODO
     //log_info(logger,"voy a listar todos los procesos por estado\n");
-    // void log_state(void* elem){
-        
-    // }
-    // sync_queue_iterate(new_queue, log_state);
+    
+    char* pids = generate_string_of_pids(ready_queue);
+    log_info(logger,"Estado READY: %s",pids);
+    free(pids);
     // sync_queue_iterate(ready_queue, log_state);
     // sync_queue_iterate(exec_queue, log_state);
+}
+
+static char* generate_string_of_pids(t_sync_queue* queue){
+    char* pids = string_new();
+    string_append(&pids,"[");
+    void add_pid(void* elem){
+        t_pcb* pcb = (t_pcb*) elem;
+        string_append_with_format(&pids,"%d,",pcb->context->pid);
+    }
+    sync_queue_iterate(ready_queue, add_pid);
+    pids[strlen(pids)-1] = ']';
+    return pids;
 }

@@ -60,4 +60,4 @@ char *file_get_nth_line(char *file_path, int n)
     return NULL;
 }
 
-int msToSeconds(int ms) { return ms * 60; }
+int msToSeconds(int ms) { return ms / 1000; }

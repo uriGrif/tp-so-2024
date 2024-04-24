@@ -23,6 +23,8 @@ void io_fs_read(char **args,t_log* logger);
 // para no tener conflitcto
 void instruction_exit(char **args,t_log* logger);
 
+static void send_io_gen_sleep(char* interface_name, int work_units);
+
 t_instruction INSTRUCTION_SET[] = {{"SET", set}, {"SUM", sum}, {"SUB", sub}, {"JNZ", jnz}, {"IO_GEN_SLEEP", io_gen_sleep}, {"MOV_IN", mov_in}, {"MOV_OUT", mov_out}, {"RESIZE", resize}, {"COPY_STRING", copy_string}, {"WAIT", wait}, {"SIGNAL", signal}, {"IO_STDIN_READ", io_stdin_read}, {"IO_STDOUT_WRITE", io_stdout_write}, {"IO_FS_CREATE", io_fs_create}, {"IO_FS_DELETE", io_fs_delete}, {"IO_FS_TRUNCATE", io_fs_truncate}, {"IO_FS_WRITE", io_fs_write}, {"IO_FS_READ", io_fs_read}, {"EXIT", instruction_exit}, {NULL, NULL}};
 
 // CON ESTA NOMENCLATURA CADA INSTRUCCION DEBE DESERIALIZAR SUS PARAMETROSs
@@ -109,7 +111,10 @@ void jnz(char **args,t_log* logger)
 
 void io_gen_sleep(char **args,t_log* logger)
 {
-    // TODO
+    char* interface_name = args[0];
+    uint32_t work_units = atoi(args[1]);
+    send_io_gen_sleep(interface_name, work_units);
+    wait_for_context(&context);
 }
 
 void mov_in(char **args,t_log* logger){
@@ -165,4 +170,16 @@ void instruction_exit(char **args,t_log* logger){
     //deberia hacer algo como esto
     send_dispatch_reason(END_PROCESS,&context);
     current_exec_process_has_finished = 1;
+}
+
+
+// IO protocol
+
+static void send_io_gen_sleep(char* interface_name, int work_units){
+    t_packet* packet = packet_new(IO_GEN_SLEEP);
+    packet_add_context(packet,&context);
+    packet_addString(packet,interface_name);
+    packet_addUInt32(packet,work_units);
+    packet_send(packet,cli_dispatch_fd);
+    packet_free(packet);
 }

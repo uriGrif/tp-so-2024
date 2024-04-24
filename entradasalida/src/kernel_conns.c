@@ -21,13 +21,10 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     t_log *logger = args->logger;
     t_io_config *config = args->config;
     // not freeing args coz they point to the same address in all requests
-    free(_args);
-    // si va el free marquitos, lo que estas liberando es el espacio reservado para los campos 
-    // de args, no los args en si
 
-    // todo operation dictionary to print the name instead of the number
+
     uint32_t pid = packet_getUInt32(buffer);
-    log_info(logger, "PID: %d - Operacion: %d", pid, operation);
+    log_info(logger, "PID: %d - Operacion: %s", pid, io_op_to_string(operation));
 
     void sendDone(void)
     {
@@ -42,9 +39,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     {
     case IO_GEN_SLEEP:
     {
-        sleep(msToSeconds(config->unidad_trabajo));
+        uint32_t work = packet_getUInt32(buffer);
+        sleep(msToSeconds(config->unidad_trabajo * work));
         sendDone();
-        log_info(logger, "PID: %d - Operacion: %s DONE", pid, io_op_to_string(operation));
         break;
     }
     case IO_STD_IN_READ:
@@ -95,6 +92,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         break;
     }
     }
+    
 }
 
 static char* io_op_to_string(t_opcode operation){

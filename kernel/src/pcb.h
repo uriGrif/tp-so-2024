@@ -26,4 +26,6 @@ t_pcb *pcb_create(char* path);
 
 void pcb_destroy(t_pcb *pcb);
 
+char *pcb_state_to_string(t_pcb *pcb);
+
 #endif

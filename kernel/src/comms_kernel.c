@@ -30,6 +30,7 @@ void process_conn(void *void_args)
         case IO_DONE:
         {
             char* resource_name = packet_getString(packet->buffer);
+            log_info(logger,"Interface %s done",resource_name);
             scheduler.block_to_ready(resource_name,logger);
             free(resource_name);
             // now we should move the process waiting for this i/o to finish from blocked to ready.
