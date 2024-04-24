@@ -27,7 +27,7 @@ void process_conn(void *void_args)
             log_info(logger, "New interface registered: name: %s - type: %s", interface->name, interface->type);
             break;
         }
-        case IO_GEN_SLEEP_DONE:
+        case IO_DONE:
         {
             // now we should move the process waiting for this i/o to finish from blocked to ready.
             uint32_t pid = packet_getUInt32(packet->buffer);
