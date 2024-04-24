@@ -22,12 +22,14 @@ static void set_scheduling_algorithm(void)
     {
         scheduler.ready_to_exec = ready_to_exec_fifo;
         scheduler.dispatch = dispatch_fifo;
+        scheduler.block_to_ready = block_to_ready_fifo;
         return;
     }
     if (!strcmp(cfg_kernel->algoritmo_planificacion, "RR"))
     {
         scheduler.ready_to_exec = ready_to_exec_rr;
         scheduler.dispatch = dispatch_rr;
+        scheduler.block_to_ready = block_to_ready_rr;
         return;
     }
 

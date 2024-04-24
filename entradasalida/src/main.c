@@ -3,7 +3,7 @@
 static t_log *logger;
 static t_config *config;
 static t_io_config *cfg_io;
-static char* interface_name;
+char* interface_name;
 static char *config_path;
 int memory_fd;
 int kernel_fd;

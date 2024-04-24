@@ -29,9 +29,13 @@ void process_conn(void *void_args)
         }
         case IO_DONE:
         {
+            char* resource_name = packet_getString(packet->buffer);
+            scheduler.block_to_ready(resource_name,logger);
+            free(resource_name);
             // now we should move the process waiting for this i/o to finish from blocked to ready.
-            uint32_t pid = packet_getUInt32(packet->buffer);
-            log_info(logger, "I/O operation for process with PID %d has finished", pid);
+            // uint32_t pid = packet_getUInt32(packet->buffer);
+            // log_info(logger, "I/O operation for process with PID %d has finished", pid);
+            // pasar de block a ready
             break;
         }
         case -1:

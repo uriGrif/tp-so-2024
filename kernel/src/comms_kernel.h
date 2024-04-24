@@ -4,7 +4,7 @@
 #include <proto/proto.h>
 #include <sockets/sockets.h>
 #include <interface.h>
-
+#include<scheduler.h>
 void handle_connections(void *void_args);
 
 #endif

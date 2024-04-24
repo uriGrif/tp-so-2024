@@ -29,9 +29,11 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     uint32_t pid = packet_getUInt32(buffer);
     log_info(logger, "PID: %d - Operacion: %d", pid, operation);
 
-    void sendDone(uint8_t operation)
+    void sendDone(void)
     {
-        t_packet *packet = packet_new(operation);
+        // le mando el nombre de la interfaz para saber que cola de block es
+        t_packet *packet = packet_new(IO_DONE);
+        packet_addString(packet,interface_name);
         packet_send(packet, kernel_fd);
         packet_free(packet);
     }
@@ -41,43 +43,43 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     case IO_GEN_SLEEP:
     {
         sleep(msToSeconds(config->unidad_trabajo));
-        sendDone(IO_DONE);
+        sendDone();
         log_info(logger, "PID: %d - Operacion: %s DONE", pid, io_op_to_string(operation));
         break;
     }
     case IO_STD_IN_READ:
     {
-        sendDone(IO_DONE);
+        sendDone();
         break;
     }
     case IO_STD_OUT_WRITE:
     {
-        sendDone(IO_DONE);
+        sendDone();
         break;
     }
     case IO_FS_CREATE:
     {
-        sendDone(IO_DONE);
+        sendDone();
         break;
     }
     case IO_FS_DELETE:
     {
-        sendDone(IO_DONE);
+        sendDone();
         break;
     }
     case IO_FS_TRUNCATE:
     {
-        sendDone(IO_DONE);
+        sendDone();
         break;
     }
     case IO_FS_READ:
     {
-        sendDone(IO_DONE);
+        sendDone();
         break;
     }
     case IO_FS_WRITE:
     {
-        sendDone(IO_DONE);
+        sendDone();
         break;
     }
     case DESTROY_PROCESS:

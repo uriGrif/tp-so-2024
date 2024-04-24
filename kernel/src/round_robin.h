@@ -11,5 +11,6 @@
 t_pcb* ready_to_exec_rr(void);
 
 void dispatch_rr(t_pcb* pcb, t_log* logger);
+void block_to_ready_rr(char* resource,t_log* logger);
 
 #endif

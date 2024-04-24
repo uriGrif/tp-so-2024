@@ -15,4 +15,6 @@ typedef struct
     int block_count;
 } t_io_config;
 
+extern char* interface_name;
+
 #endif

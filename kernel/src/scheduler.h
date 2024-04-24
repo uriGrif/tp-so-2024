@@ -16,13 +16,15 @@
 
 typedef t_pcb *(*ready_to_exec_strategy)(void);
 typedef void (*dispatch_strategy)(t_pcb *, t_log *);
+typedef void (*block_to_ready_strategy)(char *resource,t_log* logger);
 // para vos escobar
 typedef struct
 {
     ready_to_exec_strategy ready_to_exec;
-    dispatch_strategy dispatch;
-    // blocked to ready
+    dispatch_strategy dispatch; // exec to blocked
+    block_to_ready_strategy block_to_ready;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
+    // agregar los semaforos aca???
 } t_scheduler;
 
 extern t_scheduler scheduler;

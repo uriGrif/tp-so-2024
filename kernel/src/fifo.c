@@ -17,3 +17,11 @@ void dispatch_fifo(t_pcb* pcb, t_log* logger){
     }
 }
 
+void block_to_ready_fifo(char* resource,t_log* logger){
+
+    // buscar la cola por nombre de recurso
+    // popear el primero (EN DUDA)
+    // pasar a ready
+    log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY",1); //pcb->context->pid
+}
+
