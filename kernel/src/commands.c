@@ -36,14 +36,15 @@ void end_process(char *pid_str, t_log *logger)
 }
 
 void stop_scheduler(char *x, t_log *logger)
-{  
+{
     scheduler_paused = true;
     log_info(logger, "se detuvo la planificacion\n");
 }
 
 void start_scheduler(char *x, t_log *logger)
 {
-    if (scheduler_paused){
+    if (scheduler_paused)
+    {
         sem_post(&scheduler.sem_scheduler_paused);
         scheduler_paused = false;
     }
@@ -73,21 +74,22 @@ void list_processes_by_state(char *x, t_log *logger)
 static char *get_pids_of_blocked_queues(void)
 {
     char *pids = strdup("[");
-
-    void gen_pids_one_queue(void *queue)
+    void gen_pids_one_queue(void *void_queue)
     {
-        t_sync_queue *q = (t_sync_queue *)queue;
+        t_blocked_queue *queue = (t_blocked_queue *)void_queue;
         void add_pid(void *elem)
         {
             t_pcb *pcb = (t_pcb *)elem;
             string_append_with_format(&pids, "%d,", pcb->context->pid);
         }
-        sync_queue_iterate(q,add_pid);
+        if (queue)
+            sync_queue_iterate(queue->block_queue, add_pid);
     }
     blocked_queues_iterate(gen_pids_one_queue);
-    if(strlen(pids)>1)
-        pids[strlen(pids)-1] = ']';
-    else string_append(&pids,"]");
+    if (strlen(pids) > 1)
+        pids[strlen(pids) - 1] = ']';
+    else
+        string_append(&pids, "]");
     return pids;
 }
 
@@ -100,8 +102,9 @@ static char *generate_string_of_pids(t_sync_queue *queue)
         string_append_with_format(&pids, "%d,", pcb->context->pid);
     }
     sync_queue_iterate(ready_queue, add_pid);
-    if(strlen(pids)>1)
+    if (strlen(pids) > 1)
         pids[strlen(pids) - 1] = ']';
-    else string_append(&pids,"]");
+    else
+        string_append(&pids, "]");
     return pids;
 }

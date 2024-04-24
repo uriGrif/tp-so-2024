@@ -42,6 +42,8 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             log_error(logger, "Validation for interface with name %s for instruction %s failed", params->interface_name, "IO_GEN_SLEEP");
             // mandar proceso a exit
             interface_destroy_io_gen_sleep(params);
+            // por ahora como no tengo el exit
+            pcb_destroy(pcb);
             break;
         }
         if (move_pcb_to_blocked(pcb, interface->name) == -1)

@@ -35,6 +35,7 @@ void interface_init(void);
 void interface_add(t_interface *interface);
 t_interface *interface_validate(char *name, uint8_t instruction_to_run);
 t_interface *interface_get(char *name);
+t_interface *interface_get_by_fd(int fd);
 int interface_is_connected(t_interface *interface);
 int interface_can_run_instruction(t_interface *interface, uint8_t instruction_to_run);
 void interface_destroy(t_interface *interface);

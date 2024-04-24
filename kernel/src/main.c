@@ -36,7 +36,7 @@ static void config_init(void)
 
 static void init_kernel(void)
 {
-    logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
+    logger = log_create(LOG_PATH, PROCESS_NAME, 0, LOG_LEVEL);
     if (!logger)
     {
         perror("error al crear el logger");

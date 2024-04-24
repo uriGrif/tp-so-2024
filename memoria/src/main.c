@@ -61,7 +61,7 @@ static void memory_close(void)
 void sighandler(int signal)
 {
     memory_close();
-    socket_freeConn(fd_server);
+    close(fd_server);
     exit(0);
 }
 

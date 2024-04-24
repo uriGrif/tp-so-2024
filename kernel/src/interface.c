@@ -19,6 +19,26 @@ t_interface *interface_get(char *name)
     return dictionary_get(interface_dictionary, name);
 }
 
+t_interface *interface_get_by_fd(int fd)
+{
+    bool closure(void *elem)
+    {
+        t_interface *interface = (t_interface *)elem;
+        return interface->fd == fd;
+    }
+    t_list* list = dictionary_elements(interface_dictionary);
+    t_interface* tmp = list_find(list,closure);
+    list_destroy(list);
+    return tmp;
+
+}
+
+void destroy_interface_dictionary(void)
+{
+    dictionary_destroy_and_destroy_elements(interface_dictionary, interface_destroyer);
+}
+
+
 int interface_is_connected(t_interface *interface)
 {
     return socket_isConnected(interface->fd);
@@ -50,7 +70,7 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
 
     if (!interface_is_connected(interface))
     {
-        interface_destroy(interface);
+        //interface_destroy(interface);
         socket_freeConn(interface->fd);
         return NULL;
     }
@@ -64,13 +84,7 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
 void interface_destroy(t_interface *interface)
 {
     // aca podriamos mandar a exit los procesos de la blocked queue de la interfaz
-    t_interface *inter = dictionary_remove(interface_dictionary, interface->name);
-    interface_destroyer(inter);
-}
-
-void destroy_interface_dictionary(void)
-{
-    dictionary_destroy_and_destroy_elements(interface_dictionary, interface_destroyer);
+    dictionary_remove_and_destroy(interface_dictionary, interface->name,interface_destroyer);
 }
 
 static void interface_destroyer(void *_interface)
@@ -98,7 +112,8 @@ void interface_decode_io_gen_sleep(t_buffer *buffer, struct req_io_gen_sleep *pa
     params->work_units = packet_getUInt32(buffer);
 }
 
-void interface_destroy_io_gen_sleep(struct req_io_gen_sleep *params) {
+void interface_destroy_io_gen_sleep(struct req_io_gen_sleep *params)
+{
     free(params->interface_name);
     free(params);
 }
@@ -113,5 +128,3 @@ int interface_send_io_gen_sleep(int fd, uint32_t pid, uint32_t work_units)
     packet_free(packet);
     return res;
 }
-
-

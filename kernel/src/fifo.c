@@ -18,10 +18,11 @@ void dispatch_fifo(t_pcb* pcb, t_log* logger){
 
 void block_to_ready_fifo(char* resource, t_log* logger){
 
-    t_sync_queue *q = get_blocked_queue(resource);
+    t_sync_queue *q = get_blocked_queue_by_name(resource);
     t_pcb *pcb = queue_sync_pop(q);
     if(pcb){
         queue_sync_push(ready_queue, pcb);
+        log_debug(logger,"AX despues del block: %d",pcb->context->registers.ax);
         pcb->state = READY;
         log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->context->pid);
     }

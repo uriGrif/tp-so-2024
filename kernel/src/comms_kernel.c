@@ -12,6 +12,13 @@ void process_conn(void *void_args)
         t_packet *packet = packet_new(0);
         if (packet_recv(client_fd, packet) == -1)
         {
+            // t_sync_queue* blocked_queue = get_blocked_queue_by_fd(client_fd);
+            //  deberia mandar todos a exit pero por ahora...
+            t_interface* interface = interface_get_by_fd(client_fd);
+            if(interface)
+                 interface_destroy(interface);
+            remove_blocked_queue_by_fd(client_fd);
+
             log_warning(logger, "client disconnect");
             packet_free(packet);
             return;
@@ -24,14 +31,14 @@ void process_conn(void *void_args)
             interface->fd = client_fd;
             interface_decode_new(packet->buffer, interface);
             interface_add(interface);
-            add_blocked_queue(interface->name);
+            add_blocked_queue(interface->name, client_fd);
             log_info(logger, "New interface registered: name: %s - type: %s", interface->name, interface->type);
             break;
         }
         case IO_DONE:
         {
-            char* resource_name = packet_getString(packet->buffer);
-            log_info(logger,"Interface %s done",resource_name);
+            char *resource_name = packet_getString(packet->buffer);
+            log_info(logger, "Interface %s done", resource_name);
             scheduler.block_to_ready(resource_name, logger);
             sem_post(&scheduler.sem_ready);
             free(resource_name);
