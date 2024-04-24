@@ -24,7 +24,8 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     {
     case END_PROCESS:
     {
-        log_info(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
+        //log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->context->pid);
+        log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
         pcb_destroy(pcb);
         // tocar grado multiprogramacion
         //  actualizar context del pcb
@@ -46,7 +47,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             pcb_destroy(pcb);
             break;
         }
-        if (move_pcb_to_blocked(pcb, interface->name) == -1)
+        if (move_pcb_to_blocked(pcb, interface->name,logger) == -1)
         {
             log_error(logger, "Could not find blocked queue for %s", params->interface_name);
             // mandar proceso a exit

@@ -73,13 +73,14 @@ void handle_short_term_scheduler(void *args_logger)
     }
 }
 
-int move_pcb_to_blocked(t_pcb *pcb, char *resource_name)
+int move_pcb_to_blocked(t_pcb *pcb, char *resource_name,t_log* logger)
 {
     t_sync_queue *tmp;
     if ((tmp = get_blocked_queue_by_name(resource_name)))
     {
         queue_sync_push(tmp, pcb);
         pcb->state = BLOCKED;
+          log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
         return 0;
     }
     return -1;

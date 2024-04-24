@@ -30,6 +30,11 @@ void init_process(char *path, t_log *logger)
 void end_process(char *pid_str, t_log *logger)
 {
     uint32_t pid = atoi(pid_str);
+    // aca si hay que manjear el atoi
+    if(!pid || pid<0){
+        log_error(logger,"Error: %s no es un pid valido",pid_str);
+        return;
+    }
     send_end_process(pid);
     // multiprogramming_controler--;
     log_info(logger, "Finaliza el proceso %d (por consola) ", pid);
@@ -54,6 +59,10 @@ void start_scheduler(char *x, t_log *logger)
 void multiprogramming(char *value, t_log *logger)
 {
     int new_grade = atoi(value);
+    if(!new_grade || new_grade<0){
+         log_error(logger,"Error: %s no es un grado valido",value);
+            return;
+    }
     log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
 }
 void list_processes_by_state(char *x, t_log *logger)

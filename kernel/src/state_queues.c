@@ -30,11 +30,11 @@ void destroy_queues(void)
     destroy_blocked_queues();
 }
 
-t_blocked_queue *blocked_queue_create(char *name, int fd)
+t_blocked_queue *blocked_queue_create(char *name, int value)
 {
     t_blocked_queue *q = malloc(sizeof(t_blocked_queue));
     q->resource_name = strdup(name);
-    q->fd = fd;
+    q->fd = value;
     q->block_queue = sync_queue_create();
     return q;
 }
@@ -52,11 +52,11 @@ void pcb_destroyer(void *elem)
     pcb_destroy(pcb);
 }
 
-void add_blocked_queue(char *resource_name, int fd)
+void add_blocked_queue(char *resource_name, int value)
 {
     if (resource_name)
     {
-        t_blocked_queue *q = blocked_queue_create(resource_name, fd);
+        t_blocked_queue *q = blocked_queue_create(resource_name, value);
         list_add(_blocked_queues, q);
     }
 }

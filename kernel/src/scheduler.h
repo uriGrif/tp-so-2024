@@ -39,6 +39,6 @@ void destroy_scheduler(void);
 void handle_short_term_scheduler(void *args_logger);
 void handle_long_term_scheduler(void *args_logger);
 
-int move_pcb_to_blocked(t_pcb* pcb, char* resource_name);
+int move_pcb_to_blocked(t_pcb* pcb, char* resource_name,t_log* logger);
 
 #endif
