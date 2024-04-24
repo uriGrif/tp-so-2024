@@ -16,8 +16,13 @@ void t_process_in_mem_destroy (t_process_in_mem *process) {
     free(process);
 } 
 
+static void destroyer(void* process){
+    t_process_in_mem* p = (t_process_in_mem *) process;
+    t_process_in_mem_destroy(p);
+}
+
 void process_list_destroy (void) {
-    list_destroy_and_destroy_elements(process_list, t_process_in_mem_destroy);
+    list_destroy_and_destroy_elements(process_list, destroyer);
 }
 
 void packet_get_process_in_mem (t_buffer *buffer, t_process_in_mem *process) {
@@ -44,5 +49,5 @@ void remove_process_by_pid (uint32_t pid) {
         return aux_process->pid == pid;
     }
 
-    list_remove_and_destroy_by_condition(process_list, closure, t_process_in_mem_destroy);
+    list_remove_and_destroy_by_condition(process_list, closure, destroyer);
 }
