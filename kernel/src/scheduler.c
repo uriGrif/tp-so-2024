@@ -57,7 +57,7 @@ void handle_short_term_scheduler(void *args_logger)
     while (1)
     {
         if (scheduler_paused)
-            sem_wait(&scheduler.sem_scheduler_paused);
+            sem_wait(&scheduler.sem_scheduler_paused); // si esta pausado se bloquea hasta que iniciar_planificacion le hace post
         if (sync_queue_length(exec_queue) == 0)
         {
             sem_wait(&scheduler.sem_ready);

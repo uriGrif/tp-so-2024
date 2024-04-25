@@ -14,15 +14,16 @@ void dispatch_fifo(t_pcb* pcb, t_log* logger){
     if(wait_for_dispatch_reason(pcb,logger) == -1){
         log_error(logger,"error waiting for cpu context");
     }
-    queue_sync_pop(exec_queue);
+    if(sync_queue_length(exec_queue)==1) queue_sync_pop(exec_queue);
 }
 
 void block_to_ready_fifo(char* resource, t_log* logger){
 
     t_sync_queue *q = get_blocked_queue_by_name(resource);
-    t_pcb *pcb = queue_sync_pop(q);
-    if(pcb){
+    if(sync_queue_length(q)>0){
+        t_pcb *pcb = queue_sync_pop(q);
         queue_sync_push(ready_queue, pcb);
+        sem_post(&scheduler.sem_ready);
         log_debug(logger,"AX despues del block: %d",pcb->context->registers.ax);
         pcb->state = READY;
         log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->context->pid);

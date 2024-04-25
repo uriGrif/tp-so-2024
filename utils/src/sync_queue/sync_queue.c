@@ -37,6 +37,14 @@ void sync_queue_destroy_with_destroyer(t_sync_queue *self, void (*destroyer)(voi
     free(self);
 }
 
+void *sync_queue_peek(t_sync_queue *self, int index)
+{
+    pthread_mutex_lock(&self->mutex);
+    void *elem = list_get(self->queue->elements, index);
+    pthread_mutex_unlock(&self->mutex);
+    return elem;
+}
+
 int sync_queue_length(t_sync_queue *self)
 {
     pthread_mutex_lock(&self->mutex);

@@ -31,12 +31,36 @@ void end_process(char *pid_str, t_log *logger)
 {
     uint32_t pid = atoi(pid_str);
     // aca si hay que manjear el atoi
-    if (!pid || pid < 0)
+    if (!pid || (int)pid < 0)
     {
         log_error(logger, "Error: %s no es un pid valido", pid_str);
         return;
     }
-    send_end_process(pid);
+    // si esta ejecutando la debo desalojar
+    t_pcb *pcb;
+    if ((pcb = remove_pcb_by_pid(exec_queue, pid)))
+    {
+        send_interrupt(pcb);
+        move_pcb_to_exit(pcb, logger);
+    }
+    else if((pcb = remove_pcb_by_pid(ready_queue,pid))){
+        // cuestionable
+        sem_wait(&scheduler.sem_ready);
+        move_pcb_to_exit(pcb,logger);
+    }
+    else if((pcb = remove_pcb_by_pid(new_queue,pid))){
+        // cuestionable
+        move_pcb_to_exit(pcb,logger);
+    }
+    else if ((pcb = remove_pcb_by_pid_in_blocked_queues(pid)))
+    {
+        move_pcb_to_exit(pcb, logger);
+    }
+    else
+    {
+        log_warning(logger, "process with pid %d not found or already in exit", pid);
+        return;
+    }
     // multiprogramming_controler--;
     log_info(logger, "Finaliza el proceso %d (por consola) ", pid);
 }

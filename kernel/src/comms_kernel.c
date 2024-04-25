@@ -50,11 +50,17 @@ void process_conn(void *void_args)
         }
         case IO_DONE:
         {
+            uint32_t pid = packet_getUInt32(packet->buffer);
             char *resource_name = packet_getString(packet->buffer);
             log_info(logger, "Interface %s done", resource_name);
-            scheduler.block_to_ready(resource_name, logger);
-            sem_post(&scheduler.sem_ready);
-            free(resource_name);
+            t_sync_queue *q = get_blocked_queue_by_name(resource_name);
+            if (q)
+            {
+                t_pcb *pcb = sync_queue_peek(q, 0);
+                if (pcb->context->pid == pid)
+                    scheduler.block_to_ready(resource_name, logger);
+                free(resource_name);
+            }
             // now we should move the process waiting for this i/o to finish from blocked to ready.
             // uint32_t pid = packet_getUInt32(packet->buffer);
             // log_info(logger, "I/O operation for process with PID %d has finished", pid);

@@ -125,9 +125,9 @@ int main(int argc, char *argv[])
             while (!current_exec_process_has_finished)
             {
                 char *next_instruction = fetch(fd_memoria, logger);
-                context.registers.pc++;
                 decode_and_execute(next_instruction, logger);
                 check_interrupt(logger);
+                increment_pc();
             }
         }
     }

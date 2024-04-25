@@ -1,6 +1,7 @@
 #include <instr_set.h>
 
 int current_exec_process_has_finished = 0;
+int must_increment_pc = 1;
 
 void set(char **args,t_log* logger);
 void sum(char **args,t_log* logger);
@@ -96,6 +97,7 @@ void sub(char **args,t_log* logger)
 
 void jnz(char **args,t_log* logger)
 {   
+    must_increment_pc = 0;
     uint32_t* pc = &context.registers.pc;
     t_register *reg = register_get_by_name(args[0]);
     if (sizeof(uint8_t) == reg->size)
