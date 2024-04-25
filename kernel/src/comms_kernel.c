@@ -14,12 +14,25 @@ void process_conn(void *void_args)
         {
             // t_sync_queue* blocked_queue = get_blocked_queue_by_fd(client_fd);
             //  deberia mandar todos a exit pero por ahora...
-            t_interface* interface = interface_get_by_fd(client_fd);
-            if(interface)
-                 interface_destroy(interface);
-            remove_blocked_queue_by_fd(client_fd);
+            t_interface *interface = interface_get_by_fd(client_fd);
+            if (interface)
+            {
+                log_warning(logger, "Interfaz %s de tipo %s se desconecto", interface->name, interface->type);
+                interface_destroy(interface);
+            }
+            t_sync_queue *block_queue_to_remove = get_blocked_queue_by_fd(client_fd);
+            void iterator(void *elem)
+            {
+                t_pcb *pcb = (t_pcb *)elem;
+                move_pcb_to_exit(pcb, logger);
+            }
+            // mando todos los procesos de esa cola a exit y elimino la cola mas la interfaz
+            if (block_queue_to_remove)
+            {
+                sync_queue_iterate(block_queue_to_remove, iterator);
+                remove_blocked_queue_by_fd(client_fd);
+            }
 
-            log_warning(logger, "client disconnect");
             packet_free(packet);
             return;
         }

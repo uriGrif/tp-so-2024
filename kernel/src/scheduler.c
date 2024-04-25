@@ -64,26 +64,32 @@ void handle_short_term_scheduler(void *args_logger)
             t_pcb *pcb = scheduler.ready_to_exec();
             if (pcb)
             {
-                log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid);
+                log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
                 scheduler.dispatch(pcb, logger);
-                queue_sync_pop(exec_queue); // solo lo saco, la referencia creo que ya la tengo
                 // para no perder memoria por ahora pero no va
             }
         }
     }
 }
 
-int move_pcb_to_blocked(t_pcb *pcb, char *resource_name,t_log* logger)
+int move_pcb_to_blocked(t_pcb *pcb, char *resource_name, t_log *logger)
 {
     t_sync_queue *tmp;
     if ((tmp = get_blocked_queue_by_name(resource_name)))
     {
         queue_sync_push(tmp, pcb);
         pcb->state = BLOCKED;
-          log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
+        log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
         return 0;
     }
     return -1;
+}
+
+void move_pcb_to_exit(t_pcb* pcb, t_log* logger){
+    queue_sync_push(exit_queue,pcb);
+    log_info(logger, "PID: %d - Estado Anterior: %s - Estado Actual: EXIT", pcb->context->pid,pcb_state_to_string(pcb));
+    pcb->state = EXIT;
+    send_end_process(pcb->context->pid);
 }
 
 void handle_long_term_scheduler(void *args_logger)

@@ -11,6 +11,7 @@
 #include <dispatcher.h>
 #include <config.h>
 #include <semaphore.h>
+#include<memory_comms.h>
 #include <fifo.h>
 #include <round_robin.h>
 
@@ -40,5 +41,6 @@ void handle_short_term_scheduler(void *args_logger);
 void handle_long_term_scheduler(void *args_logger);
 
 int move_pcb_to_blocked(t_pcb* pcb, char* resource_name,t_log* logger);
+void move_pcb_to_exit(t_pcb* pcb, t_log* logger);
 
 #endif

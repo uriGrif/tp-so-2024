@@ -31,8 +31,9 @@ void end_process(char *pid_str, t_log *logger)
 {
     uint32_t pid = atoi(pid_str);
     // aca si hay que manjear el atoi
-    if(!pid || pid<0){
-        log_error(logger,"Error: %s no es un pid valido",pid_str);
+    if (!pid || pid < 0)
+    {
+        log_error(logger, "Error: %s no es un pid valido", pid_str);
         return;
     }
     send_end_process(pid);
@@ -53,15 +54,16 @@ void start_scheduler(char *x, t_log *logger)
         sem_post(&scheduler.sem_scheduler_paused);
         scheduler_paused = false;
     }
-    log_info(logger, "arranco la planificacion\n");
+    log_info(logger, "Se inicio la planificacion\n");
 }
 
 void multiprogramming(char *value, t_log *logger)
 {
     int new_grade = atoi(value);
-    if(!new_grade || new_grade<0){
-         log_error(logger,"Error: %s no es un grado valido",value);
-            return;
+    if (!new_grade || new_grade < 0)
+    {
+        log_error(logger, "Error: %s no es un grado valido", value);
+        return;
     }
     log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
 }
@@ -75,6 +77,9 @@ void list_processes_by_state(char *x, t_log *logger)
     free(pids);
     pids = get_pids_of_blocked_queues();
     log_info(logger, "Estado BLOCKED: %s", pids);
+    free(pids);
+    pids = generate_string_of_pids(exit_queue);
+    log_info(logger, "Estado EXIT: %s", pids);
     free(pids);
     // sync_queue_iterate(ready_queue, log_state);
     // sync_queue_iterate(exec_queue, log_state);
@@ -110,7 +115,7 @@ static char *generate_string_of_pids(t_sync_queue *queue)
         t_pcb *pcb = (t_pcb *)elem;
         string_append_with_format(&pids, "%d,", pcb->context->pid);
     }
-    sync_queue_iterate(ready_queue, add_pid);
+    sync_queue_iterate(queue, add_pid);
     if (strlen(pids) > 1)
         pids[strlen(pids) - 1] = ']';
     else

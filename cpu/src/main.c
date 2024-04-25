@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
                 context.registers.pc++;
                 decode_and_execute(next_instruction, logger);
                 check_interrupt(logger);
-            };
+            }
         }
     }
 

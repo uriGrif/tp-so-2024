@@ -24,14 +24,14 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     {
     case END_PROCESS:
     {
-        //log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->context->pid);
+        // log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->context->pid);
         log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
-        pcb_destroy(pcb);
-        // tocar grado multiprogramacion
-        //  actualizar context del pcb
-        //  mandar proceso a exit
-        //  liberar de memoria
-        break;
+        move_pcb_to_exit(pcb, logger);
+            // tocar grado multiprogramacion
+            //  actualizar context del pcb
+            //  mandar proceso a exit
+            //  liberar de memoria
+            break;
     }
     case IO_GEN_SLEEP:
     {
@@ -43,11 +43,11 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             log_error(logger, "Validation for interface with name %s for instruction %s failed", params->interface_name, "IO_GEN_SLEEP");
             // mandar proceso a exit
             interface_destroy_io_gen_sleep(params);
-            // por ahora como no tengo el exit
-            pcb_destroy(pcb);
+            // nunca pase por bloqueado asi que no deberia explotar
+            move_pcb_to_exit(pcb,logger);
             break;
         }
-        if (move_pcb_to_blocked(pcb, interface->name,logger) == -1)
+        if (move_pcb_to_blocked(pcb, interface->name, logger) == -1)
         {
             log_error(logger, "Could not find blocked queue for %s", params->interface_name);
             // mandar proceso a exit

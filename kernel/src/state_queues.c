@@ -42,7 +42,7 @@ t_blocked_queue *blocked_queue_create(char *name, int value)
 void blocked_queue_destroy(t_blocked_queue *q)
 {
     free(q->resource_name);
-    sync_queue_destroy_with_destroyer(q->block_queue,pcb_destroyer);
+    sync_queue_destroy(q->block_queue);
     free(q);
 }
 

@@ -68,12 +68,13 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
     if (interface == NULL)
         return NULL;
 
-    if (!interface_is_connected(interface))
-    {
-        //interface_destroy(interface);
-        socket_freeConn(interface->fd);
-        return NULL;
-    }
+    // comento por ahora pero por si las dudas dejo
+    // if (!interface_is_connected(interface))
+    // {
+    //     interface_destroy(interface);
+    //     socket_freeConn(interface->fd);
+    //     return NULL;
+    // }
 
     if (!interface_can_run_instruction(interface, instruction_to_run))
         return NULL;
