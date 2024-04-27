@@ -20,10 +20,10 @@ void dispatch_fifo(t_pcb *pcb, t_log *logger)
 
 void block_to_ready_fifo(char *resource, t_log *logger)
 {
-
-    t_sync_queue *q = get_blocked_queue_by_name(resource);
     //wait sem cola bloqueado
-    t_pcb *pcb = queue_sync_pop(q);
+    t_pcb *pcb = blocked_queue_pop(resource);
+    if(!pcb)
+        log_error(logger,"blocked queue not found");
     pcb->state = READY;
     log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->context->pid);
     queue_sync_push(ready_queue, pcb);

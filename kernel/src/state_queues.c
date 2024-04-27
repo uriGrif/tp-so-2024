@@ -1,4 +1,5 @@
 #include <state_queues.h>
+pthread_mutex_t MUTEX_LISTA_BLOCKEADOS;
 
 t_sync_queue *new_queue;
 t_sync_queue *ready_queue;
@@ -18,6 +19,7 @@ void init_queues(void)
     exec_queue = sync_queue_create();
     exit_queue = sync_queue_create();
     _blocked_queues = list_create();
+    pthread_mutex_init(&MUTEX_LISTA_BLOCKEADOS,NULL);
 }
 
 void destroy_queues(void)
@@ -28,6 +30,7 @@ void destroy_queues(void)
     sync_queue_destroy_with_destroyer(exec_queue, pcb_destroyer);
     sync_queue_destroy_with_destroyer(exit_queue, pcb_destroyer);
     destroy_blocked_queues();
+    pthread_mutex_destroy(&MUTEX_LISTA_BLOCKEADOS);
 }
 
 t_blocked_queue *blocked_queue_create(char *name, int value)
@@ -35,12 +38,14 @@ t_blocked_queue *blocked_queue_create(char *name, int value)
     t_blocked_queue *q = malloc(sizeof(t_blocked_queue));
     q->resource_name = strdup(name);
     q->fd = value;
+    sem_init(&q->sem_process_count, 0, 0);
     q->block_queue = sync_queue_create();
     return q;
 }
 
 void blocked_queue_destroy(t_blocked_queue *q)
 {
+    sem_destroy(&q->sem_process_count);
     free(q->resource_name);
     sync_queue_destroy(q->block_queue);
     free(q);
@@ -61,30 +66,52 @@ void add_blocked_queue(char *resource_name, int value)
     }
 }
 
-t_sync_queue *get_blocked_queue_by_name(char *resource_name)
+t_blocked_queue *get_blocked_queue_by_name(char *resource_name)
 {
-    bool closure(void* elem){
-        t_blocked_queue* q = (t_blocked_queue*) elem;
-        return !strcmp(q->resource_name,resource_name);
+    bool closure(void *elem)
+    {
+        t_blocked_queue *q = (t_blocked_queue *)elem;
+        return !strcmp(q->resource_name, resource_name);
     }
 
-    t_blocked_queue* tmp =  list_find(_blocked_queues, closure);
-    if(tmp)
-        return tmp->block_queue;
+    t_blocked_queue *tmp = list_find(_blocked_queues, closure);
+    if (tmp)
+        return tmp;
     return NULL;
 }
 
-t_sync_queue *get_blocked_queue_by_fd(int fd)
+t_blocked_queue *get_blocked_queue_by_fd(int fd)
 {
-    bool closure(void* elem){
-        t_blocked_queue* q = (t_blocked_queue*) elem;
+    bool closure(void *elem)
+    {
+        t_blocked_queue *q = (t_blocked_queue *)elem;
         return fd == q->fd;
     }
 
-    t_blocked_queue* tmp =  list_find(_blocked_queues, closure);
-    if(tmp)
-        return tmp->block_queue;
+    t_blocked_queue *tmp = list_find(_blocked_queues, closure);
+    if (tmp)
+        return tmp;
     return NULL;
+}
+
+int blocked_queue_push(char *resource_name, void *elem)
+{
+    t_blocked_queue *queue = get_blocked_queue_by_name(resource_name);
+    if (!queue)
+        return -1;
+    queue_sync_push(queue->block_queue, elem);
+    sem_post(&queue->sem_process_count);
+    return 0;
+}
+
+void *blocked_queue_pop(char *resource_name)
+{
+    t_blocked_queue *queue = get_blocked_queue_by_name(resource_name);
+    if (!queue)
+        return NULL;
+    sem_wait(&queue->sem_process_count);
+    void *elem = queue_sync_pop(queue->block_queue);
+    return elem;
 }
 
 static void destroy_blocked_queues(void)
@@ -97,9 +124,11 @@ static void destroy_blocked_queues(void)
     list_destroy_and_destroy_elements(_blocked_queues, destroyer);
 }
 
-void remove_blocked_queue_by_fd(int fd){
-     bool closure(void* elem){
-        t_blocked_queue* q = (t_blocked_queue*) elem;
+void remove_blocked_queue_by_fd(int fd)
+{
+    bool closure(void *elem)
+    {
+        t_blocked_queue *q = (t_blocked_queue *)elem;
         return fd == q->fd;
     }
     void destroyer(void *queue)
@@ -107,7 +136,7 @@ void remove_blocked_queue_by_fd(int fd){
         t_blocked_queue *q = (t_blocked_queue *)queue;
         blocked_queue_destroy(q);
     }
-    list_remove_and_destroy_by_condition(_blocked_queues,closure,destroyer);
+    list_remove_and_destroy_by_condition(_blocked_queues, closure, destroyer);
 }
 
 void blocked_queues_iterate(void (*iterator)(void *))

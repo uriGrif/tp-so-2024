@@ -52,6 +52,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         if (move_pcb_to_blocked(pcb, interface->name, logger) == -1)
         {
             log_error(logger, "Could not find blocked queue for %s", params->interface_name);
+            move_pcb_to_exit(pcb, logger);
             // mandar proceso a exit
             break;
         }

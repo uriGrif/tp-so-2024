@@ -9,12 +9,14 @@ static void init_scheduler_sems(void)
 {
     sem_init(&scheduler.sem_scheduler_paused, 0, 0);
     sem_init(&scheduler.sem_ready, 0, 0);
+    sem_init(&scheduler.sem_new,0,0);
 }
 
 static void destroy_scheduler_sems(void)
 {
     sem_destroy(&scheduler.sem_ready);
     sem_destroy(&scheduler.sem_scheduler_paused);
+    sem_destroy(&scheduler.sem_new);
 }
 
 void init_scheduler(void)
@@ -68,15 +70,11 @@ void handle_short_term_scheduler(void *args_logger)
 
 int move_pcb_to_blocked(t_pcb *pcb, char *resource_name, t_log *logger)
 {
-    t_sync_queue *tmp;
-    if ((tmp = get_blocked_queue_by_name(resource_name)))
-    {
-        queue_sync_push(tmp, pcb);
-        pcb->state = BLOCKED;
-        log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
-        return 0;
-    }
-    return -1;
+    if(blocked_queue_push(resource_name, pcb) == -1)
+        return -1;
+    pcb->state = BLOCKED;
+    log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
+    return 0;
 }
 
 void move_pcb_to_exit(t_pcb *pcb, t_log *logger)

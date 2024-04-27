@@ -9,8 +9,5 @@ void dispatch_rr(t_pcb* pcb, t_log* logger){
 }
 
 void block_to_ready_rr(char* resource,t_log* logger){
-    // buscar la cola por nombre de recurso
-    // popear el primero (EN DUDA)
-    // pasar a ready
     block_to_ready_fifo(resource,logger);
 }

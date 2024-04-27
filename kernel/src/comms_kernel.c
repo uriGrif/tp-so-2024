@@ -10,7 +10,7 @@ void process_conn(void *void_args)
     while (client_fd != -1)
     {
         t_packet *packet = packet_new(0);
-        if (packet_recv(client_fd, packet) == -1)
+        if (packet_recv(client_fd, packet) == -1) // SE DESCONECTA ENTONCES
         {
             // t_sync_queue* blocked_queue = get_blocked_queue_by_fd(client_fd);
             //  deberia mandar todos a exit pero por ahora...
@@ -20,7 +20,8 @@ void process_conn(void *void_args)
                 log_warning(logger, "Interfaz %s de tipo %s se desconecto, todos los bloqueados por ella iran a exit", interface->name, interface->type);
                 interface_destroy(interface);
             }
-            t_sync_queue *block_queue_to_remove = get_blocked_queue_by_fd(client_fd);
+            pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+            t_blocked_queue *block_queue_to_remove = get_blocked_queue_by_fd(client_fd);
             void iterator(void *elem)
             {
                 t_pcb *pcb = (t_pcb *)elem;
@@ -29,11 +30,12 @@ void process_conn(void *void_args)
             // mando todos los procesos de esa cola a exit y elimino la cola mas la interfaz
             if (block_queue_to_remove)
             {
-                sync_queue_iterate(block_queue_to_remove, iterator);
+                sync_queue_iterate(block_queue_to_remove->block_queue, iterator);
                 remove_blocked_queue_by_fd(client_fd);
             }
-            log_debug(logger,"pase por aca");
+            log_debug(logger, "pase por aca");
             packet_free(packet);
+            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             return;
         }
         switch (packet->op_code)
@@ -41,8 +43,9 @@ void process_conn(void *void_args)
         case NEW_INTERFACE:
         {
             t_interface *interface = malloc(sizeof(t_interface));
-            if(!interface){
-                log_error(logger,"not enough memory for allocating interface");
+            if (!interface)
+            {
+                log_error(logger, "not enough memory for allocating interface");
                 break;
             }
             interface->fd = client_fd;
@@ -56,8 +59,10 @@ void process_conn(void *void_args)
         {
             char *resource_name = packet_getString(packet->buffer);
             uint32_t pid = packet_getUInt32(packet->buffer);
-            log_info(logger, "Interface %s requested by pid %d done", resource_name,pid);
+            log_info(logger, "Interface %s requested by pid %d done", resource_name, pid);
+            pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
             scheduler.block_to_ready(resource_name, logger);
+            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             sem_post(&scheduler.sem_ready);
             free(resource_name);
             break;

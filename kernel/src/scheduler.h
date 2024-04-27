@@ -26,6 +26,7 @@ typedef struct
     block_to_ready_strategy block_to_ready;
     sem_t sem_scheduler_paused;
     sem_t sem_ready;
+    sem_t sem_new;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
     // agregar los semaforos aca???
 } t_scheduler;

@@ -4,6 +4,7 @@
 #include <sync_queue/sync_queue.h>
 #include <commons/collections/dictionary.h>
 #include <commons/collections/list.h>
+#include<semaphore.h>
 #include <pcb.h>
 
 typedef struct
@@ -14,6 +15,7 @@ typedef struct
         int fd;
         int instances;
     };
+    sem_t sem_process_count;
     t_sync_queue *block_queue;
 } t_blocked_queue;
 
@@ -22,13 +24,16 @@ extern t_sync_queue *ready_queue;
 extern t_sync_queue *ready_plus_queue;
 extern t_sync_queue *exec_queue;
 extern t_sync_queue *exit_queue;
+extern pthread_mutex_t MUTEX_LISTA_BLOCKEADOS;
 
 void init_queues(void);
 void destroy_queues(void);
 void add_blocked_queue(char *resource_name, int value);
-t_sync_queue *get_blocked_queue_by_fd(int fd);
+int blocked_queue_push(char* resource_name, void* elem);
+void *blocked_queue_pop(char* resource_name);
+t_blocked_queue *get_blocked_queue_by_fd(int fd);
 void remove_blocked_queue_by_fd(int fd);
-t_sync_queue *get_blocked_queue_by_name(char *resource_name);
+t_blocked_queue *get_blocked_queue_by_name(char *resource_name);
 void blocked_queues_iterate(void (*iterator)(void *));
 
 #endif
