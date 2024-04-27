@@ -1,6 +1,8 @@
 #include <dispatcher.h>
 
 int fd_dispatch;
+// whether the interruptiion was due to a i/o instruction or not
+bool IO_REQUESTED = false;
 
 void send_context_to_cpu(t_exec_context *context)
 {
@@ -22,21 +24,24 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     packet_get_context(packet->buffer, pcb->context);
     switch (packet->op_code)
     {
-    case INTERRUPT_EXEC:
+    case INTERRUPT_EXEC: // FIN DE QUANTUM
     {
         if (pcb->state == EXIT)
             break;
-        // manejar fin de quantum
+        log_debug(logger,"me lleg por interrupt aca");
+        scheduler.exec_to_ready(pcb, logger);
+        break;
     }
     case END_PROCESS:
     {
-        //log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
+        log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
         move_pcb_to_exit(pcb, logger);
         //  liberar de memoria
         break;
     }
     case IO_GEN_SLEEP:
     {
+        IO_REQUESTED = true;
         struct req_io_gen_sleep *params = malloc(sizeof(struct req_io_gen_sleep));
         interface_decode_io_gen_sleep(packet->buffer, params);
         t_interface *interface = interface_validate(params->interface_name, IO_GEN_SLEEP);
@@ -49,11 +54,10 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             move_pcb_to_exit(pcb, logger);
             break;
         }
-        if (move_pcb_to_blocked(pcb, interface->name, logger) == -1)
+        if (scheduler.move_pcb_to_blocked(pcb, interface->name, logger) == -1)
         {
             log_error(logger, "Could not find blocked queue for %s", params->interface_name);
             move_pcb_to_exit(pcb, logger);
-            // mandar proceso a exit
             break;
         }
         // here we would get the current exec pcb and move it to the blocked queue. that means we need to send a deallocation

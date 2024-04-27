@@ -1,0 +1,4 @@
+SET AX 3
+SET BX 5
+SET CX 8
+JNZ AX 0

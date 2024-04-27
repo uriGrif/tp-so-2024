@@ -2,6 +2,8 @@
 
 static void set_scheduling_algorithm(void);
 
+pthread_t quantum_interruption_thread;
+
 bool scheduler_paused = true;
 t_scheduler scheduler;
 
@@ -9,7 +11,8 @@ static void init_scheduler_sems(void)
 {
     sem_init(&scheduler.sem_scheduler_paused, 0, 0);
     sem_init(&scheduler.sem_ready, 0, 0);
-    sem_init(&scheduler.sem_new,0,0);
+    sem_init(&scheduler.sem_new, 0, 0);
+    sem_init(&scheduler.sem_quantum_timer, 0, 0);
 }
 
 static void destroy_scheduler_sems(void)
@@ -17,6 +20,7 @@ static void destroy_scheduler_sems(void)
     sem_destroy(&scheduler.sem_ready);
     sem_destroy(&scheduler.sem_scheduler_paused);
     sem_destroy(&scheduler.sem_new);
+    sem_destroy(&scheduler.sem_quantum_timer);
 }
 
 void init_scheduler(void)
@@ -37,6 +41,7 @@ static void set_scheduling_algorithm(void)
         scheduler.ready_to_exec = ready_to_exec_fifo;
         scheduler.dispatch = dispatch_fifo;
         scheduler.block_to_ready = block_to_ready_fifo;
+        scheduler.move_pcb_to_blocked = move_pcb_to_blocked_fifo;
         return;
     }
     if (!strcmp(cfg_kernel->algoritmo_planificacion, "RR"))
@@ -44,11 +49,17 @@ static void set_scheduling_algorithm(void)
         scheduler.ready_to_exec = ready_to_exec_rr;
         scheduler.dispatch = dispatch_rr;
         scheduler.block_to_ready = block_to_ready_rr;
+        scheduler.exec_to_ready = exec_to_ready_rr;
+        scheduler.move_pcb_to_blocked = move_pcb_to_blocked_rr;
+        pthread_create(&quantum_interruption_thread, NULL, (void*)quantum_interruption_handler, (void *)exec_queue);
+        pthread_detach(quantum_interruption_thread);
         return;
     }
-
+    pthread_create(&quantum_interruption_thread, NULL, (void*) quantum_interruption_handler, (void *)exec_queue);
+    pthread_detach(quantum_interruption_thread);
     // scheduler.ready_to_exec = ready_to_exec_vrr;
     // scheduler.dispatch =  dispatch_vrr;
+    //scheduler.exec_to_ready = exec_to_ready_vrr;
 }
 
 void handle_short_term_scheduler(void *args_logger)
@@ -68,14 +79,14 @@ void handle_short_term_scheduler(void *args_logger)
     }
 }
 
-int move_pcb_to_blocked(t_pcb *pcb, char *resource_name, t_log *logger)
-{
-    if(blocked_queue_push(resource_name, pcb) == -1)
-        return -1;
-    pcb->state = BLOCKED;
-    log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
-    return 0;
-}
+// int move_pcb_to_blocked(t_pcb *pcb, char *resource_name, t_log *logger)
+// {
+//     if(blocked_queue_push(resource_name, pcb) == -1)
+//         return -1;
+//     pcb->state = BLOCKED;
+//     log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
+//     return 0;
+// }
 
 void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {

@@ -28,3 +28,12 @@ void block_to_ready_fifo(char *resource, t_log *logger)
     log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->context->pid);
     queue_sync_push(ready_queue, pcb);
 }
+
+int move_pcb_to_blocked_fifo(t_pcb *pcb, char *resource_name, t_log *logger)
+{
+    if(blocked_queue_push(resource_name, pcb) == -1)
+        return -1;
+    pcb->state = BLOCKED;
+    log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
+    return 0;
+}
