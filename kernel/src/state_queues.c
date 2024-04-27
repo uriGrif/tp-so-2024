@@ -98,7 +98,7 @@ static void destroy_blocked_queues(void)
 }
 
 void remove_blocked_queue_by_fd(int fd){
-     bool closure(void* elem){
+    bool closure(void* elem) {
         t_blocked_queue* q = (t_blocked_queue*) elem;
         return fd == q->fd;
     }
@@ -113,4 +113,40 @@ void remove_blocked_queue_by_fd(int fd){
 void blocked_queues_iterate(void (*iterator)(void *))
 { // iterator tiene que recibir una cola
     list_iterate(_blocked_queues, iterator);
+}
+
+t_pcb* remove_pcb_by_pid_in_blocked_queues(uint32_t pid){
+    t_pcb* tmp;
+    void iterator(void* elem){
+        t_blocked_queue* q = (t_blocked_queue*) elem;
+        bool closure(void* void_pcb){
+            t_pcb* p = (t_pcb*) void_pcb;
+            return p->context->pid == pid;
+        }
+        tmp = sync_queue_remove_by_condition(q->block_queue,closure);
+    }
+    blocked_queues_iterate(iterator);
+    return tmp;
+}
+
+t_pcb* remove_pcb_by_pid(t_sync_queue* queue, uint32_t pid){
+
+    bool closure(void* elem){
+        t_pcb* p = (t_pcb*) elem;
+        return p->context->pid == pid;
+    }
+    return sync_queue_remove_by_condition(queue,closure);
+}
+
+t_pcb* remove_pcb_in_non_exec_queues(uint32_t pid){
+    t_pcb* tmp;
+    if((tmp = remove_pcb_by_pid_in_blocked_queues(pid)))
+        return tmp;
+    if((tmp = remove_pcb_by_pid(ready_queue,pid)))
+        return tmp;
+    if((tmp = remove_pcb_by_pid(new_queue,pid)))
+        return tmp;
+    if((tmp = remove_pcb_by_pid(ready_plus_queue,pid)))
+        return tmp;
+    return NULL;
 }

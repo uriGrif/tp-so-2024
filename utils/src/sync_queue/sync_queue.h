@@ -28,6 +28,8 @@ void *sync_queue_peek(t_sync_queue *self, int index);
 
 void *sync_queue_find_elem(t_sync_queue *self, bool (*closure)(void *));
 
+void *sync_queue_peek(t_sync_queue *self, int index);
+
 void *sync_queue_remove_by_condition(t_sync_queue *self, bool (*closure)(void *));
 
 void sync_queue_iterate(t_sync_queue *self, void (*iterator)(void *));

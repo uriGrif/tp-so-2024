@@ -10,7 +10,7 @@ void send_context_to_cpu(t_exec_context *context)
     packet_free(packet);
 }
 
-int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
+int wait_for_dispatch_reason(t_pcb pcb, t_loglogger)
 {
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_dispatch, packet) == -1)
@@ -20,7 +20,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     // en todas le desalojo el contexto
     packet_get_context(packet->buffer, pcb->context);
-    switch (packet->op_code)
+switch (packet->op_code)
     {
     case INTERRUPT_EXEC:
     {
@@ -30,16 +30,16 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     case END_PROCESS:
     {
-        //log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
+        log_debug(logger, "PID: %d finaliza con AX: %d", pcb->context->pid, pcb->context->registers.ax);
         move_pcb_to_exit(pcb, logger);
         //  liberar de memoria
         break;
     }
     case IO_GEN_SLEEP:
     {
-        struct req_io_gen_sleep *params = malloc(sizeof(struct req_io_gen_sleep));
+        struct req_io_gen_sleep params = malloc(sizeof(struct req_io_gen_sleep));
         interface_decode_io_gen_sleep(packet->buffer, params);
-        t_interface *interface = interface_validate(params->interface_name, IO_GEN_SLEEP);
+        t_interfaceinterface = interface_validate(params->interface_name, IO_GEN_SLEEP);
         if (!interface)
         {
             log_error(logger, "Validation for interface with name %s for instruction %s failed", params->interface_name, "IO_GEN_SLEEP");

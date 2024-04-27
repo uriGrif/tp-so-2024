@@ -31,4 +31,7 @@ void remove_blocked_queue_by_fd(int fd);
 t_sync_queue *get_blocked_queue_by_name(char *resource_name);
 void blocked_queues_iterate(void (*iterator)(void *));
 
+t_pcb* remove_pcb_by_pid_in_blocked_queues(uint32_t pid);
+t_pcb* remove_pcb_by_pid(t_sync_queue* queue, uint32_t pid);
+t_pcb* remove_pcb_in_non_exec_queues(uint32_t pid);
 #endif

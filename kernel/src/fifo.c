@@ -15,12 +15,11 @@ void dispatch_fifo(t_pcb *pcb, t_log *logger)
     {
         log_error(logger, "error waiting for cpu context");
     }
-    queue_sync_pop(exec_queue);
+    if(sync_queue_length(exec_queue)==1) queue_sync_pop(exec_queue);
 }
 
 void block_to_ready_fifo(char *resource, t_log *logger)
 {
-
     t_sync_queue *q = get_blocked_queue_by_name(resource);
     //wait sem cola bloqueado
     t_pcb *pcb = queue_sync_pop(q);

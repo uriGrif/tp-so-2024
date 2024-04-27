@@ -70,3 +70,9 @@ static char *args_as_string(char **args)
     string_trim_right(&result);
     return result;
 }
+
+void increment_pc(void){
+    if(must_increment_pc) 
+        context.registers.pc++;
+    must_increment_pc = 1;
+}
