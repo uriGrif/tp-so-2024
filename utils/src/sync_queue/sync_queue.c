@@ -45,6 +45,15 @@ int sync_queue_length(t_sync_queue *self)
     return length;
 }
 
+
+void *sync_queue_peek(t_sync_queue *self, int index)
+{
+    pthread_mutex_lock(&self->mutex);
+    void *elem = list_get(self->queue->elements, index);
+    pthread_mutex_unlock(&self->mutex);
+    return elem;
+}
+
 void *sync_queue_find_elem(t_sync_queue *self, bool (*closure)(void *))
 {
     pthread_mutex_lock(&self->mutex);

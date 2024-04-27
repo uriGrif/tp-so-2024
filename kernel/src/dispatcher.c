@@ -22,16 +22,18 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     packet_get_context(packet->buffer, pcb->context);
     switch (packet->op_code)
     {
+    case INTERRUPT_EXEC:
+    {
+        if (pcb->state == EXIT)
+            break;
+        // manejar fin de quantum
+    }
     case END_PROCESS:
     {
-        // log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: EXIT", pcb->context->pid);
-        log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
+        //log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
         move_pcb_to_exit(pcb, logger);
-            // tocar grado multiprogramacion
-            //  actualizar context del pcb
-            //  mandar proceso a exit
-            //  liberar de memoria
-            break;
+        //  liberar de memoria
+        break;
     }
     case IO_GEN_SLEEP:
     {
@@ -44,7 +46,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             // mandar proceso a exit
             interface_destroy_io_gen_sleep(params);
             // nunca pase por bloqueado asi que no deberia explotar
-            move_pcb_to_exit(pcb,logger);
+            move_pcb_to_exit(pcb, logger);
             break;
         }
         if (move_pcb_to_blocked(pcb, interface->name, logger) == -1)
@@ -64,20 +66,6 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         break;
     }
 
-    packet_free(packet);
-    return 0;
-}
-
-int wait_for_context_no_reason(t_pcb *pcb)
-{
-    t_packet *packet = packet_new(-1);
-    if (packet_recv(fd_dispatch, packet) == -1)
-    {
-        packet_free(packet);
-        return -1;
-    }
-
-    packet_get_context(packet->buffer, pcb->context);
     packet_free(packet);
     return 0;
 }

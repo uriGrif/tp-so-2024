@@ -31,7 +31,7 @@ void end_process(char *pid_str, t_log *logger)
 {
     uint32_t pid = atoi(pid_str);
     // aca si hay que manjear el atoi
-    if (!pid || pid < 0)
+    if (!pid || (int)pid < 0)
     {
         log_error(logger, "Error: %s no es un pid valido", pid_str);
         return;
@@ -71,9 +71,14 @@ void list_processes_by_state(char *x, t_log *logger)
 {
     // TODO
     // log_info(logger,"voy a listar todos los procesos por estado\n");
-
-    char *pids = generate_string_of_pids(ready_queue);
+    char *pids = generate_string_of_pids(new_queue);
+    log_info(logger, "Estado NEW: %s", pids);
+    free(pids);
+    pids = generate_string_of_pids(ready_queue);
     log_info(logger, "Estado READY: %s", pids);
+    free(pids);
+    pids = generate_string_of_pids(exec_queue);
+    log_info(logger, "Estado EXEC: %s", pids);
     free(pids);
     pids = get_pids_of_blocked_queues();
     log_info(logger, "Estado BLOCKED: %s", pids);

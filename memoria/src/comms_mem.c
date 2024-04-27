@@ -36,6 +36,10 @@ void process_conn(void *void_args)
         case CREATE_PROCESS:
         {
             t_process_in_mem *process = t_process_in_mem_create();
+            if(!process){
+                log_error(logger,"not enough space for creating process");
+                break;
+            }
             packet_get_process_in_mem(packet->buffer, process);
             log_info(logger, "CREATE PROCESS with pid: %d - path: %s", process->pid, process->path);
             add_process(process);
@@ -54,8 +58,13 @@ void process_conn(void *void_args)
             uint32_t pid = packet_getUInt32(packet->buffer);
             uint32_t pc = packet_getUInt32(packet->buffer);
             // BUSCO CUAL DEL LOS ARCHIVOS ESTA EN EXEC
+            t_process_in_mem* process = find_process_by_pid(pid);
+            if(!process){
+                log_error(logger,"process with pid %d not found",pid);
+                break;
+            }
             char *text_name = mount_instructions_directory(
-                find_process_by_pid(pid)->path
+                process->path
             );
             char *next_instruction = file_get_nth_line(text_name, pc);
             free(text_name);

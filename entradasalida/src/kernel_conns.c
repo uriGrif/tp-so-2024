@@ -31,6 +31,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         // le mando el nombre de la interfaz para saber que cola de block es
         t_packet *packet = packet_new(IO_DONE);
         packet_addString(packet,interface_name);
+        packet_addUInt32(packet,pid);
         packet_send(packet, kernel_fd);
         packet_free(packet);
     }

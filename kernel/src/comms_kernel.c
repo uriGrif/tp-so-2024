@@ -17,7 +17,7 @@ void process_conn(void *void_args)
             t_interface *interface = interface_get_by_fd(client_fd);
             if (interface)
             {
-                log_warning(logger, "Interfaz %s de tipo %s se desconecto", interface->name, interface->type);
+                log_warning(logger, "Interfaz %s de tipo %s se desconecto, todos los bloqueados por ella iran a exit", interface->name, interface->type);
                 interface_destroy(interface);
             }
             t_sync_queue *block_queue_to_remove = get_blocked_queue_by_fd(client_fd);
@@ -32,7 +32,7 @@ void process_conn(void *void_args)
                 sync_queue_iterate(block_queue_to_remove, iterator);
                 remove_blocked_queue_by_fd(client_fd);
             }
-
+            log_debug(logger,"pase por aca");
             packet_free(packet);
             return;
         }
@@ -41,6 +41,10 @@ void process_conn(void *void_args)
         case NEW_INTERFACE:
         {
             t_interface *interface = malloc(sizeof(t_interface));
+            if(!interface){
+                log_error(logger,"not enough memory for allocating interface");
+                break;
+            }
             interface->fd = client_fd;
             interface_decode_new(packet->buffer, interface);
             interface_add(interface);
@@ -51,14 +55,11 @@ void process_conn(void *void_args)
         case IO_DONE:
         {
             char *resource_name = packet_getString(packet->buffer);
-            log_info(logger, "Interface %s done", resource_name);
+            uint32_t pid = packet_getUInt32(packet->buffer);
+            log_info(logger, "Interface %s requested by pid %d done", resource_name,pid);
             scheduler.block_to_ready(resource_name, logger);
             sem_post(&scheduler.sem_ready);
             free(resource_name);
-            // now we should move the process waiting for this i/o to finish from blocked to ready.
-            // uint32_t pid = packet_getUInt32(packet->buffer);
-            // log_info(logger, "I/O operation for process with PID %d has finished", pid);
-            // pasar de block a ready
             break;
         }
         case -1:
