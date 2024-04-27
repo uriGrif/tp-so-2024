@@ -60,6 +60,7 @@ void parse_command(char *string,t_log* logger)
     char **command_split = string_n_split(string, 2, " ");
     char *name = command_split[0];
     char *param = command_split[1];
+    string_trim_left(&param);
     char *error_str = string_new();
 
     // check for names

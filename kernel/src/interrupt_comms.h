@@ -7,6 +7,6 @@
 
 extern int fd_interrupt;
 
-void send_interrupt(t_pcb* pcb);
+void send_interrupt(void);
 
 #endif
