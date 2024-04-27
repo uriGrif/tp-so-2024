@@ -55,12 +55,11 @@ char **completion(const char *text, int start, int end)
     return rl_completion_matches(text, generator);
 }
 
-void parse_command(char *string,t_log* logger)
+void parse_command(char *string, t_log *logger)
 {
     char **command_split = string_n_split(string, 2, " ");
     char *name = command_split[0];
     char *param = command_split[1];
-    string_trim_left(&param);
     char *error_str = string_new();
 
     // check for names
@@ -78,19 +77,19 @@ void parse_command(char *string,t_log* logger)
                 string_append(&error_str, "no esperaba un parametro");
                 break;
             }
-            COMMANDS[i].func(param,logger);
+            COMMANDS[i].func(param, logger);
             string_array_destroy(command_split);
             free(error_str);
             return;
         }
     }
 
-    log_warning(logger,"Comando: %s no es valido, %s",string, error_str);
+    log_warning(logger, "Comando: %s no es valido, %s", string, error_str);
     free(error_str);
     string_array_destroy(command_split);
 }
 
-void start_console(t_log* logger)
+void start_console(t_log *logger)
 {
 
     rl_bind_key('\t', rl_complete);
@@ -113,7 +112,7 @@ void start_console(t_log* logger)
         if (*line)
         {
             add_history(line);
-            parse_command(line,logger);
+            parse_command(line, logger);
         }
 
         free(line);
@@ -122,7 +121,7 @@ void start_console(t_log* logger)
 
 // JUSTO ESTE COMANDO LA TENGO QUE PONER ACA POR TEMA DE INCLUDES
 
-void execute_script(char *file_path,t_log* logger)
+void execute_script(char *file_path, t_log *logger)
 {
     t_list *commands = file_get_list_of_lines(file_path);
 
@@ -132,7 +131,7 @@ void execute_script(char *file_path,t_log* logger)
     void exec_comm(void *comm)
     {
         char *command = (char *)comm;
-        parse_command(command,logger);
+        parse_command(command, logger);
     }
 
     list_iterate(commands, exec_comm);
