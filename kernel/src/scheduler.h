@@ -31,7 +31,6 @@ typedef struct
     sem_t sem_scheduler_paused;
     sem_t sem_ready;
     sem_t sem_new;
-    sem_t sem_quantum_timer;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
     // agregar los semaforos aca???
 } t_scheduler;

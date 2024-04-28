@@ -54,7 +54,7 @@ void process_conn(void *void_args)
         }
         case NEXT_INSTRUCTION:
         {
-            sleep(msToSeconds(cfg_mem->retardo_respuesta));
+            msleep(cfg_mem->retardo_respuesta);
             log_debug(logger, "NEXT_INSTRUCTION");
             uint32_t pid = packet_getUInt32(packet->buffer);
             uint32_t pc = packet_getUInt32(packet->buffer);

@@ -4,6 +4,7 @@
 #include <dispatcher.h>
 #include <interrupt_comms.h>
 #include <pcb.h>
+#include<stdio.h>
 #include <state_queues.h>
 #include <commons/log.h>
 #include <fifo.h>

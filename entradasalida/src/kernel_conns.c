@@ -41,7 +41,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     case IO_GEN_SLEEP:
     {
         uint32_t work = packet_getUInt32(buffer);
-        sleep(msToSeconds(config->unidad_trabajo * work));
+        msleep(config->unidad_trabajo * work);
         sendDone();
         break;
     }

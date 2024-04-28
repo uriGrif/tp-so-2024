@@ -2,6 +2,7 @@
 
 static t_temporal *timer;
 static int time_elapsed;
+static pthread_t quantum_interruption_thread;
 
 t_pcb *ready_to_exec_rr(void)
 {
@@ -10,37 +11,21 @@ t_pcb *ready_to_exec_rr(void)
 
 void quantum_interruption_handler(void *args)
 {
-    t_sync_queue *ex_queue = (t_sync_queue *)args;
-    while (1)
-    {
-        sem_wait(&scheduler.sem_quantum_timer);
-        timer = temporal_create();
-        t_pcb *process_in_execution = sync_queue_peek(ex_queue, 0);
-        // sleep(msToSeconds(process_in_execution->context->quantum));
-        do
-        {
-            if (DONE_BEFORE_QUANTUM)
-            {
-                temporal_stop(timer);
-                time_elapsed = temporal_gettime(timer);
-                break;
-            }
-        } while (temporal_gettime(timer) < process_in_execution->context->quantum);
-        if (!DONE_BEFORE_QUANTUM)
-            send_interrupt();
-        temporal_destroy(timer);
-        DONE_BEFORE_QUANTUM = false;
-    }
+    t_pcb* pcb = (t_pcb*)args;
+    msleep(pcb->context->quantum);
+    send_interrupt();
+
 }
 
 void dispatch_rr(t_pcb *pcb, t_log *logger)
 {
-    sem_post(&scheduler.sem_quantum_timer);
-
+    pthread_create(&quantum_interruption_thread,NULL,quantum_interruption_handler,(void*) pcb);
+    pthread_detach(quantum_interruption_thread);
     if (wait_for_dispatch_reason(pcb, logger) == -1)
     {
         log_error(logger, "error waiting for cpu context");
     }
+    pthread_cancel(quantum_interruption_thread);
     queue_sync_pop(exec_queue);
 }
 

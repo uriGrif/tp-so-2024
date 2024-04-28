@@ -5,6 +5,7 @@
 #include <commons/string.h>
 #include <commons/collections/list.h>
 #include <stdio.h>
+#include<time.h>
 #include <sys/stat.h>
 #include <errno.h>
 #include <stdint.h>
@@ -30,5 +31,7 @@ t_list *file_get_list_of_lines(char *file_path);
 char *file_get_nth_line(char *file_path, int n);
 
 int msToSeconds(int seconds);
+
+int msleep(long msec);
 
 #endif
