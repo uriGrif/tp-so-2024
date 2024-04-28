@@ -5,6 +5,7 @@
 #include <commons/string.h>
 #include <commons/collections/list.h>
 #include <stdio.h>
+#include<unistd.h>
 #include<time.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -29,6 +30,8 @@ t_list *file_get_list_of_lines(char *file_path);
  * @brief de un archivo, devuelve la enesima linea sin el '\n' arranca en 0
  */
 char *file_get_nth_line(char *file_path, int n);
+
+int file_exists(char* file_path);
 
 int msToSeconds(int seconds);
 

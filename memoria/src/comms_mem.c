@@ -41,6 +41,13 @@ void process_conn(void *void_args)
                 break;
             }
             packet_get_process_in_mem(packet->buffer, process);
+            char* path = mount_instructions_directory(process->path);
+            if(!file_exists(path)){
+                log_error(logger,"el archivo de instrucciones de este archivo no fue encontrado");
+                free(path);
+                t_process_in_mem_destroy(process);
+                break;
+            }
             log_info(logger, "CREATE PROCESS with pid: %d - path: %s", process->pid, process->path);
             add_process(process);
             break;

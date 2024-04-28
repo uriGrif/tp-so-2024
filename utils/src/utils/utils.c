@@ -82,3 +82,7 @@ int msleep(long msec)
 
     return res;
 }
+
+int file_exists(char* file_path){
+    return !access(file_path,F_OK);
+}

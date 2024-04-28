@@ -14,7 +14,6 @@ void init_process(char *path, t_log *logger)
     //     printf("el grado de multiprogramacion no permite crear un nuevo proceso\n");
     //     return;
     // }
-
     t_pcb *pcb = pcb_create(path);
     // log_info(logger,"path %s",pcb->text_path);
     //  queue_sync_push(new_queue, pcb);
