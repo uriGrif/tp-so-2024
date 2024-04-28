@@ -13,7 +13,7 @@ void send_context_to_cpu(t_exec_context *context);
 
 int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger);
 
-extern bool IO_REQUESTED;
+extern bool DONE_BEFORE_QUANTUM;
 
 
 #endif

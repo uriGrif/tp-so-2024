@@ -167,9 +167,6 @@ void io_fs_read(char **args,t_log* logger){
 }
 // para no tener conflitcto
 void instruction_exit(char **args,t_log* logger){
-    //TODO POR AHORA ES UNA CONDICION FALOPA
-    //deberia hacer algo como esto
-    log_debug(logger,"ejecute el exit PC: %d",context.registers.pc);
     send_dispatch_reason(END_PROCESS,&context);
     current_exec_process_has_finished = 1;
 }

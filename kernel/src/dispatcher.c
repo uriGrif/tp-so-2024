@@ -2,7 +2,7 @@
 
 int fd_dispatch;
 // whether the interruptiion was due to a i/o instruction or not
-bool IO_REQUESTED = false;
+bool DONE_BEFORE_QUANTUM = false;
 
 void send_context_to_cpu(t_exec_context *context)
 {
@@ -34,6 +34,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     case END_PROCESS:
     {
+        DONE_BEFORE_QUANTUM = true;
         log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
         move_pcb_to_exit(pcb, logger);
         //  liberar de memoria
@@ -41,7 +42,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     case IO_GEN_SLEEP:
     {
-        IO_REQUESTED = true;
+        DONE_BEFORE_QUANTUM = true;
         struct req_io_gen_sleep *params = malloc(sizeof(struct req_io_gen_sleep));
         interface_decode_io_gen_sleep(packet->buffer, params);
         t_interface *interface = interface_validate(params->interface_name, IO_GEN_SLEEP);

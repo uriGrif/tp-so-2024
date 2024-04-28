@@ -1,6 +1,7 @@
 #include <round_robin.h>
 
-static t_temporal* timer;
+static t_temporal *timer;
+static int time_elapsed;
 
 t_pcb *ready_to_exec_rr(void)
 {
@@ -9,21 +10,26 @@ t_pcb *ready_to_exec_rr(void)
 
 void quantum_interruption_handler(void *args)
 {
-    t_sync_queue *ex_queue = (t_sync_queue*) args;
+    t_sync_queue *ex_queue = (t_sync_queue *)args;
     while (1)
     {
         sem_wait(&scheduler.sem_quantum_timer);
         timer = temporal_create();
-        t_pcb *process_in_execution = sync_queue_peek(ex_queue, 0);  
-        //sleep(msToSeconds(process_in_execution->context->quantum));
-        do{
-            if(IO_REQUESTED)
+        t_pcb *process_in_execution = sync_queue_peek(ex_queue, 0);
+        // sleep(msToSeconds(process_in_execution->context->quantum));
+        do
+        {
+            if (DONE_BEFORE_QUANTUM)
+            {
+                temporal_stop(timer);
+                time_elapsed = temporal_gettime(timer);
                 break;
-        } while(temporal_gettime(timer) < process_in_execution->context->quantum);
-        if(!IO_REQUESTED)
+            }
+        } while (temporal_gettime(timer) < process_in_execution->context->quantum);
+        if (!DONE_BEFORE_QUANTUM)
             send_interrupt();
         temporal_destroy(timer);
-        IO_REQUESTED = false;
+        DONE_BEFORE_QUANTUM = false;
     }
 }
 
@@ -41,13 +47,13 @@ void dispatch_rr(t_pcb *pcb, t_log *logger)
 void exec_to_ready_rr(t_pcb *pcb, t_log *logger)
 {
     log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: READY", pcb->context->pid);
-    queue_sync_push(ready_queue,pcb);
+    queue_sync_push(ready_queue, pcb);
     sem_post(&scheduler.sem_ready);
 }
 
 int move_pcb_to_blocked_rr(t_pcb *pcb, char *resource_name, t_log *logger)
 {
-    return move_pcb_to_blocked_fifo(pcb,resource_name,logger);
+    return move_pcb_to_blocked_fifo(pcb, resource_name, logger);
 }
 
 void block_to_ready_rr(char *resource, t_log *logger)
@@ -58,11 +64,11 @@ void block_to_ready_rr(char *resource, t_log *logger)
     block_to_ready_fifo(resource, logger);
 }
 
-
 // int move_pcb_to_blocked_vrr(t_pcb *pcb, char *resource_name, t_log *logger)
 // {
 //     temporal_stop(timer);
 //     int ms_passed = temporal_gettime(timer);
+//     temporal_destroy(timer);
 //     pcb->context->quantum -= ms_passed;
 //     move_pcb_to_blocked_fifo(pcb,resource_name,logger);
 // }
