@@ -48,6 +48,7 @@ void process_conn(void *void_args)
                 t_process_in_mem_destroy(process);
                 break;
             }
+            free(path);
             log_info(logger, "CREATE PROCESS with pid: %d - path: %s", process->pid, process->path);
             add_process(process);
             break;

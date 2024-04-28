@@ -115,6 +115,7 @@ void io_gen_sleep(char **args,t_log* logger)
     uint32_t work_units = atoi(args[1]);
     send_io_gen_sleep(interface_name, work_units);
     wait_for_context(&context);
+    clear_interrupt();
     log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
 }
 
@@ -169,6 +170,7 @@ void io_fs_read(char **args,t_log* logger){
 void instruction_exit(char **args,t_log* logger){
     send_dispatch_reason(END_PROCESS,&context);
     current_exec_process_has_finished = 1;
+    clear_interrupt();
 }
 
 
