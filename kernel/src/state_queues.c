@@ -143,3 +143,9 @@ void blocked_queues_iterate(void (*iterator)(void *))
 { // iterator tiene que recibir una cola
     list_iterate(_blocked_queues, iterator);
 }
+
+void print_ready_queue(t_log* logger){
+    char* pids = generate_string_of_pids(ready_queue);
+    log_info(logger,"Cola Ready <COLA>: %s",pids); // aca no se que poner donde va cola ???
+    free(pids);
+}

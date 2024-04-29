@@ -1,8 +1,8 @@
 #include <round_robin.h>
 
-static t_temporal *timer;
-static int time_elapsed;
-static pthread_t quantum_interruption_thread;
+// static t_temporal *timer;
+// static int time_elapsed;
+pthread_t quantum_interruption_thread;
 
 t_pcb *ready_to_exec_rr(void)
 {
@@ -13,19 +13,18 @@ void quantum_interruption_handler(void *args)
 {
     t_pcb* pcb = (t_pcb*)args;
     msleep(pcb->context->quantum);
-    send_interrupt();
+    send_interrupt(END_OF_QUANTUM);
 
 }
 
 void dispatch_rr(t_pcb *pcb, t_log *logger)
 {
-    pthread_create(&quantum_interruption_thread,NULL,quantum_interruption_handler,(void*) pcb);
+    pthread_create(&quantum_interruption_thread,NULL,(void *) quantum_interruption_handler,(void*) pcb);
     pthread_detach(quantum_interruption_thread);
     if (wait_for_dispatch_reason(pcb, logger) == -1)
     {
         log_error(logger, "error waiting for cpu context");
     }
-    pthread_cancel(quantum_interruption_thread);
     queue_sync_pop(exec_queue);
 }
 

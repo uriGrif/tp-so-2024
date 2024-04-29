@@ -25,6 +25,7 @@ void process_conn(void *void_args)
             void iterator(void *elem)
             {
                 t_pcb *pcb = (t_pcb *)elem;
+                log_info(logger,"Finaliza el proceso %d - Motivo: Error desconexion de interfaz",pcb->context->pid);
                 move_pcb_to_exit(pcb, logger);
             }
             // mando todos los procesos de esa cola a exit y elimino la cola mas la interfaz
@@ -33,11 +34,11 @@ void process_conn(void *void_args)
                 sync_queue_iterate(block_queue_to_remove->block_queue, iterator);
                 remove_blocked_queue_by_fd(client_fd);
             }
-            log_debug(logger, "pase por aca");
             packet_free(packet);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             return;
         }
+        log_debug(logger, "pase por aca");
         switch (packet->op_code)
         {
         case NEW_INTERFACE:
@@ -63,6 +64,7 @@ void process_conn(void *void_args)
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
             scheduler.block_to_ready(resource_name, logger);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+            print_ready_queue(logger);
             sem_post(&scheduler.sem_ready);
             free(resource_name);
             break;

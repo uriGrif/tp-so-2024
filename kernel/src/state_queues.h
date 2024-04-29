@@ -5,6 +5,7 @@
 #include <commons/collections/dictionary.h>
 #include <commons/collections/list.h>
 #include<semaphore.h>
+#include<utils.h>
 #include <pcb.h>
 
 typedef struct
@@ -35,5 +36,6 @@ t_blocked_queue *get_blocked_queue_by_fd(int fd);
 void remove_blocked_queue_by_fd(int fd);
 t_blocked_queue *get_blocked_queue_by_name(char *resource_name);
 void blocked_queues_iterate(void (*iterator)(void *));
+void print_ready_queue(t_log* logger);
 
 #endif

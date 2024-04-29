@@ -21,20 +21,26 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         return -1;
     }
     // en todas le desalojo el contexto
+    pthread_cancel(quantum_interruption_thread);
+    // aca puedo frenar el timer para el vrr
     packet_get_context(packet->buffer, pcb->context);
     switch (packet->op_code)
     {
-    case INTERRUPT_EXEC: // FIN DE QUANTUM
+    case INTERRUPT_EXEC:
     {
-        if (pcb->state == EXIT) // finalizar proceso
-            break;
-        log_debug(logger,"me llego por interrupt aca");
+        // cuando lo interrumpe por consola es aca
+        move_pcb_to_exit(pcb,logger);
+        break;
+    }
+    case END_OF_QUANTUM:{
+        log_info(logger,"PID: %d - Desalojado por fin de Quantum",pcb->context->pid);
         scheduler.exec_to_ready(pcb, logger);
+        print_ready_queue(logger);
         break;
     }
     case END_PROCESS:
     {
-        log_debug(logger, "me llego PID: %d AX: %d", pcb->context->pid, pcb->context->registers.ax);
+        log_info(logger, "Finaliza el proceso %d- Motivo: SUCCESS",pcb->context->pid);
         move_pcb_to_exit(pcb, logger);
         //  liberar de memoria
         break;
@@ -46,7 +52,8 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         t_interface *interface = interface_validate(params->interface_name, IO_GEN_SLEEP);
         if (!interface)
         {
-            log_error(logger, "Validation for interface with name %s for instruction %s failed", params->interface_name, "IO_GEN_SLEEP");
+            //log_error(logger, "Validation for interface with name %s for instruction %s failed", params->interface_name, "IO_GEN_SLEEP");
+            log_info(logger, "Finaliza el proceso %d- Motivo: Error de interfaz %s no conectada",pcb->context->pid,params->interface_name);
             // mandar proceso a exit
             interface_destroy_io_gen_sleep(params);
             // nunca pase por bloqueado asi que no deberia explotar

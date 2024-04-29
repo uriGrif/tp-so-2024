@@ -3,7 +3,6 @@
 // TODO: ALGUNO DE ESTOS PROCESOS DEBERIAN TENER UN LOGGER DESPUES
 //  PODEMOS PENSAR SI EXPORTAMOS EL GLOBAL O CREAMOS OTROS NUEVOS
 
-static char *generate_string_of_pids(t_sync_queue *queue);
 static char *get_pids_of_blocked_queues(void);
 
 int multiprogramming_controler = 0;
@@ -21,6 +20,7 @@ void init_process(char *path, t_log *logger)
     send_create_process(pcb);
     queue_sync_push(ready_queue, pcb);
     sem_post(&scheduler.sem_ready); // por ahora para probar
+    print_ready_queue(logger);
     // multiprogramming_controler++;
 
     log_info(logger, "Se crea el proceso %d en NEW", pcb->context->pid);
@@ -104,22 +104,6 @@ static char *get_pids_of_blocked_queues(void)
             sync_queue_iterate(queue->block_queue, add_pid);
     }
     blocked_queues_iterate(gen_pids_one_queue);
-    if (strlen(pids) > 1)
-        pids[strlen(pids) - 1] = ']';
-    else
-        string_append(&pids, "]");
-    return pids;
-}
-
-static char *generate_string_of_pids(t_sync_queue *queue)
-{
-    char *pids = strdup("[");
-    void add_pid(void *elem)
-    {
-        t_pcb *pcb = (t_pcb *)elem;
-        string_append_with_format(&pids, "%d,", pcb->context->pid);
-    }
-    sync_queue_iterate(queue, add_pid);
     if (strlen(pids) > 1)
         pids[strlen(pids) - 1] = ']';
     else

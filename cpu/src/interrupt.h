@@ -6,6 +6,8 @@
 #include<commons/log.h>
 
 
+extern uint8_t interrupt_reason;
+
 void handle_interrupt(void *_args);
 
 void set_interrupt(void);

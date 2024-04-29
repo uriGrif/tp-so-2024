@@ -7,6 +7,6 @@
 
 extern int fd_interrupt;
 
-void send_interrupt(void);
+void send_interrupt(uint8_t reason);
 
 #endif
