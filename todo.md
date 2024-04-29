@@ -1,3 +1,5 @@
+- [ ] Logs minimos y obligatorios creeria que solo faltan del kernel
+
 ## Todo Checkpoint 3 previo al parcial
 
 
