@@ -10,6 +10,7 @@ static t_list *_blocked_queues;
 
 static void destroy_blocked_queues(void);
 void pcb_destroyer(void *elem);
+void add_resources_to_blocked_queues(void);
 
 void init_queues(void)
 {
@@ -19,6 +20,7 @@ void init_queues(void)
     exec_queue = sync_queue_create();
     exit_queue = sync_queue_create();
     _blocked_queues = list_create();
+    add_resources_to_blocked_queues();
     pthread_mutex_init(&MUTEX_LISTA_BLOCKEADOS,NULL);
 }
 
@@ -149,3 +151,16 @@ void print_ready_queue(t_log* logger){
     log_info(logger,"Cola Ready <COLA>: %s",pids); // aca no se que poner donde va cola ???
     free(pids);
 }
+
+void add_resources_to_blocked_queues(void) {
+    int i = 0;
+    void add_resource(char *resource) {
+        add_blocked_queue(resource, atoi(*(cfg_kernel->instancias_recursos + i)));
+        i++;
+    }
+    string_iterate_lines(cfg_kernel->recursos, add_resource);
+}
+
+// bool is_pid_using_resource(uint32_t pid, char *resource) {
+
+// }

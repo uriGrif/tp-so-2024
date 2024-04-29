@@ -7,6 +7,7 @@
 #include<semaphore.h>
 #include<utils.h>
 #include <pcb.h>
+#include <config.h>
 
 typedef struct
 {
