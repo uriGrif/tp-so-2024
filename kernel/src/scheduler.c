@@ -68,6 +68,7 @@ void handle_short_term_scheduler(void *args_logger)
         t_pcb *pcb = scheduler.ready_to_exec();
         log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
         scheduler.dispatch(pcb, logger);
+        queue_sync_pop(exec_queue);
         // para no perder memoria por ahora pero no va
     }
 }

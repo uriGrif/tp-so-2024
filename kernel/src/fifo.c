@@ -15,7 +15,6 @@ void dispatch_fifo(t_pcb *pcb, t_log *logger)
     {
         log_error(logger, "error waiting for cpu context");
     }
-    queue_sync_pop(exec_queue);
 }
 
 void block_to_ready_fifo(char *resource, t_log *logger)
