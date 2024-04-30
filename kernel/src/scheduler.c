@@ -2,22 +2,33 @@
 
 static void set_scheduling_algorithm(void);
 
-
-bool scheduler_paused = true;
+bool scheduler_paused = false;
 t_scheduler scheduler;
+static sem_t sem_paused_short_term, sem_paused_long_term;
 
 static void init_scheduler_sems(void)
 {
-    sem_init(&scheduler.sem_scheduler_paused, 0, 0);
     sem_init(&scheduler.sem_ready, 0, 0);
     sem_init(&scheduler.sem_new, 0, 0);
+    
+    sem_init(&sem_paused_short_term, 0, 0);
+    sem_init(&sem_paused_long_term, 0, 0);
+    scheduler.sems_scheduler_paused = list_create();
+    list_add(scheduler.sems_scheduler_paused, &sem_paused_short_term);
+    list_add(scheduler.sems_scheduler_paused, &sem_paused_long_term);
+    // me reservo las dos primeras para el corto y largo plazo
 }
 
 static void destroy_scheduler_sems(void)
 {
     sem_destroy(&scheduler.sem_ready);
-    sem_destroy(&scheduler.sem_scheduler_paused);
     sem_destroy(&scheduler.sem_new);
+    void destroyer(void* void_sem){
+        sem_t* s = (sem_t * ) void_sem;
+        sem_destroy(s);
+    }
+    list_iterate(scheduler.sems_scheduler_paused, destroyer);
+    list_destroy(scheduler.sems_scheduler_paused);
 }
 
 void init_scheduler(void)
@@ -52,7 +63,7 @@ static void set_scheduling_algorithm(void)
     }
     // scheduler.ready_to_exec = ready_to_exec_vrr;
     // scheduler.dispatch =  dispatch_vrr;
-    //scheduler.exec_to_ready = exec_to_ready_vrr;
+    // scheduler.exec_to_ready = exec_to_ready_vrr;
 }
 
 void handle_short_term_scheduler(void *args_logger)
@@ -63,7 +74,7 @@ void handle_short_term_scheduler(void *args_logger)
     while (1)
     {
         if (scheduler_paused)
-            sem_wait(&scheduler.sem_scheduler_paused);
+            sem_wait(&sem_paused_short_term);
         sem_wait(&scheduler.sem_ready);
         t_pcb *pcb = scheduler.ready_to_exec();
         log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
@@ -91,7 +102,10 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 
 void handle_long_term_scheduler(void *args_logger)
 {
+    
     return;
+    if (scheduler_paused)
+            sem_wait(&sem_paused_long_term);
     // while (1)
     //{
     //  while ( haya procesos en new)

@@ -20,9 +20,13 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         packet_free(packet);
         return -1;
     }
+    sem_t* sem_scheduler_pause = list_get(scheduler.sems_scheduler_paused,0);
     // en todas le desalojo el contexto
-    pthread_cancel(quantum_interruption_thread);
+    if(quantum_interruption_thread) 
+        pthread_cancel(quantum_interruption_thread);
     // aca puedo frenar el timer para el vrr
+    if (scheduler_paused)
+            sem_wait(sem_scheduler_pause);
     packet_get_context(packet->buffer, pcb->context);
     switch (packet->op_code)
     {
