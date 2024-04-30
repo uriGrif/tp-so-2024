@@ -25,7 +25,6 @@ void dispatch_rr(t_pcb *pcb, t_log *logger)
     {
         log_error(logger, "error waiting for cpu context");
     }
-    queue_sync_pop(exec_queue);
 }
 
 void exec_to_ready_rr(t_pcb *pcb, t_log *logger)

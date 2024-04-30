@@ -11,8 +11,8 @@ void mov_in(char **args,t_log* logger);
 void mov_out(char **args,t_log* logger);
 void resize(char **args,t_log* logger);
 void copy_string(char **args,t_log* logger);
-void wait(char **args,t_log* logger);
-void signal(char **args,t_log* logger);
+void wait_instr(char **args,t_log* logger);
+void signal_instr(char **args,t_log* logger); // cambio el nombre por confilcto con el signal para el ctrl+C
 void io_stdin_read(char **args,t_log* logger);
 void io_stdout_write(char **args,t_log* logger);
 void io_fs_create(char **args,t_log* logger);
@@ -24,8 +24,10 @@ void io_fs_read(char **args,t_log* logger);
 void instruction_exit(char **args,t_log* logger);
 
 static void send_io_gen_sleep(char* interface_name, int work_units);
+static void send_wait_resource(char *resource_name);
+static void send_signal_resource(char *resource_name);
 
-t_instruction INSTRUCTION_SET[] = {{"SET", set}, {"SUM", sum}, {"SUB", sub}, {"JNZ", jnz}, {"IO_GEN_SLEEP", io_gen_sleep}, {"MOV_IN", mov_in}, {"MOV_OUT", mov_out}, {"RESIZE", resize}, {"COPY_STRING", copy_string}, {"WAIT", wait}, {"SIGNAL", signal}, {"IO_STDIN_READ", io_stdin_read}, {"IO_STDOUT_WRITE", io_stdout_write}, {"IO_FS_CREATE", io_fs_create}, {"IO_FS_DELETE", io_fs_delete}, {"IO_FS_TRUNCATE", io_fs_truncate}, {"IO_FS_WRITE", io_fs_write}, {"IO_FS_READ", io_fs_read}, {"EXIT", instruction_exit}, {NULL, NULL}};
+t_instruction INSTRUCTION_SET[] = {{"SET", set}, {"SUM", sum}, {"SUB", sub}, {"JNZ", jnz}, {"IO_GEN_SLEEP", io_gen_sleep}, {"MOV_IN", mov_in}, {"MOV_OUT", mov_out}, {"RESIZE", resize}, {"COPY_STRING", copy_string}, {"WAIT", wait_instr}, {"SIGNAL", signal_instr}, {"IO_STDIN_READ", io_stdin_read}, {"IO_STDOUT_WRITE", io_stdout_write}, {"IO_FS_CREATE", io_fs_create}, {"IO_FS_DELETE", io_fs_delete}, {"IO_FS_TRUNCATE", io_fs_truncate}, {"IO_FS_WRITE", io_fs_write}, {"IO_FS_READ", io_fs_read}, {"EXIT", instruction_exit}, {NULL, NULL}};
 
 // CON ESTA NOMENCLATURA CADA INSTRUCCION DEBE DESERIALIZAR SUS PARAMETROSs
 
@@ -138,12 +140,19 @@ void resize(char **args,t_log* logger){
 void copy_string(char **args,t_log* logger){
 
 }
-void wait(char **args,t_log* logger){
-
+void wait_instr(char **args,t_log* logger){
+    char *resource_name = args[0];
+    send_wait_resource(resource_name);
+    wait_for_context(&context);
+    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
 }
-void signal(char **args,t_log* logger){
-
+void signal_instr(char **args,t_log* logger){
+    char *resource_name = args[0];
+    send_signal_resource(resource_name);
+    wait_for_context(&context);
+    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
 }
+
 void io_stdin_read(char **args,t_log* logger){
 
 }
@@ -173,6 +182,23 @@ void instruction_exit(char **args,t_log* logger){
     clear_interrupt();
 }
 
+// WAIT and SIGNAL protocol
+
+static void send_wait_resource(char *resource_name){
+    t_packet *packet = packet_new(WAIT);
+    packet_add_context(packet, &context);
+    packet_addString(packet, resource_name);
+    packet_send(packet, cli_dispatch_fd);
+    packet_free(packet);
+}
+
+static void send_signal_resource(char *resource_name){
+    t_packet *packet = packet_new(SIGNAL);
+    packet_add_context(packet, &context);
+    packet_addString(packet, resource_name);
+    packet_send(packet, cli_dispatch_fd);
+    packet_free(packet);
+}
 
 // IO protocol
 

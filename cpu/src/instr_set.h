@@ -7,6 +7,7 @@
 #include<commons/log.h>
 #include<dispatch.h>
 #include<interrupt.h>
+
 typedef struct {
     char* name;
     void (*instr)(char** args,t_log* logger);
