@@ -4,14 +4,14 @@ void packet_get_context(t_buffer *buffer, t_exec_context *context)
 {
     context->pid = packet_getUInt32(buffer);
     packet_get_registers(buffer, &context->registers);
-    packet_get(buffer, &context->quantum, sizeof(int));
+    context->quantum = packet_getUInt32(buffer);
 }
 
 void packet_add_context(t_packet *packet, t_exec_context *context)
 {
     packet_addUInt32(packet, context->pid);
     packet_add_registers(packet, &context->registers);
-    packet_add(packet, &context->quantum, sizeof(int));
+    packet_addUInt32(packet, context->quantum);
 }
 
 void packet_get_registers(t_buffer *buffer, t_cpu_registers *registers)

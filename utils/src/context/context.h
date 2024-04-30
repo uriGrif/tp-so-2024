@@ -25,7 +25,7 @@ typedef struct
 {
     uint32_t pid;
     t_cpu_registers registers;
-    int quantum;
+    uint32_t quantum;
 } t_exec_context;
 
 void packet_get_context(t_buffer *buffer, t_exec_context *context);

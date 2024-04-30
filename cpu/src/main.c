@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
                 cli_dispatch_fd = -1;
                 break;
             }
-            log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+            log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %d", context.pid, context.quantum,context.registers.ax);
 
             while (!current_exec_process_has_finished)
             {
