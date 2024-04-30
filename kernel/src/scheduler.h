@@ -6,6 +6,7 @@
 #include <state_queues.h>
 #include <stdbool.h>
 #include <commons/log.h>
+#include <commons/collections/list.h>
 #include <string.h>
 #include <pcb.h>
 #include <dispatcher.h>
@@ -14,6 +15,7 @@
 #include <memory_comms.h>
 #include <fifo.h>
 #include <round_robin.h>
+
 
 typedef t_pcb *(*ready_to_exec_strategy)(void);
 typedef void (*dispatch_strategy)(t_pcb *, t_log *);
@@ -28,7 +30,7 @@ typedef struct
     block_to_ready_strategy block_to_ready;
     exec_to_ready_strategy exec_to_ready;
     move_pcb_to_blocked_strategy move_pcb_to_blocked;
-    sem_t sem_scheduler_paused;
+    t_list* sems_scheduler_paused; // 0=> short term ; 1=>long term ; 2=> comms_kernel
     sem_t sem_ready;
     sem_t sem_new;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
