@@ -6,6 +6,13 @@ static int paused_threads = 0;
 static pthread_mutex_t MUTEX_PAUSE;
 static bool scheduler_paused = false;
 
+sem_t grado_multiprogramacion_actual;
+uint32_t grado_multiprogramacion_maximo;
+pthread_mutex_t grado_multiprogramacion_maximo_mutex;
+
+static uint32_t processes_in_memory_amount = 0;
+static pthread_mutex_t processes_in_memory_amout_mutex;
+
 t_scheduler scheduler;
 
 static void init_scheduler_sems(void)
@@ -16,6 +23,9 @@ static void init_scheduler_sems(void)
     sem_init(&scheduler.sem_paused, 0, 0);
     pthread_mutex_init(&MUTEX_PAUSE, NULL);
     // me reservo las dos primeras para el corto y largo plazo
+
+    pthread_mutex_init(&processes_in_memory_amout_mutex, NULL);
+    pthread_mutex_init(&grado_multiprogramacion_maximo_mutex, NULL);
 }
 
 static void destroy_scheduler_sems(void)
@@ -62,6 +72,7 @@ void resume_threads(void)
 
 void init_scheduler(void)
 {
+    grado_multiprogramacion_maximo = cfg_kernel->grado_multiprogramacion;
     init_scheduler_sems();
     set_scheduling_algorithm();
 }
@@ -109,7 +120,6 @@ void handle_short_term_scheduler(void *args_logger)
         log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
         scheduler.dispatch(pcb, logger);
         queue_sync_pop(exec_queue);
-        // para no perder memoria por ahora pero no va
     }
 }
 
@@ -122,30 +132,48 @@ void handle_short_term_scheduler(void *args_logger)
 //     return 0;
 // }
 
+static void inc_processes_in_memory_amount() {
+    pthread_mutex_lock(&processes_in_memory_amout_mutex);
+    processes_in_memory_amount++;
+    pthread_mutex_unlock(&processes_in_memory_amout_mutex);
+}
+
+static void dec_processes_in_memory_amount() {
+    pthread_mutex_lock(&processes_in_memory_amout_mutex);
+    processes_in_memory_amount--;
+    pthread_mutex_unlock(&processes_in_memory_amout_mutex);
+}
+
 void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {
     queue_sync_push(exit_queue, pcb);
     log_info(logger, "PID: %d - Estado Anterior: %s - Estado Actual: EXIT", pcb->context->pid, pcb_state_to_string(pcb));
     pcb->state = EXIT;
     send_end_process(pcb->context->pid);
+    pthread_mutex_lock(&grado_multiprogramacion_maximo_mutex);
+    if (processes_in_memory_amount <= grado_multiprogramacion_maximo) {
+        sem_post(&grado_multiprogramacion_actual);
+    }
+    dec_processes_in_memory_amount();
+    pthread_mutex_unlock(&grado_multiprogramacion_maximo_mutex);
 }
 
 void handle_long_term_scheduler(void *args_logger)
 {
+    sem_init(&grado_multiprogramacion_actual, 0, grado_multiprogramacion_maximo);
+    t_log *logger = (t_log *)args_logger;
 
-    return;
-    handle_pause();
-    // while (1)
-    //{
-    //  while ( haya procesos en new)
-    //  {
-    //       lo paso a ready
-    //       pcb->state = READY;
-    //  }
-
-    // while ( haya procesos en exit)
-    // {
-    //      libero los recursos
-    // }
-    //}
+    while (1)
+    {
+        handle_pause();
+        sem_wait(&grado_multiprogramacion_actual);
+        sem_wait(&scheduler.sem_new);
+        t_pcb *pcb = queue_sync_pop(new_queue);
+        pcb->state = READY;
+        queue_sync_push(ready_queue, pcb);
+        send_create_process(pcb);
+        sem_post(&scheduler.sem_ready);
+        inc_processes_in_memory_amount();
+        log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual: READY", pcb->context->pid);
+    }
 }

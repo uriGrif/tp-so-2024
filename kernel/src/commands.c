@@ -9,20 +9,11 @@ int multiprogramming_controler = 0;
 
 void init_process(char *path, t_log *logger)
 {
-    // if(multiprogramming_controler == cfg_kernel->grado_multiprogramacion){
-    //     printf("el grado de multiprogramacion no permite crear un nuevo proceso\n");
-    //     return;
-    // }
     t_pcb *pcb = pcb_create(path);
-    // log_info(logger,"path %s",pcb->text_path);
-    //  queue_sync_push(new_queue, pcb);
-    // pcb->state = NEW;
-    send_create_process(pcb);
-    queue_sync_push(ready_queue, pcb);
-    sem_post(&scheduler.sem_ready); // por ahora para probar
-    print_ready_queue(logger);
-    // multiprogramming_controler++;
-
+    // send_create_process(pcb);
+    queue_sync_push(new_queue, pcb);
+    sem_post(&scheduler.sem_new);
+    // print_ready_queue(logger);
     log_info(logger, "Se crea el proceso %d en NEW", pcb->context->pid);
 }
 
@@ -36,7 +27,6 @@ void end_process(char *pid_str, t_log *logger)
         return;
     }
     send_end_process(pid);
-    // multiprogramming_controler--;
     log_info(logger, "Finaliza el proceso %d (por consola) ", pid);
 }
 
@@ -58,8 +48,28 @@ void multiprogramming(char *value, t_log *logger)
         log_error(logger, "Error: %s no es un grado valido", value);
         return;
     }
+    if (new_grade >= grado_multiprogramacion_maximo)
+    {
+        for (int i = 0; i < new_grade - grado_multiprogramacion_maximo; i++)
+        {
+            sem_post(&grado_multiprogramacion_actual);
+        }
+    } else {
+        int sem_val;
+        sem_getvalue(&grado_multiprogramacion_actual, &sem_val);
+        if (sem_val > new_grade) {
+            for (int i = 0; i < sem_val; i++)
+            {
+                sem_wait(&grado_multiprogramacion_actual);
+            }
+        }
+    }
+    pthread_mutex_lock(&grado_multiprogramacion_maximo_mutex);
+    grado_multiprogramacion_maximo = new_grade;
+    pthread_mutex_unlock(&grado_multiprogramacion_maximo_mutex);
     log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
 }
+
 void list_processes_by_state(char *x, t_log *logger)
 {
     // TODO

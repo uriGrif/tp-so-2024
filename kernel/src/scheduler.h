@@ -39,6 +39,10 @@ typedef struct
 
 extern t_scheduler scheduler;
 
+extern uint32_t grado_multiprogramacion_maximo;
+extern pthread_mutex_t grado_multiprogramacion_maximo_mutex;
+extern sem_t grado_multiprogramacion_actual;
+
 void handle_pause(void);
 void pause_threads(void);
 void resume_threads(void);
