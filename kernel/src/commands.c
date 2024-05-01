@@ -42,22 +42,12 @@ void end_process(char *pid_str, t_log *logger)
 
 void stop_scheduler(char *x, t_log *logger)
 {
-    scheduler_paused = true;
-    //log_info(logger, "se detuvo la planificacion\n");
+    pause_threads();
 }
 
 void start_scheduler(char *x, t_log *logger)
 {
-    if (scheduler_paused)
-    {
-        scheduler_paused = false;
-        void post(void* void_sem){
-            sem_t* s = (sem_t*) void_sem;
-            sem_post(s);
-        }
-        list_iterate(scheduler.sems_scheduler_paused,post);
-    }
-    //log_info(logger, "Se inicio la planificacion\n");
+    resume_threads();
 }
 
 void multiprogramming(char *value, t_log *logger)

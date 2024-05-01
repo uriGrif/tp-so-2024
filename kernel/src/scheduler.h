@@ -30,7 +30,7 @@ typedef struct
     block_to_ready_strategy block_to_ready;
     exec_to_ready_strategy exec_to_ready;
     move_pcb_to_blocked_strategy move_pcb_to_blocked;
-    t_list* sems_scheduler_paused; // 0=> short term ; 1=>long term ; 2=> comms_kernel
+    sem_t sem_paused;
     sem_t sem_ready;
     sem_t sem_new;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
@@ -39,7 +39,9 @@ typedef struct
 
 extern t_scheduler scheduler;
 
-extern bool scheduler_paused;
+void handle_pause(void);
+void pause_threads(void);
+void resume_threads(void);
 
 void init_scheduler(void);
 void destroy_scheduler(void);

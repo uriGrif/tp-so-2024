@@ -6,13 +6,6 @@ void process_conn(void *void_args)
     t_log *logger = args->logger;
     int client_fd = args->fd;
     free(args);
-    // tengo que hacer esto porque aca se crean n hilos on demanda
-    // por ahora si conecto las interfaces antes de iniciar la planificacion por primera vez no funciona bien
-    // pero me parece que en la entrega posta arranca con la planificacion despausada
-    sem_t sem_scheduler_pause;
-    sem_init(&sem_scheduler_pause,0,0);
-    list_add(scheduler.sems_scheduler_paused, &sem_scheduler_pause);
-
 
     while (client_fd != -1)
     {
@@ -28,10 +21,9 @@ void process_conn(void *void_args)
                 interface_destroy(interface);
             }
             else
-                log_debug(logger,"no se conecto de una");
-            
-            if (scheduler_paused)
-                sem_wait(&sem_scheduler_pause);
+                log_debug(logger, "no se conecto de una");
+
+            handle_pause();
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
             t_blocked_queue *block_queue_to_remove = get_blocked_queue_by_fd(client_fd);
             void iterator(void *elem)
@@ -73,8 +65,7 @@ void process_conn(void *void_args)
             char *resource_name = packet_getString(packet->buffer);
             uint32_t pid = packet_getUInt32(packet->buffer);
             log_info(logger, "Interface %s requested by pid %d done", resource_name, pid);
-            if (scheduler_paused)
-                sem_wait(&sem_scheduler_pause);
+            handle_pause();
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
             scheduler.block_to_ready(resource_name, logger);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
