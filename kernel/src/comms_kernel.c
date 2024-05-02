@@ -56,7 +56,8 @@ void process_conn(void *void_args)
         {
             t_interface *interface = malloc(sizeof(t_interface));
             interface->fd = client_fd;
-            interface_decode_new(packet->buffer, interface);
+            interface->name = packet_getString(packet->buffer);
+            interface->type = packet_getString(packet->buffer);
             interface_add(interface);
             add_blocked_queue(interface->name, client_fd);
             log_info(logger, "New interface registered: name: %s - type: %s", interface->name, interface->type);

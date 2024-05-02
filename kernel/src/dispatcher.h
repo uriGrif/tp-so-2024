@@ -1,11 +1,10 @@
 #ifndef DISPATCHER_H
 #define DISPATCHER_H
 
+#include <interface.h>
 #include <pcb.h>
-#include <proto/proto.h>
 #include <commons/log.h>
 #include <scheduler.h>
-#include <interface.h>
 
 extern int fd_dispatch;
 

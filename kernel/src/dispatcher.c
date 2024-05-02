@@ -119,15 +119,18 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         interface_decode_io_stdin_read(packet->buffer, msg);
         interface_send_io_stdin_read(interface->fd, pcb->context->pid, msg->address, msg->offset, msg->size);
         interface_destroy_io_stdin_read(msg);
+        break;
     }
     case IO_STDOUT_WRITE:
     {
-        t_interface *interface = interface_middleware(packet->buffer, IO_STDIN_READ, pcb, logger);
+        t_interface *interface = interface_middleware(packet->buffer, IO_STDOUT_WRITE, pcb, logger);
         if (!interface)
             break;
         t_interface_io_stdout_write_msg *msg = malloc(sizeof(t_interface_io_stdout_write_msg));
+        interface_decode_io_stdout_write(packet->buffer, msg);
         interface_send_io_stdout_write(interface->fd, pcb->context->pid, msg->address, msg->offset, msg->size);
         interface_destroy_io_stdout_write(msg);
+        break;
     }
     default:
         log_error(logger, "operacion desconocida opcode: %d", packet->op_code);
