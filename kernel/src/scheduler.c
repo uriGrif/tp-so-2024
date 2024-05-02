@@ -2,20 +2,19 @@
 
 static void set_scheduling_algorithm(void);
 
-bool scheduler_paused = false;
+static int paused_threads = 0;
+static pthread_mutex_t MUTEX_PAUSE;
+static bool scheduler_paused = false;
+
 t_scheduler scheduler;
-static sem_t sem_paused_short_term, sem_paused_long_term;
 
 static void init_scheduler_sems(void)
 {
     sem_init(&scheduler.sem_ready, 0, 0);
     sem_init(&scheduler.sem_new, 0, 0);
-    
-    sem_init(&sem_paused_short_term, 0, 0);
-    sem_init(&sem_paused_long_term, 0, 0);
-    scheduler.sems_scheduler_paused = list_create();
-    list_add(scheduler.sems_scheduler_paused, &sem_paused_short_term);
-    list_add(scheduler.sems_scheduler_paused, &sem_paused_long_term);
+
+    sem_init(&scheduler.sem_paused, 0, 0);
+    pthread_mutex_init(&MUTEX_PAUSE, NULL);
     // me reservo las dos primeras para el corto y largo plazo
 }
 
@@ -23,12 +22,42 @@ static void destroy_scheduler_sems(void)
 {
     sem_destroy(&scheduler.sem_ready);
     sem_destroy(&scheduler.sem_new);
-    void destroyer(void* void_sem){
-        sem_t* s = (sem_t * ) void_sem;
-        sem_destroy(s);
+    sem_destroy(&scheduler.sem_paused);
+    pthread_mutex_destroy(&MUTEX_PAUSE);
+}
+
+void handle_pause(void)
+{
+    bool res;
+    pthread_mutex_lock(&MUTEX_PAUSE);
+    if ((res = scheduler_paused))
+    {
+        paused_threads++;
     }
-    list_iterate(scheduler.sems_scheduler_paused, destroyer);
-    list_destroy(scheduler.sems_scheduler_paused);
+    pthread_mutex_unlock(&MUTEX_PAUSE);
+    if(res) 
+        sem_wait(&scheduler.sem_paused);
+}
+
+void pause_threads(void){
+    pthread_mutex_lock(&MUTEX_PAUSE);
+    scheduler_paused = true;
+    pthread_mutex_unlock(&MUTEX_PAUSE);
+}
+
+void resume_threads(void)
+{
+    pthread_mutex_lock(&MUTEX_PAUSE);
+    if (scheduler_paused)
+    {
+        scheduler_paused = false;
+        while (paused_threads > 0)
+        {
+            sem_post(&scheduler.sem_paused);
+            paused_threads--;
+        }
+    }
+    pthread_mutex_unlock(&MUTEX_PAUSE);
 }
 
 void init_scheduler(void)
@@ -70,11 +99,11 @@ void handle_short_term_scheduler(void *args_logger)
 {
     t_log *logger = (t_log *)args_logger;
     set_scheduling_algorithm();
+    log_debug(logger,"el algoritmo seleccionado fue: %s",cfg_kernel->algoritmo_planificacion);
 
     while (1)
     {
-        if (scheduler_paused)
-            sem_wait(&sem_paused_short_term);
+        handle_pause();
         sem_wait(&scheduler.sem_ready);
         t_pcb *pcb = scheduler.ready_to_exec();
         log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
@@ -103,10 +132,9 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 
 void handle_long_term_scheduler(void *args_logger)
 {
-    
+
     return;
-    if (scheduler_paused)
-            sem_wait(&sem_paused_long_term);
+    handle_pause();
     // while (1)
     //{
     //  while ( haya procesos en new)

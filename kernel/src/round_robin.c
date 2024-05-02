@@ -2,7 +2,7 @@
 
 // static t_temporal *timer;
 // static int time_elapsed;
-pthread_t quantum_interruption_thread;
+static pthread_t quantum_interruption_thread;
 
 t_pcb *ready_to_exec_rr(void)
 {
@@ -25,6 +25,7 @@ void dispatch_rr(t_pcb *pcb, t_log *logger)
     {
         log_error(logger, "error waiting for cpu context");
     }
+    pthread_cancel(quantum_interruption_thread);
 }
 
 void exec_to_ready_rr(t_pcb *pcb, t_log *logger)

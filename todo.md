@@ -18,5 +18,5 @@
 - [ ] establecer los mensajes de las instrucciones de cpu y mensajes de las interfaces
 
 ### I/O
-- [ ] Interfaz STDIN, que te deje escribir algo (readline? o scanf?) y que se lo mande a memoria y que lo loguee
+- [ ] Interfaz STDIN, que te deje escribir algo (fgets) y que se lo mande a memoria y que lo loguee
 - [ ] Interfaz STDOUT, que le llege de la memoria un string hardcodeado y lo loguee
