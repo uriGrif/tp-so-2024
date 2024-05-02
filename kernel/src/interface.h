@@ -2,7 +2,6 @@
 #define INTERFACE_K_H
 
 #include <commons/collections/dictionary.h>
-#include <proto/proto.h>
 #include <proto/interface.h>
 #include <sockets/sockets.h>
 #include <pcb.h>

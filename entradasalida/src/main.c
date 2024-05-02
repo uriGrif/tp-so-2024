@@ -52,6 +52,8 @@ static void io_init(int argc, char **argv)
 
 static void io_close(void)
 {
+    socket_freeConn(memory_fd);
+    socket_freeConn(kernel_fd);
     log_destroy(logger);
     free(cfg_io);
     config_destroy(config);

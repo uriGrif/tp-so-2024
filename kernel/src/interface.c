@@ -34,6 +34,12 @@ t_interface *interface_get_by_fd(int fd)
 
 void destroy_interface_dictionary(void)
 {
+    void close_clients(char *key, void *elem)
+    {
+        t_interface *interface = (t_interface *)elem;
+        socket_freeConn(interface->fd);
+    }
+    dictionary_iterator(interface_dictionary, close_clients);
     dictionary_destroy_and_destroy_elements(interface_dictionary, interface_destroyer);
 }
 
@@ -65,7 +71,6 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
     // check if exists
     if (interface == NULL)
         return NULL;
-
     // comento por ahora pero por si las dudas dejo
     // if (!interface_is_connected(interface))
     // {
@@ -106,7 +111,6 @@ t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, 
 {
     char *interface_name = packet_getString(buffer);
     t_interface *interface = interface_validate(interface_name, instruction_to_run);
-    free(interface_name);
     if (!interface)
     {
         log_info(logger, "Finaliza el proceso %d- Motivo: Error de interfaz %s no conectada", pcb->context->pid, interface_name);
@@ -121,5 +125,6 @@ t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, 
         return NULL;
     }
     log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, interface_name);
+    free(interface_name);
     return interface;
 }
