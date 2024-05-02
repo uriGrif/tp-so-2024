@@ -30,11 +30,11 @@ void process_conn(void *void_args)
         {
             t_memory_read_msg *msg = malloc(sizeof(t_memory_read_msg));
             memory_decode_read(packet->buffer, msg);
-            log_info(logger, "PID : %d - Accion : LEER - Direccion fisica : %s - Tamaño %d", msg->pid, msg->address, msg->size);
+            log_info(logger, "PID : %d - Accion : LEER - Direccion fisica : %d - Tamaño %d", msg->pid, msg->address, msg->size);
 
             // arbitrary test value
-            char *str = "I've just read a portion of memory";
-            memory_send_read_ok(client_fd, str, sizeof(str));
+            char *str = "hello boy, how are you doing?";
+            memory_send_read_ok(client_fd, str, msg->size);
 
             memory_destroy_read(msg);
             break;
@@ -43,7 +43,12 @@ void process_conn(void *void_args)
         {
             t_memory_write_msg *msg = malloc(sizeof(t_memory_write_msg));
             memory_decode_write(packet->buffer, msg);
-            log_info(logger, "PID : %d - Accion : ESCRIBIR - Direccion fisica : %s - Tamaño %d", msg->pid, msg->address, msg->size);
+
+            log_info(logger, "GOT MESSAGE: %d %d %d", msg->address, msg->offset, msg->size);
+
+            log_info(logger, "PID : %d - Accion : ESCRIBIR - Direccion fisica : %d - Tamaño %d", msg->pid, msg->address, msg->size);
+
+            log_info(logger, "DATA TO SAVE: %s", (char *)msg->value);
 
             memory_send_write_ok(client_fd);
 
