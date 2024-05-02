@@ -6,9 +6,9 @@ static int paused_threads = 0;
 static pthread_mutex_t MUTEX_PAUSE;
 static bool scheduler_paused = false;
 
-sem_t grado_multiprogramacion_actual;
-uint32_t grado_multiprogramacion_maximo;
-pthread_mutex_t grado_multiprogramacion_maximo_mutex;
+sem_t current_multiprogramming_grade;
+uint32_t max_multiprogramming_grade;
+pthread_mutex_t max_multiprogramming_grade_mutex;
 
 static uint32_t processes_in_memory_amount = 0;
 static pthread_mutex_t processes_in_memory_amout_mutex;
@@ -25,7 +25,7 @@ static void init_scheduler_sems(void)
     // me reservo las dos primeras para el corto y largo plazo
 
     pthread_mutex_init(&processes_in_memory_amout_mutex, NULL);
-    pthread_mutex_init(&grado_multiprogramacion_maximo_mutex, NULL);
+    pthread_mutex_init(&max_multiprogramming_grade_mutex, NULL);
 }
 
 static void destroy_scheduler_sems(void)
@@ -34,6 +34,8 @@ static void destroy_scheduler_sems(void)
     sem_destroy(&scheduler.sem_new);
     sem_destroy(&scheduler.sem_paused);
     pthread_mutex_destroy(&MUTEX_PAUSE);
+    pthread_mutex_destroy(&max_multiprogramming_grade_mutex);
+    pthread_mutex_destroy(&processes_in_memory_amout_mutex);
 }
 
 void handle_pause(void)
@@ -72,7 +74,7 @@ void resume_threads(void)
 
 void init_scheduler(void)
 {
-    grado_multiprogramacion_maximo = cfg_kernel->grado_multiprogramacion;
+    max_multiprogramming_grade = cfg_kernel->grado_multiprogramacion;
     init_scheduler_sems();
     set_scheduling_algorithm();
 }
@@ -150,23 +152,25 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
     log_info(logger, "PID: %d - Estado Anterior: %s - Estado Actual: EXIT", pcb->context->pid, pcb_state_to_string(pcb));
     pcb->state = EXIT;
     send_end_process(pcb->context->pid);
-    pthread_mutex_lock(&grado_multiprogramacion_maximo_mutex);
-    if (processes_in_memory_amount <= grado_multiprogramacion_maximo) {
-        sem_post(&grado_multiprogramacion_actual);
+    pthread_mutex_lock(&max_multiprogramming_grade_mutex);
+    pthread_mutex_lock(&processes_in_memory_amout_mutex);
+    if (processes_in_memory_amount <= max_multiprogramming_grade) {
+        sem_post(&current_multiprogramming_grade);
     }
+    pthread_mutex_unlock(&processes_in_memory_amout_mutex);
     dec_processes_in_memory_amount();
-    pthread_mutex_unlock(&grado_multiprogramacion_maximo_mutex);
+    pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
 }
 
 void handle_long_term_scheduler(void *args_logger)
 {
-    sem_init(&grado_multiprogramacion_actual, 0, grado_multiprogramacion_maximo);
+    sem_init(&current_multiprogramming_grade, 0, max_multiprogramming_grade);
     t_log *logger = (t_log *)args_logger;
 
     while (1)
     {
         handle_pause();
-        sem_wait(&grado_multiprogramacion_actual);
+        sem_wait(&current_multiprogramming_grade);
         sem_wait(&scheduler.sem_new);
         t_pcb *pcb = queue_sync_pop(new_queue);
         pcb->state = READY;

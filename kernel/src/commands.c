@@ -48,25 +48,25 @@ void multiprogramming(char *value, t_log *logger)
         log_error(logger, "Error: %s no es un grado valido", value);
         return;
     }
-    if (new_grade >= grado_multiprogramacion_maximo)
+    if (new_grade >= max_multiprogramming_grade)
     {
-        for (int i = 0; i < new_grade - grado_multiprogramacion_maximo; i++)
+        for (int i = 0; i < new_grade - max_multiprogramming_grade; i++)
         {
-            sem_post(&grado_multiprogramacion_actual);
+            sem_post(&current_multiprogramming_grade);
         }
     } else {
         int sem_val;
-        sem_getvalue(&grado_multiprogramacion_actual, &sem_val);
+        sem_getvalue(&current_multiprogramming_grade, &sem_val);
         if (sem_val > new_grade) {
             for (int i = 0; i < sem_val; i++)
             {
-                sem_wait(&grado_multiprogramacion_actual);
+                sem_wait(&current_multiprogramming_grade);
             }
         }
     }
-    pthread_mutex_lock(&grado_multiprogramacion_maximo_mutex);
-    grado_multiprogramacion_maximo = new_grade;
-    pthread_mutex_unlock(&grado_multiprogramacion_maximo_mutex);
+    pthread_mutex_lock(&max_multiprogramming_grade_mutex);
+    max_multiprogramming_grade = new_grade;
+    pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
     log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
 }
 
