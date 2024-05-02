@@ -26,12 +26,12 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     uint32_t pid = packet_getUInt32(buffer);
     log_info(logger, "PID: %d - Operacion: %s", pid, io_op_to_string(operation));
 
-    void sendDone(void)
+    void send_done(void)
     {
         interface_send_io_done(kernel_fd, interface_name, pid);
     }
 
-    void doWork(int work)
+    void do_work(int work)
     {
         msleep(config->unidad_trabajo * work);
     }
@@ -43,8 +43,8 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_interface_io_gen_sleep_msg *msg = malloc(sizeof(t_interface_io_gen_sleep_msg));
         interface_decode_io_gen_sleep(buffer, msg);
 
-        doWork(msg->work_units);
-        sendDone();
+        do_work(msg->work_units);
+        send_done();
 
         interface_destroy_io_gen_sleep(msg);
         break;
@@ -57,22 +57,28 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         // ask for prompt
         char *str = malloc(msg->size);
         prompt(msg->size, str);
-        memory_send_write(memory_fd, pid, msg->address, msg->offset, str, msg->size);
+
+        memory_send_write(memory_fd, pid, msg->address, msg->offset, msg->size, str);
 
         t_packet *res = packet_new(-1);
         if (packet_recv(memory_fd, res) == -1)
         {
             interface_destroy_io_stdin_read(msg);
+            packet_free(res);
             free(str);
+            log_info(logger, "ERROR WHILE SAVING TO MEMORY");
             break;
         };
         if (res->op_code != WRITE_MEM_OK)
             log_info(logger, "ERROR WHILE SAVING TO MEMORY");
 
-        sendDone();
+        log_info(logger, "MEMORY SUCCESSFULLY SAVED");
+
+        send_done();
 
         interface_destroy_io_stdin_read(msg);
         free(str);
+        packet_free(res);
 
         break;
     }
@@ -95,11 +101,12 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         if (res->op_code == READ_MEM_OK)
         {
             t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
-            memory_decode_read_ok(buffer, ok_msg, msg->size);
+            memory_decode_read_ok(res->buffer, ok_msg, msg->size);
             log_info(logger, "MEMORY VALUE: %s", (char *)ok_msg->value);
+            memory_destroy_read_ok(ok_msg);
         }
 
-        sendDone();
+        send_done();
 
         interface_destroy_io_stdout_write(msg);
 
@@ -107,27 +114,27 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     }
     case IO_FS_CREATE:
     {
-        sendDone();
+        send_done();
         break;
     }
     case IO_FS_DELETE:
     {
-        sendDone();
+        send_done();
         break;
     }
     case IO_FS_TRUNCATE:
     {
-        sendDone();
+        send_done();
         break;
     }
     case IO_FS_READ:
     {
-        sendDone();
+        send_done();
         break;
     }
     case IO_FS_WRITE:
     {
-        sendDone();
+        send_done();
         break;
     }
     case DESTROY_PROCESS:
