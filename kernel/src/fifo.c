@@ -2,6 +2,7 @@
 
 t_pcb *ready_to_exec_fifo(void)
 {
+    sem_wait(&scheduler.sem_ready);
     t_pcb *pcb = queue_sync_pop(ready_queue);
     queue_sync_push(exec_queue, pcb);
     pcb->state = EXEC;
@@ -26,6 +27,7 @@ void block_to_ready_fifo(char *resource, t_log *logger)
     pcb->state = READY;
     log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->context->pid);
     queue_sync_push(ready_queue, pcb);
+    sem_post(&scheduler.sem_ready);
 }
 
 int move_pcb_to_blocked_fifo(t_pcb *pcb, char *resource_name, t_log *logger)

@@ -19,7 +19,14 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         packet_free(packet);
         return -1;
     }
-
+    if(quantum_interruption_thread){
+        pthread_cancel(quantum_interruption_thread);
+        if(timer){
+            temporal_stop(timer);
+            time_elapsed = temporal_gettime(timer);
+            temporal_destroy(timer);
+        }  
+    }
     handle_pause();
     // en todas le desalojo el contexto
     packet_get_context(packet->buffer, pcb->context);

@@ -1,8 +1,6 @@
 #include <round_robin.h>
 
-// static t_temporal *timer;
-// static int time_elapsed;
-static pthread_t quantum_interruption_thread;
+pthread_t quantum_interruption_thread;
 
 t_pcb *ready_to_exec_rr(void)
 {
@@ -25,7 +23,6 @@ void dispatch_rr(t_pcb *pcb, t_log *logger)
     {
         log_error(logger, "error waiting for cpu context");
     }
-    pthread_cancel(quantum_interruption_thread);
 }
 
 void exec_to_ready_rr(t_pcb *pcb, t_log *logger)
@@ -47,12 +44,3 @@ void block_to_ready_rr(char *resource, t_log *logger)
     // pasar a ready
     block_to_ready_fifo(resource, logger);
 }
-
-// int move_pcb_to_blocked_vrr(t_pcb *pcb, char *resource_name, t_log *logger)
-// {
-//     temporal_stop(timer);
-//     int ms_passed = temporal_gettime(timer);
-//     temporal_destroy(timer);
-//     pcb->context->quantum -= ms_passed;
-//     move_pcb_to_blocked_fifo(pcb,resource_name,logger);
-// }

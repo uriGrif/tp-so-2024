@@ -68,7 +68,9 @@ void list_processes_by_state(char *x, t_log *logger)
     log_info(logger, "Estado NEW: %s", pids);
     free(pids);
     pids = generate_string_of_pids(ready_queue);
-    log_info(logger, "Estado READY: %s", pids);
+    char * pids2 = generate_string_of_pids(ready_plus_queue);
+    log_info(logger, "Estado READY: %s READY+ %s", pids, pids2);
+    free(pids2);
     free(pids);
     pids = generate_string_of_pids(exec_queue);
     log_info(logger, "Estado EXEC: %s", pids);

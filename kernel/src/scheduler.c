@@ -11,6 +11,7 @@ t_scheduler scheduler;
 static void init_scheduler_sems(void)
 {
     sem_init(&scheduler.sem_ready, 0, 0);
+    sem_init(&scheduler.sem_ready_plus, 0, 0);
     sem_init(&scheduler.sem_new, 0, 0);
 
     sem_init(&scheduler.sem_paused, 0, 0);
@@ -22,6 +23,7 @@ static void destroy_scheduler_sems(void)
 {
     sem_destroy(&scheduler.sem_ready);
     sem_destroy(&scheduler.sem_new);
+    sem_destroy(&scheduler.sem_ready_plus);
     sem_destroy(&scheduler.sem_paused);
     pthread_mutex_destroy(&MUTEX_PAUSE);
 }
@@ -90,9 +92,11 @@ static void set_scheduling_algorithm(void)
         scheduler.move_pcb_to_blocked = move_pcb_to_blocked_rr;
         return;
     }
-    // scheduler.ready_to_exec = ready_to_exec_vrr;
-    // scheduler.dispatch =  dispatch_vrr;
-    // scheduler.exec_to_ready = exec_to_ready_vrr;
+    scheduler.ready_to_exec = ready_to_exec_vrr;
+    scheduler.dispatch =  dispatch_vrr;
+    scheduler.exec_to_ready = exec_to_ready_vrr;
+    scheduler.block_to_ready = block_to_ready_vrr;
+    scheduler.move_pcb_to_blocked = move_pcb_to_blocked_vrr;
 }
 
 void handle_short_term_scheduler(void *args_logger)
@@ -104,7 +108,6 @@ void handle_short_term_scheduler(void *args_logger)
     while (1)
     {
         handle_pause();
-        sem_wait(&scheduler.sem_ready);
         t_pcb *pcb = scheduler.ready_to_exec();
         log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
         scheduler.dispatch(pcb, logger);

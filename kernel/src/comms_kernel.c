@@ -70,7 +70,6 @@ void process_conn(void *void_args)
             scheduler.block_to_ready(resource_name, logger);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             print_ready_queue(logger);
-            sem_post(&scheduler.sem_ready);
             free(resource_name);
             break;
         }
