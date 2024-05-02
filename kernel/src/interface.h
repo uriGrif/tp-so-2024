@@ -3,7 +3,10 @@
 
 #include <commons/collections/dictionary.h>
 #include <proto/proto.h>
+#include <proto/interface.h>
 #include <sockets/sockets.h>
+#include <pcb.h>
+#include <scheduler.h>
 
 enum interface_types
 {
@@ -22,15 +25,6 @@ typedef struct
 
 extern t_dictionary *interface_dictionary;
 
-struct req_io_gen_sleep
-{
-    char *interface_name;
-    uint32_t work_units;
-};
-
-void interface_decode_new(t_buffer *buffer, t_interface *interface);
-void interface_decode_io_gen_sleep(t_buffer *buffer, struct req_io_gen_sleep *params);
-void interface_destroy_io_gen_sleep(struct req_io_gen_sleep *params);
 void interface_init(void);
 void interface_add(t_interface *interface);
 t_interface *interface_validate(char *name, uint8_t instruction_to_run);
@@ -41,10 +35,6 @@ int interface_can_run_instruction(t_interface *interface, uint8_t instruction_to
 void interface_destroy(t_interface *interface);
 char *interface_get_type_name(enum interface_types type);
 void destroy_interface_dictionary(void);
-
-
-// message senders
-int interface_send_io_gen_sleep(int fd, uint32_t pid, uint32_t work_units);
-void interface_destroy_io_gen_sleep(struct req_io_gen_sleep *params);
+t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, t_pcb *pcb, t_log *logger);
 
 #endif

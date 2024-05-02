@@ -26,18 +26,16 @@ t_interface *interface_get_by_fd(int fd)
         t_interface *interface = (t_interface *)elem;
         return interface->fd == fd;
     }
-    t_list* list = dictionary_elements(interface_dictionary);
-    t_interface* tmp = list_find(list,closure);
+    t_list *list = dictionary_elements(interface_dictionary);
+    t_interface *tmp = list_find(list, closure);
     list_destroy(list);
     return tmp;
-
 }
 
 void destroy_interface_dictionary(void)
 {
     dictionary_destroy_and_destroy_elements(interface_dictionary, interface_destroyer);
 }
-
 
 int interface_is_connected(t_interface *interface)
 {
@@ -50,9 +48,9 @@ int interface_can_run_instruction(t_interface *interface, uint8_t instruction_to
     {
     case IO_GEN_SLEEP:
         return strcmp(interface->type, "GENERICA") == 0;
-    case IO_STD_IN_READ:
+    case IO_STDIN_READ:
         return strcmp(interface->type, "STDIN") == 0;
-    case IO_STD_OUT_WRITE:
+    case IO_STDOUT_WRITE:
         return strcmp(interface->type, "STDOUT") == 0;
     // the rest of instructions correspond to the file system
     default:
@@ -85,7 +83,7 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
 void interface_destroy(t_interface *interface)
 {
     // aca podriamos mandar a exit los procesos de la blocked queue de la interfaz
-    dictionary_remove_and_destroy(interface_dictionary, interface->name,interface_destroyer);
+    dictionary_remove_and_destroy(interface_dictionary, interface->name, interface_destroyer);
 }
 
 static void interface_destroyer(void *_interface)
@@ -97,35 +95,31 @@ static void interface_destroyer(void *_interface)
 }
 
 /**
+ * should be run at the beginning of every dispatch request that correspond to interfaces
+ * handles:
+ *  - validation
+ *  - process scheduling
  *
- * WRITE HERE THE CORRESPONDING FUNCTIONS TO SEND AND DECODE MESSAGES
- *
+ * @returns NULL on error, otherwise the corresponding `t_interface`
  */
-void interface_decode_new(t_buffer *buffer, t_interface *interface)
+t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, t_pcb *pcb, t_log *logger)
 {
-    interface->name = packet_getString(buffer);
-    interface->type = packet_getString(buffer);
-}
-
-void interface_decode_io_gen_sleep(t_buffer *buffer, struct req_io_gen_sleep *params)
-{
-    params->interface_name = packet_getString(buffer);
-    params->work_units = packet_getUInt32(buffer);
-}
-
-void interface_destroy_io_gen_sleep(struct req_io_gen_sleep *params)
-{
-    free(params->interface_name);
-    free(params);
-}
-
-int interface_send_io_gen_sleep(int fd, uint32_t pid, uint32_t work_units)
-{
-    t_packet *packet = packet_new(IO_GEN_SLEEP);
-    // todo get the current exec instruction pid
-    packet_addUInt32(packet, pid);
-    packet_addUInt32(packet, work_units);
-    int res = packet_send(packet, fd);
-    packet_free(packet);
-    return res;
+    char *interface_name = packet_getString(buffer);
+    t_interface *interface = interface_validate(interface_name, instruction_to_run);
+    free(interface_name);
+    if (!interface)
+    {
+        log_info(logger, "Finaliza el proceso %d- Motivo: Error de interfaz %s no conectada", pcb->context->pid, interface_name);
+        // nunca pase por bloqueado asi que no deberia explotar
+        move_pcb_to_exit(pcb, logger);
+        return NULL;
+    }
+    if (scheduler.move_pcb_to_blocked(pcb, interface->name, logger) == -1)
+    {
+        log_error(logger, "Could not find blocked queue for %s", interface_name);
+        move_pcb_to_exit(pcb, logger);
+        return NULL;
+    }
+    log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, interface_name);
+    return interface;
 }
