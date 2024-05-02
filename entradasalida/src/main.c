@@ -3,7 +3,7 @@
 static t_log *logger;
 static t_config *config;
 static t_io_config *cfg_io;
-char* interface_name;
+char *interface_name;
 static char *config_path;
 int memory_fd;
 int kernel_fd;
@@ -84,6 +84,7 @@ int main(int argc, char *argv[])
 
     struct kernel_incoming_message_args args;
     args.kernel_fd = kernel_fd;
+    args.memory_fd = memory_fd;
     args.logger = logger;
     args.config = cfg_io;
 
