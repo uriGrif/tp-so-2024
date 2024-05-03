@@ -21,7 +21,6 @@ t_scheduler scheduler;
 static void init_scheduler_sems(void)
 {
     sem_init(&scheduler.sem_ready, 0, 0);
-    sem_init(&scheduler.sem_ready_plus, 0, 0);
     sem_init(&scheduler.sem_new, 0, 0);
 
     sem_init(&scheduler.sem_paused, 0, 0);
@@ -37,7 +36,6 @@ static void destroy_scheduler_sems(void)
 {
     sem_destroy(&scheduler.sem_ready);
     sem_destroy(&scheduler.sem_new);
-    sem_destroy(&scheduler.sem_ready_plus);
     sem_destroy(&scheduler.sem_paused);
     pthread_mutex_destroy(&MUTEX_PAUSE);
     pthread_mutex_destroy(&max_multiprogramming_grade_mutex);

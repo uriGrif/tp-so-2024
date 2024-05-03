@@ -33,7 +33,6 @@ typedef struct
     move_pcb_to_blocked_strategy move_pcb_to_blocked;
     sem_t sem_paused;
     sem_t sem_ready;
-    sem_t sem_ready_plus;
     sem_t sem_new;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
     // agregar los semaforos aca???
