@@ -7,7 +7,6 @@ t_kernel_config *cfg_kernel;
 pthread_t LISTENER_THREAD;
 static pthread_t short_term_scheduler_thread;
 static pthread_t long_term_scheduler_thread;
-//int multiprogramacion_actual;
 
 
 static void config_init(void)
@@ -96,7 +95,7 @@ void sighandler(int signal)
 }
 
 static void init_scheduler_threads(void){
-    pthread_create(&long_term_scheduler_thread, NULL, (void *)handle_long_term_scheduler, NULL);
+    pthread_create(&long_term_scheduler_thread, NULL, (void *)handle_long_term_scheduler, (void*) logger);
     pthread_detach(long_term_scheduler_thread);
 
     pthread_create(&short_term_scheduler_thread, NULL, (void *)handle_short_term_scheduler, (void*) logger);

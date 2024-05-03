@@ -9,20 +9,11 @@ int multiprogramming_controler = 0;
 
 void init_process(char *path, t_log *logger)
 {
-    // if(multiprogramming_controler == cfg_kernel->grado_multiprogramacion){
-    //     printf("el grado de multiprogramacion no permite crear un nuevo proceso\n");
-    //     return;
-    // }
     t_pcb *pcb = pcb_create(path);
-    // log_info(logger,"path %s",pcb->text_path);
-    //  queue_sync_push(new_queue, pcb);
-    // pcb->state = NEW;
-    send_create_process(pcb);
-    queue_sync_push(ready_queue, pcb);
-    sem_post(&scheduler.sem_ready); // por ahora para probar
-    print_ready_queue(logger);
-    // multiprogramming_controler++;
-
+    // send_create_process(pcb);
+    queue_sync_push(new_queue, pcb);
+    sem_post(&scheduler.sem_new);
+    // print_ready_queue(logger);
     log_info(logger, "Se crea el proceso %d en NEW", pcb->context->pid);
 }
 
@@ -36,7 +27,6 @@ void end_process(char *pid_str, t_log *logger)
         return;
     }
     send_end_process(pid);
-    // multiprogramming_controler--;
     log_info(logger, "Finaliza el proceso %d (por consola) ", pid);
 }
 
@@ -58,8 +48,36 @@ void multiprogramming(char *value, t_log *logger)
         log_error(logger, "Error: %s no es un grado valido", value);
         return;
     }
+    if (new_grade >= max_multiprogramming_grade)
+    {
+        for (int i = 0; i < new_grade - max_multiprogramming_grade; i++)
+        {
+            pthread_mutex_lock(&current_multiprogramming_grade_mutex);
+            current_multiprogramming_sem_mirror++;
+            sem_post(&current_multiprogramming_grade);
+            pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
+        }
+    } else {
+        pthread_mutex_lock(&current_multiprogramming_grade_mutex);
+        if (current_multiprogramming_sem_mirror > new_grade) {
+            pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
+            for (int i = 0; i < current_multiprogramming_sem_mirror; i++)
+            {
+                // es un poco engorroso pero deberia ser mas seguro
+                pthread_mutex_lock(&current_multiprogramming_grade_mutex);
+                current_multiprogramming_sem_mirror--;
+                pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
+                sem_wait(&current_multiprogramming_grade);
+            }
+        }
+        pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
+    }
+    pthread_mutex_lock(&max_multiprogramming_grade_mutex);
+    max_multiprogramming_grade = new_grade;
+    pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
     log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
 }
+
 void list_processes_by_state(char *x, t_log *logger)
 {
     // TODO
