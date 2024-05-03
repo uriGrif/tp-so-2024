@@ -7,7 +7,6 @@ t_pcb *ready_to_exec_vrr(void)
 {
     t_pcb* pcb;
     if(sync_queue_length(ready_plus_queue) > 0){
-        printf("pase por este semaforo\n");
         pcb = queue_sync_pop(ready_plus_queue);
         pcb->state = EXEC;
         queue_sync_push(exec_queue,pcb);

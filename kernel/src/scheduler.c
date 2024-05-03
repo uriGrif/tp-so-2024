@@ -191,9 +191,10 @@ void handle_long_term_scheduler(void *args_logger)
         t_pcb *pcb = queue_sync_pop(new_queue);
         pcb->state = READY;
         queue_sync_push(ready_queue, pcb);
+        log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual: READY", pcb->context->pid);
+        print_ready_queue(logger);
         send_create_process(pcb);
         sem_post(&scheduler.sem_ready);
         inc_processes_in_memory_amount();
-        log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual: READY", pcb->context->pid);
     }
 }
