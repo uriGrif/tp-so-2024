@@ -15,6 +15,7 @@
 #include <memory_comms.h>
 #include <fifo.h>
 #include <round_robin.h>
+#include <virtual_round_robin.h>
 
 
 typedef t_pcb *(*ready_to_exec_strategy)(void);
@@ -32,12 +33,20 @@ typedef struct
     move_pcb_to_blocked_strategy move_pcb_to_blocked;
     sem_t sem_paused;
     sem_t sem_ready;
+    sem_t sem_ready_plus;
     sem_t sem_new;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
     // agregar los semaforos aca???
 } t_scheduler;
 
 extern t_scheduler scheduler;
+
+extern uint32_t max_multiprogramming_grade;
+extern pthread_mutex_t max_multiprogramming_grade_mutex;
+extern sem_t current_multiprogramming_grade;
+extern int current_multiprogramming_sem_mirror;
+extern pthread_mutex_t current_multiprogramming_grade_mutex;
+
 
 void handle_pause(void);
 void pause_threads(void);
