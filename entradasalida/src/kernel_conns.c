@@ -96,7 +96,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         {
             interface_destroy_io_stdout_write(msg);
             break;
-        };
+        }
 
         if (res->op_code == READ_MEM_OK)
         {

@@ -69,6 +69,33 @@ void process_conn(void *void_args)
             interface_destroy_io_done(msg);
             break;
         }
+        case READ_MEM_FAIL:{
+            t_interface_io_done_msg *msg = malloc(sizeof(t_interface_io_done_msg));
+            interface_decode_io_done(packet->buffer, msg);
+            handle_pause();
+            pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+            t_pcb* pcb = blocked_queue_pop(msg->interface_name);
+            if(pcb){
+                log_info(logger, "Finaliza el proceso %d- Motivo: INVALID READ", pcb->context->pid);
+                move_pcb_to_exit(pcb,logger);
+            }
+            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+            break;
+        }
+        case WRITE_MEM_FAILED:{
+            t_interface_io_done_msg *msg = malloc(sizeof(t_interface_io_done_msg));
+            interface_decode_io_done(packet->buffer, msg);
+            handle_pause();
+            pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+            t_pcb* pcb = blocked_queue_pop(msg->interface_name);
+            if(pcb){
+                log_info(logger, "Finaliza el proceso %d- Motivo: INVALID WRITE", pcb->context->pid);
+                move_pcb_to_exit(pcb,logger);
+            }
+            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+            interface_destroy_io_done(msg);
+            break;
+        }
         case -1:
             log_error(logger, "client disconnect");
             packet_free(packet);

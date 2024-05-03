@@ -169,8 +169,11 @@ void io_stdin_read(char **args, t_log *logger)
 {
     clear_interrupt();
     char *interface_name = args[0];
+    // despues hay que preguntar por el tamanio de los registros y como funciona la MMU
+    // t_register* virtual_address = register_get_by_name(args[1]);
+    // t_register* size_reg = register_get_by_name(args[1]);
     uint32_t *virtual_address = (uint32_t *)register_get_by_name(args[1])->address;
-    uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
+   uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
 
     t_physical_address *physical_mem_dir = translate_address(*virtual_address);
 
@@ -184,6 +187,9 @@ void io_stdout_write(char **args, t_log *logger)
 {
     clear_interrupt();
     char *interface_name = args[0];
+     // despues hay que preguntar por el tamanio de los registros y como funciona la MMU
+    // t_register* virtual_address = register_get_by_name(args[1]);
+    // t_register* size_reg = register_get_by_name(args[1]);
     uint32_t *virtual_address = (uint32_t *)register_get_by_name(args[1])->address;
     uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
 
