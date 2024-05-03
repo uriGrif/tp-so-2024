@@ -93,6 +93,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         {
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
             scheduler.block_to_ready(resource_name, logger);
+            sem_post(&scheduler.sem_ready);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             print_ready_queue(logger);
             sem_post(&scheduler.sem_ready);

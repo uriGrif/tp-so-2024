@@ -124,6 +124,7 @@ void handle_short_term_scheduler(void *args_logger)
     while (1)
     {
         handle_pause();
+        sem_wait(&scheduler.sem_ready);
         t_pcb *pcb = scheduler.ready_to_exec();
         log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
         scheduler.dispatch(pcb, logger);

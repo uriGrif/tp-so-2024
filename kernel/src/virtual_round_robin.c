@@ -7,7 +7,6 @@ t_pcb *ready_to_exec_vrr(void)
 {
     t_pcb* pcb;
     if(sync_queue_length(ready_plus_queue) > 0){
-        sem_wait(&scheduler.sem_ready);
         printf("pase por este semaforo\n");
         pcb = queue_sync_pop(ready_plus_queue);
         pcb->state = EXEC;
@@ -53,11 +52,9 @@ void block_to_ready_vrr(char *resource, t_log *logger)
     pcb->state = READY;
     if(pcb->context->quantum < cfg_kernel->quantum){
         queue_sync_push(ready_plus_queue, pcb);
-        sem_post(&scheduler.sem_ready);
         log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY PLUS", pcb->context->pid);
         return;
     }
     queue_sync_push(ready_queue, pcb);
-    sem_post(&scheduler.sem_ready);
     log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->context->pid);
 }
