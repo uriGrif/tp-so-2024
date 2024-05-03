@@ -42,6 +42,9 @@ extern t_scheduler scheduler;
 extern uint32_t max_multiprogramming_grade;
 extern pthread_mutex_t max_multiprogramming_grade_mutex;
 extern sem_t current_multiprogramming_grade;
+extern int current_multiprogramming_sem_mirror;
+extern pthread_mutex_t current_multiprogramming_grade_mutex;
+
 
 void handle_pause(void);
 void pause_threads(void);

@@ -52,17 +52,25 @@ void multiprogramming(char *value, t_log *logger)
     {
         for (int i = 0; i < new_grade - max_multiprogramming_grade; i++)
         {
+            pthread_mutex_lock(&current_multiprogramming_grade_mutex);
+            current_multiprogramming_sem_mirror++;
             sem_post(&current_multiprogramming_grade);
+            pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
         }
     } else {
-        int sem_val;
-        sem_getvalue(&current_multiprogramming_grade, &sem_val);
-        if (sem_val > new_grade) {
-            for (int i = 0; i < sem_val; i++)
+        pthread_mutex_lock(&current_multiprogramming_grade_mutex);
+        if (current_multiprogramming_sem_mirror > new_grade) {
+            pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
+            for (int i = 0; i < current_multiprogramming_sem_mirror; i++)
             {
+                // es un poco engorroso pero deberia ser mas seguro
+                pthread_mutex_lock(&current_multiprogramming_grade_mutex);
+                current_multiprogramming_sem_mirror--;
+                pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
                 sem_wait(&current_multiprogramming_grade);
             }
         }
+        pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
     }
     pthread_mutex_lock(&max_multiprogramming_grade_mutex);
     max_multiprogramming_grade = new_grade;
