@@ -46,6 +46,8 @@ extern sem_t current_multiprogramming_grade;
 extern int current_multiprogramming_sem_mirror;
 extern pthread_mutex_t current_multiprogramming_grade_mutex;
 
+extern uint32_t processes_in_memory_amount;
+extern pthread_mutex_t processes_in_memory_amount_mutex;
 
 void handle_pause(void);
 void pause_threads(void);
@@ -56,6 +58,7 @@ void destroy_scheduler(void);
 
 void handle_short_term_scheduler(void *args_logger);
 void handle_long_term_scheduler(void *args_logger);
+
 
 // int move_pcb_to_blocked(t_pcb* pcb, char* resource_name,t_log* logger);
 void move_pcb_to_exit(t_pcb* pcb, t_log* logger);

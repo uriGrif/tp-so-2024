@@ -56,17 +56,39 @@ void multiprogramming(char *value, t_log *logger)
             current_multiprogramming_sem_mirror++;
             sem_post(&current_multiprogramming_grade);
         }
-    } else {
-        if (current_multiprogramming_sem_mirror > new_grade) {
-            // si ya es cero no pasa por este while, no se bloquea este hilo
-            // y no me puede waitear el long term porque usa el mutex
-            while(current_multiprogramming_sem_mirror > 0){
-                sem_wait(&current_multiprogramming_grade);
-                current_multiprogramming_sem_mirror--;
-            }
+    }
+    else
+    {
+        pthread_mutex_lock(&processes_in_memory_amount_mutex);
+        int target_sem_value;
+        if ((target_sem_value = (new_grade - processes_in_memory_amount)) <= 0)
+            target_sem_value = 0;
+        log_debug(logger, "estoy por entrar a multi sem con %d  target: %d", current_multiprogramming_sem_mirror, target_sem_value);
+        while (current_multiprogramming_sem_mirror > target_sem_value)
+        {
+            sem_wait(&current_multiprogramming_grade);
+            current_multiprogramming_sem_mirror--;
         }
+        log_debug(logger, "sali de multi sem");
+        // if (current_multiprogramming_sem_mirror > new_grade)
+        // {
+        //     log_debug(logger, "bajando...");
+        //     // si ya es cero no pasa por este while, no se bloquea este hilo
+        //     // y no me puede waitear el long term porque usa el mutex
+        //     while (current_multiprogramming_sem_mirror > new_grade - mem)
+        // }
+        // else
+        // {
+        //     while (current_multiprogramming_sem_mirror > 0)
+        //     {
+        //         sem_wait(&current_multiprogramming_grade);
+        //         current_multiprogramming_sem_mirror--;
+        //     }
+        // }
+        pthread_mutex_unlock(&processes_in_memory_amount_mutex);
     }
     pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
+
     pthread_mutex_lock(&max_multiprogramming_grade_mutex);
     max_multiprogramming_grade = new_grade;
     pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
@@ -81,7 +103,7 @@ void list_processes_by_state(char *x, t_log *logger)
     log_info(logger, "Estado NEW: %s", pids);
     free(pids);
     pids = generate_string_of_pids(ready_queue);
-    char * pids2 = generate_string_of_pids(ready_plus_queue);
+    char *pids2 = generate_string_of_pids(ready_plus_queue);
     log_info(logger, "Estado READY: %s READY+ %s", pids, pids2);
     free(pids2);
     free(pids);

@@ -13,8 +13,8 @@ pthread_mutex_t current_multiprogramming_grade_mutex;
 uint32_t max_multiprogramming_grade;
 pthread_mutex_t max_multiprogramming_grade_mutex;
 
-static uint32_t processes_in_memory_amount = 0;
-static pthread_mutex_t processes_in_memory_amount_mutex;
+uint32_t processes_in_memory_amount = 0;
+pthread_mutex_t processes_in_memory_amount_mutex;
 
 t_scheduler scheduler;
 
@@ -37,6 +37,7 @@ static void destroy_scheduler_sems(void)
     sem_destroy(&scheduler.sem_ready);
     sem_destroy(&scheduler.sem_new);
     sem_destroy(&scheduler.sem_paused);
+    sem_destroy(&current_multiprogramming_grade);
     pthread_mutex_destroy(&MUTEX_PAUSE);
     pthread_mutex_destroy(&max_multiprogramming_grade_mutex);
     pthread_mutex_destroy(&processes_in_memory_amount_mutex);
@@ -141,17 +142,18 @@ void handle_short_term_scheduler(void *args_logger)
 //     return 0;
 // }
 
-static void inc_processes_in_memory_amount() {
+static void inc_processes_in_memory_amount(void) {
     pthread_mutex_lock(&processes_in_memory_amount_mutex);
     processes_in_memory_amount++;
     pthread_mutex_unlock(&processes_in_memory_amount_mutex);
 }
 
-static void dec_processes_in_memory_amount() {
+static void dec_processes_in_memory_amount(void) {
     pthread_mutex_lock(&processes_in_memory_amount_mutex);
     processes_in_memory_amount--;
     pthread_mutex_unlock(&processes_in_memory_amount_mutex);
 }
+
 
 void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {
@@ -180,13 +182,13 @@ void handle_long_term_scheduler(void *args_logger)
 
     while (1)
     {
+        sem_wait(&scheduler.sem_new);
         // todo esto esto es para hacer el  wait llevando el valor del semaforo
         pthread_mutex_lock(&current_multiprogramming_grade_mutex);
         current_multiprogramming_sem_mirror--;
         pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
         sem_wait(&current_multiprogramming_grade);
         // ----
-        sem_wait(&scheduler.sem_new);
         handle_pause();
         t_pcb *pcb = queue_sync_pop(new_queue);
         pcb->state = READY;

@@ -126,7 +126,7 @@ void execute_script(char *file_path, t_log *logger)
     t_list *commands = file_get_list_of_lines(file_path);
 
     if (list_is_empty(commands))
-        printf("script no encontrado\n");
+        log_warning(logger,"script no encontrado\n");
 
     void exec_comm(void *comm)
     {
