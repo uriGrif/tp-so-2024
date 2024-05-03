@@ -187,6 +187,8 @@ void socket_acceptOnDemand(int fd, t_log *logger, void (*connection_handler)(voi
     {
         int client_fd = socket_acceptConns(fd);
 
+        log_debug(logger,"hola estoy en el on demand");
+
         if (client_fd == -1)
             continue;
 

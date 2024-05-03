@@ -148,8 +148,10 @@ void blocked_queues_iterate(void (*iterator)(void *))
 
 void print_ready_queue(t_log* logger){
     char* pids = generate_string_of_pids(ready_queue);
-    log_info(logger,"Cola Ready <COLA>: %s",pids); // aca no se que poner donde va cola ???
+    char* pids_plus = generate_string_of_pids(ready_plus_queue);
+    log_info(logger,"Cola Ready <COLA>: %s Cola Ready PLUS <COLA>: %s",pids,pids_plus); // aca no se que poner donde va cola ???
     free(pids);
+    free(pids_plus);
 }
 
 void add_resources_to_blocked_queues(void) {

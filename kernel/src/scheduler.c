@@ -123,8 +123,8 @@ void handle_short_term_scheduler(void *args_logger)
 
     while (1)
     {
-        handle_pause();
         sem_wait(&scheduler.sem_ready);
+        handle_pause();
         t_pcb *pcb = scheduler.ready_to_exec();
         log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
         scheduler.dispatch(pcb, logger);
@@ -180,7 +180,6 @@ void handle_long_term_scheduler(void *args_logger)
 
     while (1)
     {
-        handle_pause();
         // todo esto esto es para hacer el  wait llevando el valor del semaforo
         pthread_mutex_lock(&current_multiprogramming_grade_mutex);
         current_multiprogramming_sem_mirror--;
@@ -188,6 +187,7 @@ void handle_long_term_scheduler(void *args_logger)
         sem_wait(&current_multiprogramming_grade);
         // ----
         sem_wait(&scheduler.sem_new);
+        handle_pause();
         t_pcb *pcb = queue_sync_pop(new_queue);
         pcb->state = READY;
         queue_sync_push(ready_queue, pcb);

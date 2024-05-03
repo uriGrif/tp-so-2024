@@ -73,7 +73,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         }
         log_info(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
         send_context_to_cpu(pcb->context); // creeria q en este caso se manda a ready
-        wait_for_dispatch_reason(pcb, logger);
+        scheduler.dispatch(pcb, logger);
         free(resource_name);
         break;
     }
@@ -98,7 +98,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             sem_post(&scheduler.sem_ready);
         }
         send_context_to_cpu(pcb->context);
-        wait_for_dispatch_reason(pcb, logger);
+        scheduler.dispatch(pcb, logger);
         free(resource_name);
         break;
     }

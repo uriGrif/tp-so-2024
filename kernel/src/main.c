@@ -76,6 +76,7 @@ static void kernel_close(void)
 {
     pthread_cancel(short_term_scheduler_thread);
     pthread_cancel(long_term_scheduler_thread);
+    rl_clear_history();
     destroy_scheduler();
     destroy_queues();
     log_destroy(logger);
@@ -84,6 +85,9 @@ static void kernel_close(void)
     string_array_destroy(cfg_kernel->instancias_recursos);
     free(cfg_kernel);
     config_destroy(config);
+    socket_freeConn(fd_dispatch);
+    socket_freeConn(fd_interrupt);
+    socket_freeConn(fd_memory);
     close(server_fd);
 }
 
