@@ -48,33 +48,7 @@ void multiprogramming(char *value, t_log *logger)
         log_error(logger, "Error: %s no es un grado valido", value);
         return;
     }
-    if (new_grade >= max_multiprogramming_grade)
-    {
-        for (int i = 0; i < new_grade - max_multiprogramming_grade; i++)
-        {
-            pthread_mutex_lock(&current_multiprogramming_grade_mutex);
-            current_multiprogramming_sem_mirror++;
-            sem_post(&current_multiprogramming_grade);
-            pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
-        }
-    } else {
-        pthread_mutex_lock(&current_multiprogramming_grade_mutex);
-        if (current_multiprogramming_sem_mirror > new_grade) {
-            pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
-            for (int i = 0; i < current_multiprogramming_sem_mirror; i++)
-            {
-                // es un poco engorroso pero deberia ser mas seguro
-                pthread_mutex_lock(&current_multiprogramming_grade_mutex);
-                current_multiprogramming_sem_mirror--;
-                pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
-                sem_wait(&current_multiprogramming_grade);
-            }
-        }
-        pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
-    }
-    pthread_mutex_lock(&max_multiprogramming_grade_mutex);
-    max_multiprogramming_grade = new_grade;
-    pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
+    change_multiprogramming(new_grade);
     log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
 }
 
@@ -86,7 +60,7 @@ void list_processes_by_state(char *x, t_log *logger)
     log_info(logger, "Estado NEW: %s", pids);
     free(pids);
     pids = generate_string_of_pids(ready_queue);
-    char * pids2 = generate_string_of_pids(ready_plus_queue);
+    char *pids2 = generate_string_of_pids(ready_plus_queue);
     log_info(logger, "Estado READY: %s READY+ %s", pids, pids2);
     free(pids2);
     free(pids);

@@ -187,6 +187,8 @@ void socket_acceptOnDemand(int fd, t_log *logger, void (*connection_handler)(voi
     {
         int client_fd = socket_acceptConns(fd);
 
+        log_debug(logger,"hola estoy en el on demand");
+
         if (client_fd == -1)
             continue;
 
@@ -199,7 +201,11 @@ void socket_acceptOnDemand(int fd, t_log *logger, void (*connection_handler)(voi
         args->fd = client_fd;
         args->logger = logger;
         pthread_t client_thread;
-        pthread_create(&client_thread, NULL, (void *)connection_handler, (void *)args);
+        int res = pthread_create(&client_thread, NULL, (void *)connection_handler, (void *)args);
+        if(res){
+            log_error(logger, "error %s", strerror(errno));
+            exit(1);
+        }
         pthread_detach(client_thread);
     }
 }

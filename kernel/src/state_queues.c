@@ -21,7 +21,7 @@ void init_queues(void)
     exit_queue = sync_queue_create();
     _blocked_queues = list_create();
     add_resources_to_blocked_queues();
-    pthread_mutex_init(&MUTEX_LISTA_BLOCKEADOS,NULL);
+    pthread_mutex_init(&MUTEX_LISTA_BLOCKEADOS, NULL);
 }
 
 void destroy_queues(void)
@@ -146,15 +146,26 @@ void blocked_queues_iterate(void (*iterator)(void *))
     list_iterate(_blocked_queues, iterator);
 }
 
-void print_ready_queue(t_log* logger){
-    char* pids = generate_string_of_pids(ready_queue);
-    log_info(logger,"Cola Ready <COLA>: %s",pids); // aca no se que poner donde va cola ???
+void print_ready_queue(t_log *logger)
+{
+    char *pids = generate_string_of_pids(ready_queue);
+    // esto se puede mejorar pero por ahora pasa
+    if (!strcmp(cfg_kernel->algoritmo_planificacion, "VRR"))
+    {
+        char *pids_plus = generate_string_of_pids(ready_plus_queue);
+        log_info(logger, "Cola Ready <COLA>: %s Cola Ready PLUS <COLA>: %s", pids, pids_plus); // aca no se que poner donde va cola ???
+        free(pids_plus);
+    }
+    else
+         log_info(logger, "Cola Ready <COLA>: %s", pids); // aca no se que poner donde va cola ???
     free(pids);
 }
 
-void add_resources_to_blocked_queues(void) {
+void add_resources_to_blocked_queues(void)
+{
     int i = 0;
-    void add_resource(char *resource) {
+    void add_resource(char *resource)
+    {
         add_blocked_queue(resource, atoi(*(cfg_kernel->instancias_recursos + i)));
         i++;
     }

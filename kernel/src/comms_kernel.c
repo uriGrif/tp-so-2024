@@ -41,7 +41,6 @@ void process_conn(void *void_args)
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             return;
         }
-        log_debug(logger, "pase por aca");
         switch (packet->op_code)
         {
         case NEW_INTERFACE:
@@ -62,7 +61,8 @@ void process_conn(void *void_args)
             log_info(logger, "Interface %s requested by pid %d done", msg->interface_name, msg->pid);
             handle_pause();
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-            scheduler.block_to_ready(msg->interface_name, logger);
+            scheduler.block_to_ready(resource_name, logger);
+            sem_post(&scheduler.sem_ready);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             print_ready_queue(logger);
             sem_post(&scheduler.sem_ready);
