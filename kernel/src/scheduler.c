@@ -2,19 +2,23 @@
 
 static void set_scheduling_algorithm(void);
 
+
+// para pausar la planificacion
 static int paused_threads = 0;
 static pthread_mutex_t MUTEX_PAUSE;
 static bool scheduler_paused = false;
+static sem_t sem_paused;
 
-sem_t current_multiprogramming_grade;
-int current_multiprogramming_sem_mirror;
-pthread_mutex_t current_multiprogramming_grade_mutex;
+// para el grado de multiprogramacion
+static sem_t current_multiprogramming_grade;
+static int current_multiprogramming_sem_mirror;
+static pthread_mutex_t current_multiprogramming_grade_mutex;
 
-uint32_t max_multiprogramming_grade;
-pthread_mutex_t max_multiprogramming_grade_mutex;
+static uint32_t max_multiprogramming_grade;
+static pthread_mutex_t max_multiprogramming_grade_mutex;
 
-uint32_t processes_in_memory_amount = 0;
-pthread_mutex_t processes_in_memory_amount_mutex;
+static uint32_t processes_in_memory_amount = 0;
+static pthread_mutex_t processes_in_memory_amount_mutex;
 
 t_scheduler scheduler;
 
@@ -23,7 +27,7 @@ static void init_scheduler_sems(void)
     sem_init(&scheduler.sem_ready, 0, 0);
     sem_init(&scheduler.sem_new, 0, 0);
 
-    sem_init(&scheduler.sem_paused, 0, 0);
+    sem_init(&sem_paused, 0, 0);
     pthread_mutex_init(&MUTEX_PAUSE, NULL);
     // me reservo las dos primeras para el corto y largo plazo
 
@@ -36,7 +40,7 @@ static void destroy_scheduler_sems(void)
 {
     sem_destroy(&scheduler.sem_ready);
     sem_destroy(&scheduler.sem_new);
-    sem_destroy(&scheduler.sem_paused);
+    sem_destroy(&sem_paused);
     sem_destroy(&current_multiprogramming_grade);
     pthread_mutex_destroy(&MUTEX_PAUSE);
     pthread_mutex_destroy(&max_multiprogramming_grade_mutex);
@@ -53,11 +57,12 @@ void handle_pause(void)
         paused_threads++;
     }
     pthread_mutex_unlock(&MUTEX_PAUSE);
-    if(res) 
-        sem_wait(&scheduler.sem_paused);
+    if (res)
+        sem_wait(&sem_paused);
 }
 
-void pause_threads(void){
+void pause_threads(void)
+{
     pthread_mutex_lock(&MUTEX_PAUSE);
     scheduler_paused = true;
     pthread_mutex_unlock(&MUTEX_PAUSE);
@@ -71,7 +76,7 @@ void resume_threads(void)
         scheduler_paused = false;
         while (paused_threads > 0)
         {
-            sem_post(&scheduler.sem_paused);
+            sem_post(&sem_paused);
             paused_threads--;
         }
     }
@@ -110,7 +115,7 @@ static void set_scheduling_algorithm(void)
         return;
     }
     scheduler.ready_to_exec = ready_to_exec_vrr;
-    scheduler.dispatch =  dispatch_vrr;
+    scheduler.dispatch = dispatch_vrr;
     scheduler.exec_to_ready = exec_to_ready_vrr;
     scheduler.block_to_ready = block_to_ready_vrr;
     scheduler.move_pcb_to_blocked = move_pcb_to_blocked_vrr;
@@ -120,7 +125,7 @@ void handle_short_term_scheduler(void *args_logger)
 {
     t_log *logger = (t_log *)args_logger;
     set_scheduling_algorithm();
-    log_debug(logger,"el algoritmo seleccionado fue: %s",cfg_kernel->algoritmo_planificacion);
+    log_debug(logger, "el algoritmo seleccionado fue: %s", cfg_kernel->algoritmo_planificacion);
 
     while (1)
     {
@@ -142,18 +147,51 @@ void handle_short_term_scheduler(void *args_logger)
 //     return 0;
 // }
 
-static void inc_processes_in_memory_amount(void) {
+static void inc_processes_in_memory_amount(void)
+{
     pthread_mutex_lock(&processes_in_memory_amount_mutex);
     processes_in_memory_amount++;
     pthread_mutex_unlock(&processes_in_memory_amount_mutex);
 }
 
-static void dec_processes_in_memory_amount(void) {
+static void dec_processes_in_memory_amount(void)
+{
     pthread_mutex_lock(&processes_in_memory_amount_mutex);
     processes_in_memory_amount--;
     pthread_mutex_unlock(&processes_in_memory_amount_mutex);
 }
 
+void change_multiprogramming(int new_grade)
+{
+    pthread_mutex_lock(&current_multiprogramming_grade_mutex);
+    if (new_grade >= max_multiprogramming_grade)
+    {
+        for (int i = 0; i < new_grade - max_multiprogramming_grade; i++)
+        {
+            current_multiprogramming_sem_mirror++;
+            sem_post(&current_multiprogramming_grade);
+        }
+    }
+    else
+    {
+        pthread_mutex_lock(&processes_in_memory_amount_mutex);
+        int target_sem_value;
+        if ((target_sem_value = (new_grade - processes_in_memory_amount)) <= 0)
+            target_sem_value = 0;
+        printf("estoy por entrar a multi sem con %d  target: %d\n", current_multiprogramming_sem_mirror, target_sem_value);
+        while (current_multiprogramming_sem_mirror > target_sem_value)
+        {
+            sem_wait(&current_multiprogramming_grade);
+            current_multiprogramming_sem_mirror--;
+        }
+        pthread_mutex_unlock(&processes_in_memory_amount_mutex);
+    }
+    pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
+
+    pthread_mutex_lock(&max_multiprogramming_grade_mutex);
+    max_multiprogramming_grade = new_grade;
+    pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
+}
 
 void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {
@@ -163,7 +201,8 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
     send_end_process(pcb->context->pid);
     pthread_mutex_lock(&max_multiprogramming_grade_mutex);
     pthread_mutex_lock(&processes_in_memory_amount_mutex);
-    if (processes_in_memory_amount <= max_multiprogramming_grade) {
+    if (processes_in_memory_amount <= max_multiprogramming_grade)
+    {
         pthread_mutex_lock(&current_multiprogramming_grade_mutex);
         current_multiprogramming_sem_mirror++;
         sem_post(&current_multiprogramming_grade);

@@ -42,7 +42,6 @@ void process_conn(void *void_args)
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             return;
         }
-        log_debug(logger, "pase por aca");
         switch (packet->op_code)
         {
         case NEW_INTERFACE:

@@ -48,50 +48,7 @@ void multiprogramming(char *value, t_log *logger)
         log_error(logger, "Error: %s no es un grado valido", value);
         return;
     }
-    pthread_mutex_lock(&current_multiprogramming_grade_mutex);
-    if (new_grade >= max_multiprogramming_grade)
-    {
-        for (int i = 0; i < new_grade - max_multiprogramming_grade; i++)
-        {
-            current_multiprogramming_sem_mirror++;
-            sem_post(&current_multiprogramming_grade);
-        }
-    }
-    else
-    {
-        pthread_mutex_lock(&processes_in_memory_amount_mutex);
-        int target_sem_value;
-        if ((target_sem_value = (new_grade - processes_in_memory_amount)) <= 0)
-            target_sem_value = 0;
-        log_debug(logger, "estoy por entrar a multi sem con %d  target: %d", current_multiprogramming_sem_mirror, target_sem_value);
-        while (current_multiprogramming_sem_mirror > target_sem_value)
-        {
-            sem_wait(&current_multiprogramming_grade);
-            current_multiprogramming_sem_mirror--;
-        }
-        log_debug(logger, "sali de multi sem");
-        // if (current_multiprogramming_sem_mirror > new_grade)
-        // {
-        //     log_debug(logger, "bajando...");
-        //     // si ya es cero no pasa por este while, no se bloquea este hilo
-        //     // y no me puede waitear el long term porque usa el mutex
-        //     while (current_multiprogramming_sem_mirror > new_grade - mem)
-        // }
-        // else
-        // {
-        //     while (current_multiprogramming_sem_mirror > 0)
-        //     {
-        //         sem_wait(&current_multiprogramming_grade);
-        //         current_multiprogramming_sem_mirror--;
-        //     }
-        // }
-        pthread_mutex_unlock(&processes_in_memory_amount_mutex);
-    }
-    pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
-
-    pthread_mutex_lock(&max_multiprogramming_grade_mutex);
-    max_multiprogramming_grade = new_grade;
-    pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
+    change_multiprogramming(new_grade);
     log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
 }
 

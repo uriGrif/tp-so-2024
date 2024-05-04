@@ -31,7 +31,6 @@ typedef struct
     block_to_ready_strategy block_to_ready;
     exec_to_ready_strategy exec_to_ready;
     move_pcb_to_blocked_strategy move_pcb_to_blocked;
-    sem_t sem_paused;
     sem_t sem_ready;
     sem_t sem_new;
     // quizas alguna para manejar el exit y cerrar esta abstraccion
@@ -40,24 +39,19 @@ typedef struct
 
 extern t_scheduler scheduler;
 
-extern uint32_t max_multiprogramming_grade;
-extern pthread_mutex_t max_multiprogramming_grade_mutex;
-extern sem_t current_multiprogramming_grade;
-extern int current_multiprogramming_sem_mirror;
-extern pthread_mutex_t current_multiprogramming_grade_mutex;
-
-extern uint32_t processes_in_memory_amount;
-extern pthread_mutex_t processes_in_memory_amount_mutex;
 
 void handle_pause(void);
 void pause_threads(void);
 void resume_threads(void);
+
+void change_multiprogramming(int new_grade);
 
 void init_scheduler(void);
 void destroy_scheduler(void);
 
 void handle_short_term_scheduler(void *args_logger);
 void handle_long_term_scheduler(void *args_logger);
+
 
 
 // int move_pcb_to_blocked(t_pcb* pcb, char* resource_name,t_log* logger);
