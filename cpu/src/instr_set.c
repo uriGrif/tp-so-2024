@@ -29,7 +29,7 @@ enum StdType
     IN,
     OUT
 };
-static void send_io_std(enum StdType type, char *interface_name, uint32_t physical_address, int offset, uint32_t size);
+static void send_io_std(enum StdType type, char *interface_name, uint32_t page_number, uint32_t offset, uint32_t size);
 static void send_wait_resource(char *resource_name);
 static void send_signal_resource(char *resource_name);
 
@@ -169,15 +169,22 @@ void io_stdin_read(char **args, t_log *logger)
 {
     clear_interrupt();
     char *interface_name = args[0];
-    // despues hay que preguntar por el tamanio de los registros y como funciona la MMU
-    // t_register* virtual_address = register_get_by_name(args[1]);
-    // t_register* size_reg = register_get_by_name(args[1]);
-    uint32_t *virtual_address = (uint32_t *)register_get_by_name(args[1])->address;
-   uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
+    t_register *virtual_address = register_get_by_name(args[1]);
+    uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
+    if (sizeof(uint8_t) == virtual_address->size)
+    {
+        uint8_t *value = (uint8_t *)virtual_address->address;
+        t_physical_address *physical_mem_dir = translate_address_1_byte(*value);
+        send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
+        free(physical_mem_dir);
+        wait_for_context(&context);
+        log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+        return;
+    }
+    uint32_t *value = (uint32_t *)virtual_address->address;
+    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value);
 
-    t_physical_address *physical_mem_dir = translate_address(*virtual_address);
-
-    send_io_std(IN, interface_name, physical_mem_dir->address, physical_mem_dir->offset, *size_dir);
+    send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
     free(physical_mem_dir);
     wait_for_context(&context);
     log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
@@ -187,15 +194,22 @@ void io_stdout_write(char **args, t_log *logger)
 {
     clear_interrupt();
     char *interface_name = args[0];
-     // despues hay que preguntar por el tamanio de los registros y como funciona la MMU
-    // t_register* virtual_address = register_get_by_name(args[1]);
-    // t_register* size_reg = register_get_by_name(args[1]);
-    uint32_t *virtual_address = (uint32_t *)register_get_by_name(args[1])->address;
+    t_register *virtual_address = register_get_by_name(args[1]);
     uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
+    if (sizeof(uint8_t) == virtual_address->size)
+    {
+        uint8_t *value = (uint8_t *)virtual_address->address;
+        t_physical_address *physical_mem_dir = translate_address_1_byte(*value);
+        send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
+        free(physical_mem_dir);
+        wait_for_context(&context);
+        log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+        return;
+    }
+    uint32_t *value = (uint32_t *)virtual_address->address;
+    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value);
 
-    t_physical_address *physical_mem_dir = translate_address(*virtual_address);
-
-    send_io_std(OUT, interface_name, physical_mem_dir->address, physical_mem_dir->offset, *size_dir);
+    send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
     free(physical_mem_dir);
     wait_for_context(&context);
     log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
@@ -256,12 +270,12 @@ static void send_io_gen_sleep(char *interface_name, int work_units)
     packet_free(packet);
 }
 
-static void send_io_std(enum StdType type, char *interface_name, uint32_t physical_address, int offset, uint32_t size)
+static void send_io_std(enum StdType type, char *interface_name, uint32_t page_number, uint32_t offset, uint32_t size)
 {
     t_packet *packet = packet_new(type == IN ? IO_STDIN_READ : IO_STDOUT_WRITE);
     packet_add_context(packet, &context);
     packet_addString(packet, interface_name);
-    packet_addUInt32(packet, physical_address);
+    packet_addUInt32(packet, page_number);
     packet_addUInt32(packet, offset);
     packet_addUInt32(packet, size);
     packet_send(packet, cli_dispatch_fd);

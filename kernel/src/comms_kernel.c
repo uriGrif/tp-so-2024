@@ -94,7 +94,6 @@ void process_conn(void *void_args)
             }
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             interface_destroy_io_done(msg);
-            free(resource_name);
             break;
         }
         case -1:
