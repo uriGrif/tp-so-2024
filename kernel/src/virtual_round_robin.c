@@ -20,6 +20,7 @@ void dispatch_vrr(t_pcb *pcb, t_log *logger)
 {
     timer = temporal_create();
     dispatch_rr(pcb, logger);
+    temporal_destroy(timer);
 }
 
 void exec_to_ready_vrr(t_pcb *pcb, t_log *logger)

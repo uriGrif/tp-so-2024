@@ -3,6 +3,16 @@
 int fd_dispatch;
 // whether the interruptiion was due to a i/o instruction or not
 
+static void handle_quantum(void){
+    if(quantum_interruption_thread){
+        pthread_cancel(quantum_interruption_thread);
+        if(timer){
+            temporal_stop(timer);
+            time_elapsed = temporal_gettime(timer);
+        }  
+    }
+}
+
 void send_context_to_cpu(t_exec_context *context)
 {
     t_packet *packet = packet_new(EXEC_PROCESS); // puede ser otro no importa
@@ -19,14 +29,6 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         packet_free(packet);
         return -1;
     }
-    if(quantum_interruption_thread){
-        pthread_cancel(quantum_interruption_thread);
-        if(timer){
-            temporal_stop(timer);
-            time_elapsed = temporal_gettime(timer);
-            temporal_destroy(timer);
-        }  
-    }
     handle_pause();
     // en todas le desalojo el contexto
     packet_get_context(packet->buffer, pcb->context);
@@ -35,6 +37,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     case INTERRUPT_EXEC:
     {
         // cuando lo interrumpe por consola es aca
+        handle_quantum();
         move_pcb_to_exit(pcb, logger);
         break;
     }
@@ -47,6 +50,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     case END_PROCESS:
     {
+        handle_quantum();
         log_info(logger, "Finaliza el proceso %d- Motivo: SUCCESS", pcb->context->pid);
         move_pcb_to_exit(pcb, logger);
         //  liberar de memoria
@@ -58,6 +62,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         t_blocked_queue *q = get_blocked_queue_by_name(resource_name);
         if (!q)
         {
+            handle_quantum();
             log_info(logger, "Finaliza el proceso %d- Motivo: No existe el recurso %s", pcb->context->pid, resource_name);
             move_pcb_to_exit(pcb, logger);
             free(resource_name);
@@ -66,6 +71,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         q->instances--;
         if (q->instances < 0)
         {
+            handle_quantum();
             scheduler.move_pcb_to_blocked(pcb, q->resource_name, logger);
             log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, resource_name);
             free(resource_name);
@@ -73,7 +79,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         }
         log_info(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
         send_context_to_cpu(pcb->context); // creeria q en este caso se manda a ready
-        scheduler.dispatch(pcb, logger);
+        wait_for_dispatch_reason(pcb, logger);
         free(resource_name);
         break;
     }
@@ -83,6 +89,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         t_blocked_queue *q = get_blocked_queue_by_name(resource_name);
         if (!q)
         {
+            handle_quantum();
             log_info(logger, "Finaliza el proceso %d- Motivo: No existe el recurso %s", pcb->context->pid, resource_name);
             move_pcb_to_exit(pcb, logger);
             free(resource_name);
@@ -98,12 +105,13 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             sem_post(&scheduler.sem_ready);
         }
         send_context_to_cpu(pcb->context);
-        scheduler.dispatch(pcb, logger);
+        wait_for_dispatch_reason(pcb, logger);
         free(resource_name);
         break;
     }
     case IO_GEN_SLEEP:
     {
+        handle_quantum();
         t_interface *interface = interface_middleware(packet->buffer, IO_GEN_SLEEP, pcb, logger);
         if (!interface)
             break;
@@ -115,6 +123,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     case IO_STDIN_READ:
     {
+        handle_quantum();
         t_interface *interface = interface_middleware(packet->buffer, IO_STDIN_READ, pcb, logger);
         if (!interface)
             break;
@@ -126,6 +135,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     case IO_STDOUT_WRITE:
     {
+        handle_quantum();
         t_interface *interface = interface_middleware(packet->buffer, IO_STDOUT_WRITE, pcb, logger);
         if (!interface)
             break;

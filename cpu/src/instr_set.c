@@ -140,19 +140,21 @@ void copy_string(char **args, t_log *logger)
 }
 void wait_instr(char **args, t_log *logger)
 {
-    clear_interrupt();
+    //clear_interrupt();
     char *resource_name = args[0];
+    int last_pid = context.pid;
     send_wait_resource(resource_name);
     wait_for_context(&context);
-    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+    if(context.pid != last_pid)
+        clear_interrupt();
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
 }
 void signal_instr(char **args, t_log *logger)
 {
-    clear_interrupt();
     char *resource_name = args[0];
     send_signal_resource(resource_name);
     wait_for_context(&context);
-    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+    //log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
 }
 
 void io_gen_sleep(char **args, t_log *logger)
@@ -162,7 +164,7 @@ void io_gen_sleep(char **args, t_log *logger)
     uint32_t work_units = atoi(args[1]);
     send_io_gen_sleep(interface_name, work_units);
     wait_for_context(&context);
-    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
 }
 
 void io_stdin_read(char **args, t_log *logger)
@@ -178,7 +180,7 @@ void io_stdin_read(char **args, t_log *logger)
         send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
         free(physical_mem_dir);
         wait_for_context(&context);
-        log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
         return;
     }
     uint32_t *value = (uint32_t *)virtual_address->address;
@@ -187,7 +189,7 @@ void io_stdin_read(char **args, t_log *logger)
     send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
     free(physical_mem_dir);
     wait_for_context(&context);
-    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
 }
 
 void io_stdout_write(char **args, t_log *logger)
@@ -203,7 +205,7 @@ void io_stdout_write(char **args, t_log *logger)
         send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
         free(physical_mem_dir);
         wait_for_context(&context);
-        log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
         return;
     }
     uint32_t *value = (uint32_t *)virtual_address->address;

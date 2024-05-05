@@ -56,7 +56,7 @@ void check_interrupt(t_log *logger)
         send_dispatch_reason(interrupt_reason,&context);
         log_info(logger, "PID: %d - Fue interrumpido", context.pid);
         wait_for_context(&context);
-        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %d", context.pid, context.quantum,context.registers.ax);
+        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
     }
 }
 
