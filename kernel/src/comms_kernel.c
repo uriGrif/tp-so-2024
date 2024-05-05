@@ -65,7 +65,6 @@ void process_conn(void *void_args)
             sem_post(&scheduler.sem_ready);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             print_ready_queue(logger);
-            sem_post(&scheduler.sem_ready);
             interface_destroy_io_done(msg);
             break;
         }
