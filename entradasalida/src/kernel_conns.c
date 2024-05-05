@@ -64,32 +64,12 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
 
         memory_send_write(memory_fd, pid, msg->page_number, msg->offset, msg->size, str);
 
-        t_packet *res = packet_new(-1);
-        if (packet_recv(memory_fd, res) == -1)
-        {
-            interface_destroy_io_stdin_read(msg);
-            packet_free(res);
-            free(str);
-            log_info(logger, "ERROR WHILE SAVING TO MEMORY");
-            send_error(WRITE_MEM_FAILED);
-            break;
-        }
-        if (res->op_code == WRITE_MEM_FAILED){
-            interface_destroy_io_stdin_read(msg);
-            packet_free(res);
-            free(str);
-            log_info(logger, "ERROR WHILE SAVING TO MEMORY");
-            send_error(WRITE_MEM_FAILED);
-            break;
-        }
-
         log_info(logger, "MEMORY SUCCESSFULLY SAVED");
 
         send_done();
 
         interface_destroy_io_stdin_read(msg);
         free(str);
-        packet_free(res);
 
         break;
     }
@@ -106,16 +86,6 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         if (packet_recv(memory_fd, res) == -1)
         {
             log_info(logger, "ERROR WHILE SAVING TO MEMORY");
-            send_error(READ_MEM_FAIL);
-            packet_free(res);
-            interface_destroy_io_stdout_write(msg);
-            break;
-        }
-        if(res->op_code == READ_MEM_FAIL){
-            log_info(logger, "ERROR WHILE SAVING TO MEMORY");
-            packet_free(res);
-            send_error(READ_MEM_FAIL);
-            interface_destroy_io_stdout_write(msg);
             break;
         }
 

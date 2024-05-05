@@ -135,18 +135,6 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         interface_destroy_io_stdout_write(msg);
         break;
     }
-    case READ_MEM_FAIL:{
-        // desde la cpu, asumo que es buenito y se desaloja solo
-         log_info(logger, "Finaliza el proceso %d- Motivo: INVALID READ", pcb->context->pid);
-         move_pcb_to_exit(pcb,logger);
-         break;
-    }
-     case WRITE_MEM_FAILED:{
-        // desde la cpu, asumo que es buenito y se desaloja solo
-         log_info(logger, "Finaliza el proceso %d- Motivo: INVALID WRITE", pcb->context->pid);
-         move_pcb_to_exit(pcb,logger);
-         break;
-    }
     default:
         log_error(logger, "operacion desconocida opcode: %d", packet->op_code);
         break;
