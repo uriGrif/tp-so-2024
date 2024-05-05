@@ -172,6 +172,10 @@ void add_resources_to_blocked_queues(void)
     string_iterate_lines(cfg_kernel->recursos, add_resource);
 }
 
-// bool is_pid_using_resource(uint32_t pid, char *resource) {
-
-// }
+bool is_resource(char* name){
+    for(int i =0; cfg_kernel->recursos[i]!= NULL; i++){
+        if(!strcmp(name,cfg_kernel->recursos[i]))
+            return true;
+    }
+    return false;
+}

@@ -39,4 +39,6 @@ t_blocked_queue *get_blocked_queue_by_name(char *resource_name);
 void blocked_queues_iterate(void (*iterator)(void *));
 void print_ready_queue(t_log* logger);
 
+bool is_resource(char* name);
+
 #endif

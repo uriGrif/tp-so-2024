@@ -31,7 +31,7 @@ void exec_to_ready_vrr(t_pcb *pcb, t_log *logger)
 int move_pcb_to_blocked_vrr(t_pcb *pcb, char *resource_name, t_log *logger)
 {
     log_info(logger, "time elapsed: %d", time_elapsed);
-    if (time_elapsed < pcb->context->quantum){
+    if (!is_resource(resource_name) && time_elapsed < pcb->context->quantum){
         pcb->context->quantum -= time_elapsed;
         log_debug(logger,"quantum actual %d",pcb->context->quantum);
         return move_pcb_to_blocked_fifo(pcb, resource_name, logger);
