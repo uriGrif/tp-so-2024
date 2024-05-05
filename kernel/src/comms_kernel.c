@@ -62,8 +62,8 @@ void process_conn(void *void_args)
             handle_pause();
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
             scheduler.block_to_ready(msg->interface_name, logger);
-            sem_post(&scheduler.sem_ready);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+            sem_post(&scheduler.sem_ready);
             print_ready_queue(logger);
             interface_destroy_io_done(msg);
             break;

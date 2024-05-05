@@ -1,7 +1,11 @@
 #include <prompt.h>
 
-void prompt(int size, char *string)
+char *prompt(int size)
 {
+    char buffer[MAX_LIMIT];
     printf("press ENTER to send a message\n");
-    fgets(string, size, stdin);
+    fgets(buffer, size, stdin);
+    if (buffer[strlen(buffer) - 1] == '\n')
+        buffer[strlen(buffer) - 1] = '\0';
+    return strdup(buffer);
 }

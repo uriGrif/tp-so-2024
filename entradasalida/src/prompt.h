@@ -1,7 +1,10 @@
 #ifndef PROMPT_H
 #define PROMPT_H
 #include <stdio.h>
+#include<string.h>
 
-void prompt(int size, char *string);
+#define MAX_LIMIT 16384
+
+char* prompt(int size);
 
 #endif

@@ -59,10 +59,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         interface_decode_io_stdin_read(buffer, msg);
 
         // ask for prompt
-        char *str = malloc(msg->size);
-        prompt(msg->size, str);
+        char* str = prompt(msg->size);
 
-        memory_send_write(memory_fd, pid, msg->page_number, msg->offset, msg->size, str);
+        memory_send_write(memory_fd, pid, msg->page_number, msg->offset, strlen(str) + 1, str);
 
         log_info(logger, "MEMORY SUCCESSFULLY SAVED");
 
