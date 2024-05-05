@@ -9,6 +9,7 @@
 #include <commons/log.h>
 #include <sys/signal.h>
 #include <commons/config.h>
+#include<memory_comms.h>
 #include <string.h>
 #include <interrupt.h>
 #include<dispatch.h>

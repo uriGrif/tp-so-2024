@@ -104,29 +104,35 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     }
     case IO_GEN_SLEEP:
     {
-        struct req_io_gen_sleep *params = malloc(sizeof(struct req_io_gen_sleep));
-        interface_decode_io_gen_sleep(packet->buffer, params);
-        t_interface *interface = interface_validate(params->interface_name, IO_GEN_SLEEP);
+        t_interface *interface = interface_middleware(packet->buffer, IO_GEN_SLEEP, pcb, logger);
         if (!interface)
-        {
-            // log_error(logger, "Validation for interface with name %s for instruction %s failed", params->interface_name, "IO_GEN_SLEEP");
-            log_info(logger, "Finaliza el proceso %d- Motivo: Error de interfaz %s no conectada", pcb->context->pid, params->interface_name);
-            // mandar proceso a exit
-            interface_destroy_io_gen_sleep(params);
-            // nunca pase por bloqueado asi que no deberia explotar
-            move_pcb_to_exit(pcb, logger);
             break;
-        }
-        if (scheduler.move_pcb_to_blocked(pcb, interface->name, logger) == -1)
-        {
-            log_error(logger, "Could not find blocked queue for %s", params->interface_name);
-            move_pcb_to_exit(pcb, logger);
+        t_interface_io_gen_sleep_msg *msg = malloc(sizeof(t_interface_io_gen_sleep_msg));
+        interface_decode_io_gen_sleep(packet->buffer, msg);
+        interface_send_io_gen_sleep(interface->fd, pcb->context->pid, msg->work_units);
+        interface_destroy_io_gen_sleep(msg);
+        break;
+    }
+    case IO_STDIN_READ:
+    {
+        t_interface *interface = interface_middleware(packet->buffer, IO_STDIN_READ, pcb, logger);
+        if (!interface)
             break;
-        }
-        // here we would get the current exec pcb and move it to the blocked queue. that means we need to send a deallocation
-        log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, params->interface_name);
-        interface_send_io_gen_sleep(interface->fd, pcb->context->pid, params->work_units);
-        interface_destroy_io_gen_sleep(params);
+        t_interface_io_stdin_read_msg *msg = malloc(sizeof(t_interface_io_stdin_read_msg));
+        interface_decode_io_stdin_read(packet->buffer, msg);
+        interface_send_io_stdin_read(interface->fd, pcb->context->pid, msg->page_number, msg->offset, msg->size);
+        interface_destroy_io_stdin_read(msg);
+        break;
+    }
+    case IO_STDOUT_WRITE:
+    {
+        t_interface *interface = interface_middleware(packet->buffer, IO_STDOUT_WRITE, pcb, logger);
+        if (!interface)
+            break;
+        t_interface_io_stdout_write_msg *msg = malloc(sizeof(t_interface_io_stdout_write_msg));
+        interface_decode_io_stdout_write(packet->buffer, msg);
+        interface_send_io_stdout_write(interface->fd, pcb->context->pid, msg->page_number, msg->offset, msg->size);
+        interface_destroy_io_stdout_write(msg);
         break;
     }
     default:

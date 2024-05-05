@@ -19,6 +19,11 @@ void process_conn(void *void_args)
         }
         switch (packet->op_code)
         {
+        case CPU_HANDSHAKE:{
+            packet_addUInt32(packet,cfg_mem->tam_pagina);
+            packet_send(packet,client_fd);
+            break;
+        }
         case SAVE_CONTEXT:
         {
             uint32_t x = packet_getUInt32(packet->buffer);
@@ -28,22 +33,46 @@ void process_conn(void *void_args)
         }
         case READ_MEM:
         {
-            char *result = packet_getString(packet->buffer);
-            log_info(logger, "me llego: %s", result);
-            free(result);
+            t_memory_read_msg *msg = malloc(sizeof(t_memory_read_msg));
+            memory_decode_read(packet->buffer, msg);
+            log_info(logger, "PID : %d - Accion : LEER - Numero de pagina : %d - Desplazamiento %d", msg->pid, msg->page_number, msg->size);
+
+            // arbitrary test value
+            char *str = "hello boy, how are you doing?";
+            memory_send_read_ok(client_fd, str, msg->size);
+
+            memory_destroy_read(msg);
+            break;
+        }
+        case WRITE_MEM:
+        {
+            t_memory_write_msg *msg = malloc(sizeof(t_memory_write_msg));
+            memory_decode_write(packet->buffer, msg);
+
+            log_info(logger, "GOT MESSAGE: %d %d %d", msg->page_number, msg->offset, msg->size);
+
+            log_info(logger, "PID : %d - Accion : ESCRIBIR - Numero de pagina : %d - Desplazamiento %d", msg->pid, msg->page_number, msg->size);
+
+            log_info(logger, "DATA TO SAVE: %s", (char *)msg->value);
+
+            memory_send_write_ok(client_fd);
+
+            memory_destroy_write(msg);
             break;
         }
         case CREATE_PROCESS:
         {
             t_process_in_mem *process = t_process_in_mem_create();
-            if(!process){
-                log_error(logger,"not enough space for creating process");
+            if (!process)
+            {
+                log_error(logger, "not enough space for creating process");
                 break;
             }
             packet_get_process_in_mem(packet->buffer, process);
-            char* path = mount_instructions_directory(process->path);
-            if(!file_exists(path)){
-                log_error(logger,"el archivo de instrucciones de este archivo no fue encontrado");
+            char *path = mount_instructions_directory(process->path);
+            if (!file_exists(path))
+            {
+                log_error(logger, "el archivo de instrucciones de este archivo no fue encontrado");
                 free(path);
                 t_process_in_mem_destroy(process);
                 break;
@@ -67,14 +96,14 @@ void process_conn(void *void_args)
             uint32_t pid = packet_getUInt32(packet->buffer);
             uint32_t pc = packet_getUInt32(packet->buffer);
             // BUSCO CUAL DEL LOS ARCHIVOS ESTA EN EXEC
-            t_process_in_mem* process = find_process_by_pid(pid);
-            if(!process){
-                log_error(logger,"process with pid %d not found",pid);
+            t_process_in_mem *process = find_process_by_pid(pid);
+            if (!process)
+            {
+                log_error(logger, "process with pid %d not found", pid);
                 break;
             }
             char *text_name = mount_instructions_directory(
-                process->path
-            );
+                process->path);
             char *next_instruction = file_get_nth_line(text_name, pc);
             free(text_name);
             if (!next_instruction)

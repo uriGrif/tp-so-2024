@@ -8,6 +8,7 @@
 #include<stdio.h>
 #include<commons/log.h>
 #include<utils/utlis.h>
+#include<memory_comms.h>
 #include<context/context.h>
 #include<interrupt.h>
 #include<proto/proto.h>

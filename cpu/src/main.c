@@ -98,13 +98,9 @@ int main(int argc, char *argv[])
     start_interrupt_listener();
 
     // me conecto a memoria
-    int fd_memoria = socket_connectToServer(cfg_cpu->ip_memoria, cfg_cpu->puerto_memoria);
-    t_packet *packet = packet_new(READ_MEM);
-    packet_addString(packet, "Hello Memory! I'm the CPU!");
-    packet_send(packet, fd_memoria);
-    packet_free(packet);
+    fd_memory = socket_connectToServer(cfg_cpu->ip_memoria, cfg_cpu->puerto_memoria);
 
-
+    send_mem_handshake(logger);
     // intento recibir la conexion del kernel
     while (cli_dispatch_fd == -1)
     {
@@ -120,11 +116,11 @@ int main(int argc, char *argv[])
                 cli_dispatch_fd = -1;
                 break;
             }
-            log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %d", context.pid, context.quantum,context.registers.ax);
+            log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %d", context.pid, context.quantum, context.registers.ax);
 
             while (!current_exec_process_has_finished)
             {
-                char *next_instruction = fetch(fd_memoria, logger);
+                char *next_instruction = fetch(fd_memory, logger);
                 context.registers.pc++;
                 decode_and_execute(next_instruction, logger);
                 check_interrupt(logger);

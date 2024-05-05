@@ -22,7 +22,6 @@ void process_conn(void *void_args)
             }
             else
                 log_debug(logger, "no se conecto de una");
-
             handle_pause();
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
             t_blocked_queue *block_queue_to_remove = get_blocked_queue_by_fd(client_fd);
@@ -47,13 +46,9 @@ void process_conn(void *void_args)
         case NEW_INTERFACE:
         {
             t_interface *interface = malloc(sizeof(t_interface));
-            if (!interface)
-            {
-                log_error(logger, "not enough memory for allocating interface");
-                break;
-            }
             interface->fd = client_fd;
-            interface_decode_new(packet->buffer, interface);
+            interface->name = packet_getString(packet->buffer);
+            interface->type = packet_getString(packet->buffer);
             interface_add(interface);
             add_blocked_queue(interface->name, client_fd);
             log_info(logger, "New interface registered: name: %s - type: %s", interface->name, interface->type);
@@ -61,16 +56,17 @@ void process_conn(void *void_args)
         }
         case IO_DONE:
         {
-            char *resource_name = packet_getString(packet->buffer);
-            uint32_t pid = packet_getUInt32(packet->buffer);
-            log_info(logger, "Interface %s requested by pid %d done", resource_name, pid);
+            t_interface_io_done_msg *msg = malloc(sizeof(t_interface_io_done_msg));
+            interface_decode_io_done(packet->buffer, msg);
+            log_info(logger, "Interface %s requested by pid %d done", msg->interface_name, msg->pid);
             handle_pause();
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-            scheduler.block_to_ready(resource_name, logger);
+            scheduler.block_to_ready(msg->interface_name, logger);
             sem_post(&scheduler.sem_ready);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             print_ready_queue(logger);
-            free(resource_name);
+            sem_post(&scheduler.sem_ready);
+            interface_destroy_io_done(msg);
             break;
         }
         case -1:

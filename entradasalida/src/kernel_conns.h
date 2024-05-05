@@ -4,16 +4,20 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <proto/proto.h>
+#include <proto/interface.h>
+#include <proto/memory.h>
 #include <errno.h>
 #include <commons/log.h>
 #include <config.h>
 #include <utils/utlis.h>
+#include <prompt.h>
 
 int registerResourceInKernel(int kernel_fd, t_log *logger, t_io_config *config);
 
 struct kernel_incoming_message_args
 {
     int kernel_fd;
+    int memory_fd;
     t_log *logger;
     t_io_config *config;
 };

@@ -9,7 +9,7 @@ CDEBUG=-g -Wall -DDEBUG -fdiagnostics-color=always
 CRELEASE=-O3 -Wall -DNDEBUG -fcommon
 
 # Arguments when executing with start, memcheck or helgrind
-ARGS=Int1 IO.config
+ARGS=Int3 IO_STDOUT.config
 
 # Valgrind flags
 MEMCHECK_FLAGS=--track-origins=yes
