@@ -215,6 +215,6 @@ t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid)
                 q->instances++; // libero una instancia del recurso al eliminar el proceso
         }
     }
-    list_iterate(_blocked_queues, iterator);
+    blocked_queues_iterate(iterator);
     return target;
 }

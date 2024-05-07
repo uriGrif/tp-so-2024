@@ -41,6 +41,7 @@ void end_process(char *pid_str, t_log *logger)
         sem_wait(&scheduler.sem_new);
         // no sumo grado de multiprogramacion
         log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
+        log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual EXIT", victim->context->pid);
         queue_sync_push(exit_queue,victim);
     }
     // busco en ready o ready +
