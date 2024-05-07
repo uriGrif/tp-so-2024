@@ -40,5 +40,8 @@ void blocked_queues_iterate(void (*iterator)(void *));
 void print_ready_queue(t_log* logger);
 
 bool is_resource(char* name);
+t_pcb *find_pcb_by_pid(t_sync_queue *queue, uint32_t pid);
+t_pcb* remove_pcb_by_pid(t_sync_queue* queue, uint32_t pid);
+t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid);
 
 #endif

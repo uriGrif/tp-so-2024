@@ -26,8 +26,41 @@ void end_process(char *pid_str, t_log *logger)
         log_error(logger, "Error: %s no es un pid valido", pid_str);
         return;
     }
-    send_end_process(pid);
-    log_info(logger, "Finaliza el proceso %d (por consola) ", pid);
+    t_pcb* victim;
+    // empiezo a buscar
+    pause_threads();
+    
+    //primero me apuro para ver si esta ejecutando pero no lo saco, dejo que el se saque solo
+    if((victim = find_pcb_by_pid(exec_queue,pid))){
+        send_interrupt(INTERRUPT_EXEC);
+        KILL_SUCCESS = true; 
+        // haciendo esto le aviso que lo quiero matar asi no me escapa a bloqueado o a exit
+    }
+    // busco en new
+    else if((victim = remove_pcb_by_pid(new_queue,pid))){
+        sem_wait(&scheduler.sem_new);
+        // no sumo grado de multiprogramacion
+        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
+        queue_sync_push(exit_queue,victim);
+    }
+    // busco en ready o ready +
+    else if((victim = remove_pcb_by_pid(ready_queue,pid)) || (victim = remove_pcb_by_pid(ready_plus_queue,pid))){
+        sem_wait(&scheduler.sem_ready);
+        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
+        move_pcb_to_exit(victim,logger);
+    }
+    //busco en bloqueados por si las dudas uso el mutex
+    else if((victim = remove_pcb_from_blocked_queues_by_pid(pid))){
+        pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
+        move_pcb_to_exit(victim,logger);
+        pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+    }
+    else{
+        log_info(logger,"El proceso %d no existe o ya habia finalizado",pid);
+    }
+    
+    resume_threads();
 }
 
 void stop_scheduler(char *x, t_log *logger)

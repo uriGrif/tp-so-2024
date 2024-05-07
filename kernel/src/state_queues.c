@@ -157,7 +157,7 @@ void print_ready_queue(t_log *logger)
         free(pids_plus);
     }
     else
-         log_info(logger, "Cola Ready <COLA>: %s", pids); // aca no se que poner donde va cola ???
+        log_info(logger, "Cola Ready <COLA>: %s", pids); // aca no se que poner donde va cola ???
     free(pids);
 }
 
@@ -172,10 +172,49 @@ void add_resources_to_blocked_queues(void)
     string_iterate_lines(cfg_kernel->recursos, add_resource);
 }
 
-bool is_resource(char* name){
-    for(int i =0; cfg_kernel->recursos[i]!= NULL; i++){
-        if(!strcmp(name,cfg_kernel->recursos[i]))
+bool is_resource(char *name)
+{
+    for (int i = 0; cfg_kernel->recursos[i] != NULL; i++)
+    {
+        if (!strcmp(name, cfg_kernel->recursos[i]))
             return true;
     }
     return false;
+}
+t_pcb *find_pcb_by_pid(t_sync_queue *queue, uint32_t pid)
+{
+    bool closure(void *elem)
+    {
+        t_pcb *pcb = (t_pcb *)elem;
+        return pcb->context->pid == pid;
+    }
+    return sync_queue_find_elem(queue, closure);
+}
+
+t_pcb *remove_pcb_by_pid(t_sync_queue *queue, uint32_t pid)
+{
+    bool closure(void *elem)
+    {
+        t_pcb *pcb = (t_pcb *)elem;
+        return pcb->context->pid == pid;
+    }
+    return sync_queue_remove_by_condition(queue, closure);
+}
+
+t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid)
+{
+    t_pcb *target;
+    void iterator(void *void_queue)
+    {
+        t_blocked_queue *q = (t_blocked_queue *)void_queue;
+        target = remove_pcb_by_pid(q->block_queue, pid);
+        if (target)
+        {
+            sem_wait(&q->sem_process_count);
+            if (is_resource(q->resource_name))
+                q->instances++; // libero una instancia del recurso al eliminar el proceso
+        }
+    }
+    list_iterate(_blocked_queues, iterator);
+    return target;
 }
