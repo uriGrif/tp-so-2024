@@ -35,6 +35,7 @@ int blocked_queue_push(char* resource_name, void* elem);
 void *blocked_queue_pop(char* resource_name);
 t_blocked_queue *get_blocked_queue_by_fd(int fd);
 void remove_blocked_queue_by_fd(int fd);
+void blocked_queue_destroy(t_blocked_queue *q);
 t_blocked_queue *get_blocked_queue_by_name(char *resource_name);
 void blocked_queues_iterate(void (*iterator)(void *));
 void print_ready_queue(t_log* logger);

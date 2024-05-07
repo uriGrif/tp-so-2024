@@ -113,6 +113,7 @@ t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, 
     t_interface *interface = interface_validate(interface_name, instruction_to_run);
     if (!interface)
     {
+        free(interface_name);
         log_info(logger, "Finaliza el proceso %d- Motivo: Error de interfaz %s no conectada", pcb->context->pid, interface_name);
         // nunca pase por bloqueado asi que no deberia explotar
         move_pcb_to_exit(pcb, logger);
@@ -120,6 +121,7 @@ t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, 
     }
     if (scheduler.move_pcb_to_blocked(pcb, interface->name, logger) == -1)
     {
+        free(interface_name);
         log_error(logger, "Could not find blocked queue for %s", interface_name);
         move_pcb_to_exit(pcb, logger);
         return NULL;

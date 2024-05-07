@@ -56,7 +56,7 @@ static void init_kernel(void)
     const int enable = 1;
     if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
         log_error(logger, "setsockopt(SO_REUSEADDR) failed");
-    t_process_conn_args args;
+    static t_process_conn_args args;
     args.fd = server_fd;
     args.logger = logger;
     init_queues();

@@ -35,7 +35,7 @@ void process_conn(void *void_args)
             if (block_queue_to_remove)
             {
                 sync_queue_iterate(block_queue_to_remove->block_queue, iterator);
-                remove_blocked_queue_by_fd(client_fd);
+                blocked_queue_destroy(block_queue_to_remove);
             }
             packet_free(packet);
             pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);

@@ -53,6 +53,15 @@ void blocked_queue_destroy(t_blocked_queue *q)
     free(q);
 }
 
+void blocked_queue_destroy_and_destroy_elements(t_blocked_queue *q)
+{
+    sem_destroy(&q->sem_process_count);
+    free(q->resource_name);
+    sync_queue_destroy_with_destroyer(q->block_queue,pcb_destroyer);
+    free(q);
+}
+
+
 void pcb_destroyer(void *elem)
 {
     t_pcb *pcb = (t_pcb *)elem;
@@ -121,7 +130,7 @@ static void destroy_blocked_queues(void)
     void destroyer(void *queue)
     {
         t_blocked_queue *q = (t_blocked_queue *)queue;
-        blocked_queue_destroy(q);
+        blocked_queue_destroy_and_destroy_elements(q);
     }
     list_destroy_and_destroy_elements(_blocked_queues, destroyer);
 }
