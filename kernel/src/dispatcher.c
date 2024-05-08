@@ -53,6 +53,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         if (KILL_SUCCESS)
         {
             KILL_SUCCESS = false;
+            move_pcb_to_exit(pcb,logger);
             break;
         }
         log_info(logger, "PID: %d - Desalojado por fin de Quantum", pcb->context->pid);
@@ -67,6 +68,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         if (KILL_SUCCESS)
         {
             KILL_SUCCESS = false;
+            move_pcb_to_exit(pcb,logger);
             break;
         }
         log_info(logger, "Finaliza el proceso %d- Motivo: SUCCESS", pcb->context->pid);
@@ -84,6 +86,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             handle_pause();
             if (KILL_SUCCESS)
             {
+                move_pcb_to_exit(pcb,logger);
                 KILL_SUCCESS = false;
                 break;
             }
@@ -100,6 +103,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             if (KILL_SUCCESS)
             {
                 KILL_SUCCESS = false;
+                move_pcb_to_exit(pcb,logger);
                 break;
             }
             scheduler.move_pcb_to_blocked(pcb, q->resource_name, logger);
@@ -132,6 +136,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             break;
         }
         q->instances++;
+        log_debug(logger,"instancias despues de sumar: %d",q->instances);
         if (q->instances <= 0)
         {
             handle_pause(); // no deberia pasar???
@@ -153,6 +158,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         if (KILL_SUCCESS)
         {
             KILL_SUCCESS = false;
+            move_pcb_to_exit(pcb,logger);
             break;
         }
         t_interface *interface = interface_middleware(packet->buffer, IO_GEN_SLEEP, pcb, logger);
@@ -171,6 +177,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         if (KILL_SUCCESS)
         {
             KILL_SUCCESS = false;
+            move_pcb_to_exit(pcb,logger);
             break;
         }
         t_interface *interface = interface_middleware(packet->buffer, IO_STDIN_READ, pcb, logger);
@@ -189,6 +196,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         if (KILL_SUCCESS)
         {
             KILL_SUCCESS = false;
+            move_pcb_to_exit(pcb,logger);
             break;
         }
         t_interface *interface = interface_middleware(packet->buffer, IO_STDOUT_WRITE, pcb, logger);

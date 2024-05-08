@@ -55,7 +55,10 @@ void check_interrupt(t_log *logger)
         clear_interrupt();
         send_dispatch_reason(interrupt_reason,&context);
         log_info(logger, "PID: %d - Fue interrumpido", context.pid);
-        wait_for_context(&context);
+        if(wait_for_context(&context) == -1){
+            log_error(logger, "se desconecto el kernel de dispatch");
+            exit(1);
+        }
         log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
     }
 }

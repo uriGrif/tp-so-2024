@@ -1,5 +1,7 @@
 #include <commands.h>
 
+bool paused_by_console = false;
+
 // TODO: ALGUNO DE ESTOS PROCESOS DEBERIAN TENER UN LOGGER DESPUES
 //  PODEMOS PENSAR SI EXPORTAMOS EL GLOBAL O CREAMOS OTROS NUEVOS
 
@@ -28,7 +30,8 @@ void end_process(char *pid_str, t_log *logger)
     }
     t_pcb* victim;
     // empiezo a buscar
-    pause_threads();
+    if(!paused_by_console)
+        pause_threads();
     
     //primero me apuro para ver si esta ejecutando pero no lo saco, dejo que el se saque solo
     if((victim = find_pcb_by_pid(exec_queue,pid))){
@@ -61,17 +64,20 @@ void end_process(char *pid_str, t_log *logger)
         log_info(logger,"El proceso %d no existe o ya habia finalizado",pid);
     }
     
-    resume_threads();
+    if(!paused_by_console)
+        resume_threads();
 }
 
 void stop_scheduler(char *x, t_log *logger)
 {
     pause_threads();
+    paused_by_console = true;
 }
 
 void start_scheduler(char *x, t_log *logger)
 {
     resume_threads();
+    paused_by_console = false;
 }
 
 void multiprogramming(char *value, t_log *logger)
