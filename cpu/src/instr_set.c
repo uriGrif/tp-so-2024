@@ -176,7 +176,7 @@ void io_stdin_read(char **args, t_log *logger)
     if (sizeof(uint8_t) == virtual_address->size)
     {
         uint8_t *value = (uint8_t *)virtual_address->address;
-        t_physical_address *physical_mem_dir = translate_address_1_byte(*value);
+        t_physical_address *physical_mem_dir = translate_address_1_byte(*value,PAGE_SIZE);
         send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
         free(physical_mem_dir);
         wait_for_context(&context);
@@ -184,7 +184,7 @@ void io_stdin_read(char **args, t_log *logger)
         return;
     }
     uint32_t *value = (uint32_t *)virtual_address->address;
-    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value);
+    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value,PAGE_SIZE);
 
     send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
     free(physical_mem_dir);
@@ -201,7 +201,7 @@ void io_stdout_write(char **args, t_log *logger)
     if (sizeof(uint8_t) == virtual_address->size)
     {
         uint8_t *value = (uint8_t *)virtual_address->address;
-        t_physical_address *physical_mem_dir = translate_address_1_byte(*value);
+        t_physical_address *physical_mem_dir = translate_address_1_byte(*value,PAGE_SIZE);
         send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
         free(physical_mem_dir);
         wait_for_context(&context);
@@ -209,7 +209,7 @@ void io_stdout_write(char **args, t_log *logger)
         return;
     }
     uint32_t *value = (uint32_t *)virtual_address->address;
-    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value);
+    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value,PAGE_SIZE);
 
     send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
     free(physical_mem_dir);
