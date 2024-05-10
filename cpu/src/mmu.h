@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include <memory_comms.h>
 #include <stdint.h>
 
 typedef struct

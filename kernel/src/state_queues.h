@@ -42,4 +42,6 @@ void print_ready_queue(t_log* logger);
 
 bool is_resource(char* name);
 
+void print_resources(t_log* logger);
+
 #endif

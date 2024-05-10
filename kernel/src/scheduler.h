@@ -6,7 +6,7 @@
 #include <state_queues.h>
 #include <stdbool.h>
 #include <commons/log.h>
-#include <commons/collections/list.h>
+#include <commons/collections/dictionary.h>
 #include <string.h>
 #include <pcb.h>
 #include <dispatcher.h>
@@ -52,7 +52,7 @@ void destroy_scheduler(void);
 void handle_short_term_scheduler(void *args_logger);
 void handle_long_term_scheduler(void *args_logger);
 
-
+void instr_signal(t_pcb* pcb, t_blocked_queue* queue,t_log* logger);
 
 // int move_pcb_to_blocked(t_pcb* pcb, char* resource_name,t_log* logger);
 void move_pcb_to_exit(t_pcb* pcb, t_log* logger);

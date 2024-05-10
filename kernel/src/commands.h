@@ -17,5 +17,6 @@ void stop_scheduler(char *, t_log *logger);
 void start_scheduler(char *, t_log *logger);
 void multiprogramming(char *value, t_log *logger);
 void list_processes_by_state(char *, t_log *logger);
+void list_resources(char *x, t_log *logger);
 
 #endif

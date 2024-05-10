@@ -2,7 +2,6 @@
 
 static void set_scheduling_algorithm(void);
 
-
 // para pausar la planificacion
 static int paused_threads = 0;
 static pthread_mutex_t MUTEX_PAUSE;
@@ -193,6 +192,21 @@ void change_multiprogramming(int new_grade)
     pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
 }
 
+void instr_signal(t_pcb *pcb, t_blocked_queue *queue, t_log *logger)
+{
+    int *taken = dictionary_get(pcb->taken_resources, queue->resource_name);
+    *taken = (*taken - 1) > 0 ? (*taken - 1) : 0;
+    queue->instances++;
+    if (queue->instances <= 0)
+    {
+        pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+        scheduler.block_to_ready(queue->resource_name, logger);
+        pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+        print_ready_queue(logger);
+        sem_post(&scheduler.sem_ready);
+    }
+}
+
 void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {
     queue_sync_push(exit_queue, pcb);
@@ -211,6 +225,25 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
     pthread_mutex_unlock(&processes_in_memory_amount_mutex);
     dec_processes_in_memory_amount();
     pthread_mutex_unlock(&max_multiprogramming_grade_mutex);
+
+    // le libero todos los recursos
+
+    void iterator(void *resource_name)
+    {
+        char *name = (char *)resource_name;
+        int *taken = dictionary_get(pcb->taken_resources, name);
+        pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+        t_blocked_queue *q = get_blocked_queue_by_name(name);
+        pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+        while (*taken > 0)
+        {
+            instr_signal(pcb,q, logger);
+        }
+    }
+    t_list* keys = dictionary_keys(pcb->taken_resources);
+    list_iterate(keys, iterator);
+    
+    list_destroy(keys);
 }
 
 void handle_long_term_scheduler(void *args_logger)

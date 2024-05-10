@@ -12,6 +12,7 @@ char *COMMAND_NAMES[] = {
     "INICIAR_PLANIFICACION",
     "MULTIPROGRAMACION",
     "PROCESO_ESTADO",
+    "LISTAR_RECURSOS",
     NULL};
 
 /* When non-zero, this global means the user is done using this program. */
@@ -30,6 +31,7 @@ t_command COMMANDS[] = {
     {"INICIAR_PLANIFICACION", start_scheduler, "start or restart the short term scheduler", 0},
     {"MULTIPROGRAMACION", multiprogramming, "change multiprogramming value", 1},
     {"PROCESO_ESTADO", list_processes_by_state, "list processes by their current state", 0},
+    {"LISTAR_RECURSOS", list_resources, "list icurrent instances of resources", 0},
     {NULL, NULL}};
 
 char *generator(const char *text, int state)

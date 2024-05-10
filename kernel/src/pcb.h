@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <context/context.h>
+#include<commons/collections/dictionary.h>
 #include <config.h>
 
 typedef enum
@@ -19,6 +20,7 @@ typedef struct
     t_exec_context *context;
     t_state state;
     char *text_path;
+    t_dictionary* taken_resources;
     // quizas algunas mas ahora no se
 } t_pcb;
 

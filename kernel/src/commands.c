@@ -77,6 +77,10 @@ void list_processes_by_state(char *x, t_log *logger)
     // sync_queue_iterate(exec_queue, log_state);
 }
 
+void list_resources(char *x, t_log *logger){
+    print_resources(logger);
+}
+
 static char *get_pids_of_blocked_queues(void)
 {
     char *pids = strdup("[");

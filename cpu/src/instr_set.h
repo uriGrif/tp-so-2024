@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <register.h>
 #include <commons/log.h>
+#include <memory_comms.h>
 #include <dispatch.h>
 #include <interrupt.h>
 #include <mmu.h>

@@ -68,6 +68,9 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             free(resource_name);
             break;
         }
+        int* taken = dictionary_get(pcb->taken_resources,resource_name);
+        (*taken)++;
+        log_debug(logger,"tomados por %d : %d",pcb->context->pid,*taken);
         q->instances--;
         if (q->instances < 0)
         {
@@ -95,15 +98,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             free(resource_name);
             break;
         }
-        q->instances++;
-        if (q->instances <= 0)
-        {
-            pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-            scheduler.block_to_ready(resource_name, logger);
-            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
-            print_ready_queue(logger);
-            sem_post(&scheduler.sem_ready);
-        }
+        instr_signal(pcb,q,logger);    
         send_context_to_cpu(pcb->context);
         wait_for_dispatch_reason(pcb, logger);
         free(resource_name);

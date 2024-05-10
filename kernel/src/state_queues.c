@@ -188,3 +188,22 @@ bool is_resource(char* name){
     }
     return false;
 }
+
+void print_resources(t_log* logger){
+    char* total = string_new();
+    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+    bool closure(void * void_queue){
+        t_blocked_queue* q = (t_blocked_queue*) void_queue;
+        return is_resource(q->resource_name);
+    }
+    t_list* resources = list_filter(_blocked_queues,closure);
+    void iterator(void* void_queue){
+        t_blocked_queue* queue = (t_blocked_queue*) void_queue;
+        string_append_with_format(&total,"Recurso: %s -> %d  -  ",queue->resource_name,queue->instances);
+    }
+    list_iterate(resources,iterator);
+    list_destroy(resources);
+    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+    log_info(logger,"%s",total);
+    free(total);
+}

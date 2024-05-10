@@ -13,6 +13,13 @@ t_pcb *pcb_create(char *path)
     // asumo que si es por fifo me da cero y listo lo ignoro
     pcb->context->quantum = cfg_kernel->quantum;
     pcb->text_path = strdup(path);
+
+    pcb->taken_resources = dictionary_create();
+    for(int i = 0 ; cfg_kernel->recursos[i]!=NULL; i++){
+        int * instances = malloc(sizeof(int));
+        *instances = 0;
+        dictionary_put(pcb->taken_resources,cfg_kernel->recursos[i],instances);
+    }
     return pcb;
 }
 
@@ -20,6 +27,7 @@ void pcb_destroy(t_pcb *pcb)
 {
     free(pcb->context);
     free(pcb->text_path);
+    dictionary_destroy_and_destroy_elements(pcb->taken_resources,free);
     free(pcb);
 }
 
