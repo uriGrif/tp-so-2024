@@ -18,3 +18,7 @@ t_physical_address *translate_address_1_byte(uint8_t virtual_address, uint32_t p
     physical_address->offset = virtual_address - (physical_address->page_number * page_size);
     return physical_address;
 }
+
+char* physical_addr_to_string(t_physical_address* addr){
+    return string_from_format("Nro de pagina: %d - Desplazamiento: %d",addr->page_number,addr->offset);
+}

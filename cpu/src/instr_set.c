@@ -119,12 +119,50 @@ void jnz(char **args, t_log *logger)
 
 void mov_in(char **args, t_log *logger)
 {
-    // t_register* data = register_get_by_name(args[0]);
-    // t_register* dir = register_get_by_name(args[1]);
+    t_register *data = register_get_by_name(args[0]);
+    t_register *dir = register_get_by_name(args[1]);
+    t_physical_address *addr;
+    if (dir->size == sizeof(uint8_t))
+    {
+        uint8_t *value = (uint8_t *)dir->address;
+        addr = translate_address_1_byte(*value, PAGE_SIZE);
+    }
+    else
+    {
+        uint32_t *value = (uint32_t *)dir->address;
+        addr = translate_address_4_bytes(*value, PAGE_SIZE);
+    }
 
+    memory_send_read(fd_memory, context.pid, addr->page_number, addr->offset, data->size);
+    t_packet *packet = packet_new(-1);
+    if (packet_recv(fd_memory, packet) == -1)
+    {
+        log_error(logger, "error al leer de la memoria");
+        packet_free(packet);
+        return;
+    }
+    t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
+    memory_decode_read_ok(packet->buffer, ok_msg, data->size);
+    memcpy(data->address, ok_msg->value, data->size);
     // luego de la operacion
-    // log_info(logger,"PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %d",context.pid)
+    char *addr_string = physical_addr_to_string(addr);
+
+    if (data->size == sizeof(uint8_t))
+    {
+        uint8_t *value = data->address;
+        log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %s - Valor: %u", context.pid, addr_string, *value);
+    }
+    else{
+        uint32_t* value = data->address;
+         log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %s - Valor: %u", context.pid, addr_string, *value);
+    }
+
+    free(addr_string);
+    free(addr);
+    memory_destroy_read_ok(ok_msg);
+    packet_free(packet);
 }
+
 void mov_out(char **args, t_log *logger)
 {
     // t_register* dir = register_get_by_name(args[0]);
@@ -140,21 +178,21 @@ void copy_string(char **args, t_log *logger)
 }
 void wait_instr(char **args, t_log *logger)
 {
-    //clear_interrupt();
+    // clear_interrupt();
     char *resource_name = args[0];
     int last_pid = context.pid;
     send_wait_resource(resource_name);
     wait_for_context(&context);
-    if(context.pid != last_pid)
+    if (context.pid != last_pid)
         clear_interrupt();
-    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
 }
 void signal_instr(char **args, t_log *logger)
 {
     char *resource_name = args[0];
     send_signal_resource(resource_name);
     wait_for_context(&context);
-    //log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+    // log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
 }
 
 void io_gen_sleep(char **args, t_log *logger)
@@ -164,7 +202,7 @@ void io_gen_sleep(char **args, t_log *logger)
     uint32_t work_units = atoi(args[1]);
     send_io_gen_sleep(interface_name, work_units);
     wait_for_context(&context);
-    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
 }
 
 void io_stdin_read(char **args, t_log *logger)
@@ -176,20 +214,20 @@ void io_stdin_read(char **args, t_log *logger)
     if (sizeof(uint8_t) == virtual_address->size)
     {
         uint8_t *value = (uint8_t *)virtual_address->address;
-        t_physical_address *physical_mem_dir = translate_address_1_byte(*value,PAGE_SIZE);
+        t_physical_address *physical_mem_dir = translate_address_1_byte(*value, PAGE_SIZE);
         send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
         free(physical_mem_dir);
         wait_for_context(&context);
-        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
+        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
         return;
     }
     uint32_t *value = (uint32_t *)virtual_address->address;
-    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value,PAGE_SIZE);
+    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value, PAGE_SIZE);
 
     send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
     free(physical_mem_dir);
     wait_for_context(&context);
-    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
 }
 
 void io_stdout_write(char **args, t_log *logger)
@@ -201,15 +239,15 @@ void io_stdout_write(char **args, t_log *logger)
     if (sizeof(uint8_t) == virtual_address->size)
     {
         uint8_t *value = (uint8_t *)virtual_address->address;
-        t_physical_address *physical_mem_dir = translate_address_1_byte(*value,PAGE_SIZE);
+        t_physical_address *physical_mem_dir = translate_address_1_byte(*value, PAGE_SIZE);
         send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
         free(physical_mem_dir);
         wait_for_context(&context);
-        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
+        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
         return;
     }
     uint32_t *value = (uint32_t *)virtual_address->address;
-    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value,PAGE_SIZE);
+    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value, PAGE_SIZE);
 
     send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
     free(physical_mem_dir);
