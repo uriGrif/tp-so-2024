@@ -212,6 +212,48 @@ void resize(char **args, t_log *logger)
 
 void copy_string(char **args, t_log *logger)
 {
+    uint32_t size = (uint32_t) atoi(args[0]);
+    t_register *source = register_get_by_name("SI");
+    t_register *dest = register_get_by_name("DI");
+
+    uint32_t *si_addr_ptr = (uint32_t *)source->address;
+    t_physical_address *source_addr = translate_address_4_bytes(*si_addr_ptr, PAGE_SIZE);
+    uint32_t *di_addr_ptr = (uint32_t *)dest->address;
+    t_physical_address *dest_addr = translate_address_4_bytes(*di_addr_ptr, PAGE_SIZE);
+
+    void *buffer = malloc(size);
+
+    memory_send_read(fd_memory, context.pid, source_addr->page_number, source_addr->offset, size);
+
+    t_packet *packet = packet_new(-1);
+    if (packet_recv(fd_memory, packet) == -1)
+    {
+        log_error(logger, "error al leer de la memoria");
+        packet_free(packet);
+        return;
+    }
+    t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
+    memory_decode_read_ok(packet->buffer, ok_msg, size);
+    memcpy(buffer, ok_msg->value, size);
+    packet_free(packet);
+    // No se si aca hace falta poner el log de que lei de memoria
+
+    memory_send_write(fd_memory, context.pid, dest_addr->page_number, dest_addr->offset, size, buffer);
+
+    packet = packet_new(-1);
+    if (packet_recv(fd_memory, packet) == -1)
+    {
+        log_error(logger, "error al leer de la memoria");
+        packet_free(packet);
+        return;
+    }
+    
+    // IDEM, no se si poner los logs
+
+    free(source_addr);
+    free(dest_addr);
+
+    packet_free(packet);
 }
 
 void wait_instr(char **args, t_log *logger)
