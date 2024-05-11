@@ -68,15 +68,12 @@ void process_conn(void *void_args)
                 break;
             }
             packet_get_process_in_mem(packet->buffer, process);
-            char *path = mount_instructions_directory(process->path);
-            if (!file_exists(path))
+            if (!file_exists(process->path))
             {
                 log_error(logger, "el archivo de instrucciones de este archivo no fue encontrado");
-                free(path);
                 t_process_in_mem_destroy(process);
                 break;
             }
-            free(path);
             log_info(logger, "CREATE PROCESS with pid: %d - path: %s", process->pid, process->path);
             add_process(process);
             break;
@@ -101,10 +98,7 @@ void process_conn(void *void_args)
                 log_error(logger, "process with pid %d not found", pid);
                 break;
             }
-            char *text_name = mount_instructions_directory(
-                process->path);
-            char *next_instruction = file_get_nth_line(text_name, pc);
-            free(text_name);
+            char *next_instruction = file_get_nth_line(process->path, pc);
             if (!next_instruction)
             {
                 // mandame un error o algo no se

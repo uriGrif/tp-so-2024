@@ -27,7 +27,9 @@ void process_list_destroy (void) {
 
 void packet_get_process_in_mem (t_buffer *buffer, t_process_in_mem *process) {
     process->pid = packet_getUInt32(buffer);
-    process->path = packet_getString(buffer);
+    char* path = packet_getString(buffer);
+    process->path = mount_instructions_directory(path);
+    free(path);
 }
 
 void add_process (t_process_in_mem *process) {

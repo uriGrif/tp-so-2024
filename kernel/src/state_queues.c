@@ -162,11 +162,11 @@ void print_ready_queue(t_log *logger)
     if (!strcmp(cfg_kernel->algoritmo_planificacion, "VRR"))
     {
         char *pids_plus = generate_string_of_pids(ready_plus_queue);
-        log_info(logger, "Cola Ready <COLA>: %s Cola Ready PLUS <COLA>: %s", pids, pids_plus); // aca no se que poner donde va cola ???
+        log_info(logger, "Cola Ready: %s Cola Ready PLUS: %s", pids, pids_plus); // aca no se que poner donde va cola ???
         free(pids_plus);
     }
     else
-         log_info(logger, "Cola Ready <COLA>: %s", pids); // aca no se que poner donde va cola ???
+         log_info(logger, "Cola Ready: %s", pids); // aca no se que poner donde va cola ???
     free(pids);
 }
 
