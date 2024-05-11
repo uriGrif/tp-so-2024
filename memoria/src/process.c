@@ -6,7 +6,7 @@ static pthread_mutex_t MUTEX_PROCESS_LIST;
 
 void init_process_list (void) {
     process_list = list_create();
-    pthread_mutex_init(&MUTEX_PROCESS_LIST);
+    pthread_mutex_init(&MUTEX_PROCESS_LIST, NULL);
 }
 
 t_process_in_mem *t_process_in_mem_create (void) {
@@ -48,8 +48,9 @@ t_process_in_mem *find_process_by_pid (uint32_t pid) {
         return aux_process->pid == pid;
     }
     pthread_mutex_lock(&MUTEX_PROCESS_LIST);
-    return list_find(process_list, closure);
+    t_process_in_mem *res = list_find(process_list, closure);
     pthread_mutex_unlock(&MUTEX_PROCESS_LIST);
+    return res;
 }
 
 void remove_process_by_pid (uint32_t pid) {

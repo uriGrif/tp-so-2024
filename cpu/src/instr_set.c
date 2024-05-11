@@ -165,17 +165,55 @@ void mov_in(char **args, t_log *logger)
 
 void mov_out(char **args, t_log *logger)
 {
-    // t_register* dir = register_get_by_name(args[0]);
-    // t_register* value = register_get_by_name(args[1]);
-    // luego de la operacion
-    // log_info(logger,"PID: %d - Accion: ESCRIBIR - Direccion Fisica: %d - Valor: %d",context.pid)
+    t_register *dir = register_get_by_name(args[0]);
+    t_register *data = register_get_by_name(args[1]);
+    t_physical_address *addr;
+    if (dir->size == sizeof(uint8_t))
+    {
+        uint8_t *value = (uint8_t *)dir->address;
+        addr = translate_address_1_byte(*value, PAGE_SIZE);
+    }
+    else
+    {
+        uint32_t *value = (uint32_t *)dir->address;
+        addr = translate_address_4_bytes(*value, PAGE_SIZE);
+    }
+
+    memory_send_write(fd_memory, context.pid, addr->page_number, addr->offset, data->size, (void *)data->address);
+
+    t_packet *packet = packet_new(-1);
+    if (packet_recv(fd_memory, packet) == -1)
+    {
+        log_error(logger, "error al leer de la memoria");
+        packet_free(packet);
+        return;
+    }
+    
+    char *addr_string = physical_addr_to_string(addr);
+    if (data->size == sizeof(uint8_t))
+    {
+        uint8_t *value = data->address;
+        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %s - Valor: %u", context.pid, addr_string, *value);
+    }
+    else{
+        uint32_t* value = data->address;
+        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %s - Valor: %u", context.pid, addr_string, *value);
+    }
+
+    free(addr_string);
+    free(addr);
+
+    packet_free(packet);
 }
+
 void resize(char **args, t_log *logger)
 {
 }
+
 void copy_string(char **args, t_log *logger)
 {
 }
+
 void wait_instr(char **args, t_log *logger)
 {
     // clear_interrupt();
