@@ -207,3 +207,42 @@ void print_resources(t_log* logger){
     log_info(logger,"%s",total);
     free(total);
 }
+
+t_pcb *find_pcb_by_pid(t_sync_queue *queue, uint32_t pid)
+{
+    bool closure(void *elem)
+    {
+        t_pcb *pcb = (t_pcb *)elem;
+        return pcb->context->pid == pid;
+    }
+    return sync_queue_find_elem(queue, closure);
+}
+
+t_pcb *remove_pcb_by_pid(t_sync_queue *queue, uint32_t pid)
+{
+    bool closure(void *elem)
+    {
+        t_pcb *pcb = (t_pcb *)elem;
+        return pcb->context->pid == pid;
+    }
+    return sync_queue_remove_by_condition(queue, closure);
+}
+
+t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid)
+{
+    t_pcb *target, *tmp;
+    void iterator(void *void_queue)
+    {
+        t_blocked_queue *q = (t_blocked_queue *)void_queue;
+        tmp = remove_pcb_by_pid(q->block_queue, pid);
+        if (tmp)
+        {
+            target = tmp;
+            sem_wait(&q->sem_process_count);
+        }
+    }
+    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+    list_iterate(_blocked_queues, iterator);
+    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+    return target;
+}

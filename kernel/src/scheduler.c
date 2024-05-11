@@ -128,8 +128,8 @@ void handle_short_term_scheduler(void *args_logger)
 
     while (1)
     {
-        sem_wait(&scheduler.sem_ready);
         handle_pause();
+        sem_wait(&scheduler.sem_ready);
         t_pcb *pcb = scheduler.ready_to_exec();
         log_info(logger, "PID: %d - Estado Anterior: READY - Estado Actual: EXEC", pcb->context->pid); // solo lo saco, la referencia creo que ya la tengo
         scheduler.dispatch(pcb, logger);
@@ -197,7 +197,7 @@ void instr_signal(t_pcb *pcb, t_blocked_queue *queue, t_log *logger)
     int *taken = dictionary_get(pcb->taken_resources, queue->resource_name);
     *taken = (*taken - 1) > 0 ? (*taken - 1) : 0;
     queue->instances++;
-    if (queue->instances <= 0)
+    if (queue->instances <= 0 && sync_queue_length(queue->block_queue) > 0)
     {
         pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
         scheduler.block_to_ready(queue->resource_name, logger);
@@ -237,12 +237,12 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
         pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
         while (*taken > 0)
         {
-            instr_signal(pcb,q, logger);
+            instr_signal(pcb, q, logger);
         }
     }
-    t_list* keys = dictionary_keys(pcb->taken_resources);
+    t_list *keys = dictionary_keys(pcb->taken_resources);
     list_iterate(keys, iterator);
-    
+
     list_destroy(keys);
 }
 
@@ -254,7 +254,6 @@ void handle_long_term_scheduler(void *args_logger)
 
     while (1)
     {
-        sem_wait(&scheduler.sem_new);
         // todo esto esto es para hacer el  wait llevando el valor del semaforo
         pthread_mutex_lock(&current_multiprogramming_grade_mutex);
         current_multiprogramming_sem_mirror--;
@@ -262,6 +261,7 @@ void handle_long_term_scheduler(void *args_logger)
         sem_wait(&current_multiprogramming_grade);
         // ----
         handle_pause();
+        sem_wait(&scheduler.sem_new);
         t_pcb *pcb = queue_sync_pop(new_queue);
         pcb->state = READY;
         queue_sync_push(ready_queue, pcb);

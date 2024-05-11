@@ -29,7 +29,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         packet_free(packet);
         return -1;
     }
-    handle_pause();
+    
     // en todas le desalojo el contexto
     packet_get_context(packet->buffer, pcb->context);
     switch (packet->op_code)
@@ -38,11 +38,13 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     {
         // cuando lo interrumpe por consola es aca
         handle_quantum();
+        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", pcb->context->pid);
         move_pcb_to_exit(pcb, logger);
         break;
     }
     case END_OF_QUANTUM:
     {
+        handle_pause();
         log_info(logger, "PID: %d - Desalojado por fin de Quantum", pcb->context->pid);
         scheduler.exec_to_ready(pcb, logger);
         print_ready_queue(logger);
@@ -51,6 +53,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     case END_PROCESS:
     {
         handle_quantum();
+        handle_pause();
         log_info(logger, "Finaliza el proceso %d- Motivo: SUCCESS", pcb->context->pid);
         move_pcb_to_exit(pcb, logger);
         //  liberar de memoria
@@ -63,6 +66,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         if (!q)
         {
             handle_quantum();
+            handle_pause();
             log_info(logger, "Finaliza el proceso %d- Motivo: No existe el recurso %s", pcb->context->pid, resource_name);
             move_pcb_to_exit(pcb, logger);
             free(resource_name);
@@ -70,11 +74,12 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         }
         int* taken = dictionary_get(pcb->taken_resources,resource_name);
         (*taken)++;
-        log_debug(logger,"tomados por %d : %d",pcb->context->pid,*taken);
+        log_debug(logger,"tomados por %d : %s->%d",pcb->context->pid,resource_name,*taken);
         q->instances--;
         if (q->instances < 0)
         {
             handle_quantum();
+            handle_pause();
             scheduler.move_pcb_to_blocked(pcb, q->resource_name, logger);
             log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, resource_name);
             free(resource_name);
@@ -107,6 +112,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     case IO_GEN_SLEEP:
     {
         handle_quantum();
+        handle_pause();
         t_interface *interface = interface_middleware(packet->buffer, IO_GEN_SLEEP, pcb, logger);
         if (!interface)
             break;
@@ -119,6 +125,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     case IO_STDIN_READ:
     {
         handle_quantum();
+        handle_pause();
         t_interface *interface = interface_middleware(packet->buffer, IO_STDIN_READ, pcb, logger);
         if (!interface)
             break;
@@ -131,6 +138,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     case IO_STDOUT_WRITE:
     {
         handle_quantum();
+        handle_pause();
         t_interface *interface = interface_middleware(packet->buffer, IO_STDOUT_WRITE, pcb, logger);
         if (!interface)
             break;
