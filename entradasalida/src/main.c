@@ -10,7 +10,9 @@ int kernel_fd;
 
 static void config_init(void)
 {
-    config = config_create(config_path);
+    char* mounted_path = mount_config_directory(config_path);
+    config = config_create(mounted_path);
+    free(mounted_path);
     if (!config)
     {
         perror("error al cargar el config");

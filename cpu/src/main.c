@@ -9,9 +9,11 @@ static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
 t_exec_context context;
 
-static void config_init()
+static void config_init(char* path)
 {
-    config = config_create(CONFIG_PATH);
+    char* mounted_path = mount_config_directory(path);
+    config = config_create(mounted_path);
+    free(mounted_path);
     if (!config)
     {
         perror("error al cargar el config");
@@ -30,15 +32,19 @@ static void config_init()
     // printf("puerto me %s %s\n", cfg_CPU->puerto_escucha_interrupt, cfg_CPU->puerto_escucha_dispatch);
 }
 
-static void cpu_init()
+static void cpu_init(int argc, char** argv)
 {
-    config_init();
+    if(argc < 2){
+        log_error(logger,"esperaba %s [CONFIG_PATH]",argv[0]);
+        exit(1);
+    }
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
     {
         perror("error al crear el logger");
         exit(1);
     }
+    config_init(argv[1]);
 
     dispatch_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_dispatch);
     interrupt_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_interrupt);
@@ -58,7 +64,7 @@ static void cpu_init()
     log_info(logger, "server starting");
 }
 
-static void start_interrupt_listener()
+static void start_interrupt_listener(void)
 {
     interrupt_mutex_init();
     // hago el accept y el manejo de las interrupts en otro hilo
@@ -73,7 +79,7 @@ static void start_interrupt_listener()
     pthread_detach(thread_intr);
 }
 
-static void cpu_close()
+static void cpu_close(void)
 {
     interrupt_mutex_destroy();
     pthread_cancel(thread_intr);
@@ -95,7 +101,7 @@ int main(int argc, char *argv[])
 
     signal(SIGINT, sighandler);
     // dejo en listen los fds dispatch e interrupt
-    cpu_init();
+    cpu_init(argc,argv);
     start_interrupt_listener();
 
     // me conecto a memoria

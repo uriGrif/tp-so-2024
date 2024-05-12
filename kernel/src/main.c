@@ -9,9 +9,11 @@ static pthread_t short_term_scheduler_thread;
 static pthread_t long_term_scheduler_thread;
 
 
-static void config_init(void)
+static void config_init(char* path)
 {
-    config = config_create(CONFIG_PATH);
+    char* mounted_path = mount_config_directory(path);
+    config = config_create(mounted_path);
+    free(mounted_path);
     if (!config)
     {
         perror("error al crear el config");
@@ -33,7 +35,7 @@ static void config_init(void)
     cfg_kernel->grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
 }
 
-static void init_kernel(void)
+static void init_kernel(int argc, char** argv)
 {
     logger = log_create(LOG_PATH, PROCESS_NAME, 0, LOG_LEVEL);
     if (!logger)
@@ -42,7 +44,11 @@ static void init_kernel(void)
         exit(1);
     }
 
-    config_init();
+     if(argc < 2){
+        log_error(logger,"esperaba %s [CONFIG_PATH]",argv[0]);
+        exit(1);
+    }
+    config_init(argv[1]);
 
     // create interface resources
     interface_init();
@@ -109,7 +115,7 @@ static void init_scheduler_threads(void){
 int main(int argc, char *argv[])
 {
     signal(SIGINT, sighandler);
-    init_kernel();
+    init_kernel(argc,argv);
 
     fd_interrupt = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_interrupt);
     fd_dispatch = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_dispatch);

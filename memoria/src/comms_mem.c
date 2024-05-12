@@ -103,6 +103,8 @@ void process_conn(void *void_args)
             {
                 // mandame un error o algo no se
                 log_warning(logger, "no hay proxima instruccion");
+                packet->op_code = NO_INSTRUCTION;
+                packet_send(packet,client_fd);
                 break;
             }
             packet_addString(packet, next_instruction);

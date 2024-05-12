@@ -86,3 +86,7 @@ int msleep(long msec)
 int file_exists(char* file_path){
     return !access(file_path,F_OK);
 }
+
+char* mount_config_directory(char* config_path){
+    return string_from_format("configs/%s",config_path);
+}

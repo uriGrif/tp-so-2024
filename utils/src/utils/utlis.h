@@ -37,4 +37,6 @@ int msToSeconds(int seconds);
 
 int msleep(long msec);
 
+char* mount_config_directory(char* config_path);
+
 #endif

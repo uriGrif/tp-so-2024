@@ -5,9 +5,11 @@ static t_config *config;
 t_mem_config *cfg_mem;
 static int fd_server;
 
-static void config_init(void)
+static void config_init(char* path)
 {
-    config = config_create(CONFIG_PATH);
+    char* mounted_path = mount_config_directory(path);
+    config = config_create(mounted_path);
+    free(mounted_path);
     if (!config)
     {
         log_error(logger, "error al cargar el config");
@@ -22,7 +24,7 @@ static void config_init(void)
     cfg_mem->retardo_respuesta = config_get_int_value(config, "RETARDO_RESPUESTA");
 }
 
-static void init_memory(void)
+static void init_memory(int argc, char** argv)
 {
     logger = log_create(LOG_PATH, PROCESS_NAME, 1, LOG_LEVEL);
     if (!logger)
@@ -31,7 +33,12 @@ static void init_memory(void)
         exit(1);
     }
 
-    config_init();
+     if(argc < 2){
+        log_error(logger,"esperaba %s [CONFIG_PATH]",argv[0]);
+        exit(1);
+    }
+
+    config_init(argv[1]);
 
     fd_server = socket_createTcpServer(NULL, cfg_mem->puerto_escucha);
 
@@ -68,7 +75,7 @@ void sighandler(int signal)
 int main(int argc, char *argv[])
 {
     signal(SIGINT, sighandler);
-    init_memory();
+    init_memory(argc,argv);
     socket_acceptOnDemand(fd_server, logger, process_conn);
     memory_close();
     return 0;
