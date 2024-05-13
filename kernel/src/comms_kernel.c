@@ -25,6 +25,7 @@ void process_conn(void *void_args)
             handle_pause();
             pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
             t_blocked_queue *block_queue_to_remove = get_blocked_queue_by_fd(client_fd);
+            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             void iterator(void *elem)
             {
                 t_pcb *pcb = (t_pcb *)elem;
@@ -34,11 +35,11 @@ void process_conn(void *void_args)
             // mando todos los procesos de esa cola a exit y elimino la cola mas la interfaz
             if (block_queue_to_remove)
             {
-                sync_queue_iterate(block_queue_to_remove->block_queue, iterator);
-                blocked_queue_destroy(block_queue_to_remove);
+                sync_queue_iterate(block_queue_to_remove->block_queue,iterator);
+                sync_queue_clean(block_queue_to_remove->block_queue);
+                remove_and_destroy_blocked_queue(block_queue_to_remove);
             }
             packet_free(packet);
-            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             return;
         }
         switch (packet->op_code)

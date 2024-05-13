@@ -45,7 +45,6 @@ int sync_queue_length(t_sync_queue *self)
     return length;
 }
 
-
 void *sync_queue_peek(t_sync_queue *self, int index)
 {
     pthread_mutex_lock(&self->mutex);
@@ -74,5 +73,12 @@ void sync_queue_iterate(t_sync_queue *self, void (*iterator)(void *))
 {
     pthread_mutex_lock(&self->mutex);
     list_iterate(self->queue->elements, iterator);
+    pthread_mutex_unlock(&self->mutex);
+}
+
+void sync_queue_clean(t_sync_queue *self)
+{
+    pthread_mutex_lock(&self->mutex);
+    list_clean(self->queue->elements);
     pthread_mutex_unlock(&self->mutex);
 }

@@ -246,3 +246,10 @@ t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid)
     pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
     return target;
 }
+
+void remove_and_destroy_blocked_queue(t_blocked_queue* queue){
+    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+    list_remove_element(_blocked_queues,queue);
+    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+    blocked_queue_destroy(queue);
+}

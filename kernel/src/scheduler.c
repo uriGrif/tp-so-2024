@@ -209,6 +209,7 @@ void instr_signal(t_pcb *pcb, t_blocked_queue *queue, t_log *logger)
 
 void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {
+    
     queue_sync_push(exit_queue, pcb);
     log_info(logger, "PID: %d - Estado Anterior: %s - Estado Actual: EXIT", pcb->context->pid, pcb_state_to_string(pcb));
     pcb->state = EXIT;
