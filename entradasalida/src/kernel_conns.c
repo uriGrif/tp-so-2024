@@ -2,6 +2,13 @@
 
 static char *io_op_to_string(t_opcode operation);
 
+static char *string_from_read_mem_msg(t_memory_read_ok_msg* msg, size_t size){
+    char* aux = malloc(size + 1);
+    memset(aux,0x0,size +1);
+    strncpy(aux,msg->value,size);
+    return aux;
+}
+
 int registerResourceInKernel(int kernel_fd, t_log *logger, t_io_config *cfg_io)
 {
     log_info(logger, "Registering i/o interface %s", cfg_io->name);
@@ -61,7 +68,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         // ask for prompt
         char* str = prompt(msg->size);
 
-        memory_send_write(memory_fd, pid, msg->page_number, msg->offset, strlen(str) + 1, str);
+        memory_send_write(memory_fd, pid, msg->page_number, msg->offset, strlen(str), str);
 
         log_info(logger, "MEMORY SUCCESSFULLY SAVED");
 
@@ -92,7 +99,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         {
             t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
             memory_decode_read_ok(res->buffer, ok_msg, msg->size);
-            log_info(logger, "MEMORY VALUE: %s", (char *)ok_msg->value);
+            char* result = string_from_read_mem_msg(ok_msg,msg->size);
+            log_info(logger, "MEMORY VALUE: %s",result);
+            free(result);
             memory_destroy_read_ok(ok_msg);
         }
 

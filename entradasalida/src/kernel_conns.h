@@ -6,6 +6,8 @@
 #include <proto/proto.h>
 #include <proto/interface.h>
 #include <proto/memory.h>
+#include <string.h>
+#include <commons/string.h>
 #include <errno.h>
 #include <commons/log.h>
 #include <config.h>

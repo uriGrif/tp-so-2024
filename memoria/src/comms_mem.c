@@ -52,7 +52,12 @@ void process_conn(void *void_args)
 
             log_info(logger, "PID : %d - Accion : ESCRIBIR - Numero de pagina : %d - Desplazamiento %d", msg->pid, msg->page_number, msg->offset);
 
-            log_info(logger, "DATA TO SAVE: %s", (char *)msg->value);
+            char* aux = malloc(msg->size + 1);
+            memset(aux,0x0,msg->size+1);
+            strncpy(aux,msg->value,msg->size);
+
+            log_info(logger, "DATA TO SAVE: %s", aux);
+            free(aux);
 
             memory_send_write_ok(client_fd);
 
