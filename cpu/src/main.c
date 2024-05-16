@@ -124,7 +124,7 @@ int main(int argc, char *argv[])
                 break;
             }
             log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
-
+            clear_interrupt();
             while (!current_exec_process_has_finished)
             {
                 char *next_instruction = fetch(fd_memory, logger);

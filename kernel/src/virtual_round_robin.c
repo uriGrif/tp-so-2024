@@ -42,9 +42,9 @@ int move_pcb_to_blocked_vrr(t_pcb *pcb, char *resource_name, t_log *logger)
     return move_pcb_to_blocked_fifo(pcb, resource_name, logger);
 }
 
-void block_to_ready_vrr(char *resource, t_log *logger)
+void block_to_ready_vrr(t_blocked_queue* queue, t_log *logger)
 {
-    t_pcb *pcb = blocked_queue_pop(resource);
+    t_pcb *pcb = blocked_queue_pop(queue);
     if (!pcb){
         log_error(logger, "blocked queue not found");
         return;

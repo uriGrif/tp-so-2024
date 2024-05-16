@@ -20,7 +20,7 @@
 
 typedef t_pcb *(*ready_to_exec_strategy)(void);
 typedef void (*dispatch_strategy)(t_pcb *, t_log *);
-typedef void (*block_to_ready_strategy)(char *resource,t_log* logger);
+typedef void (*block_to_ready_strategy)(t_blocked_queue* queue,t_log* logger);
 typedef void (*exec_to_ready_strategy)(t_pcb* pcb,t_log* logger);
 typedef int (*move_pcb_to_blocked_strategy)(t_pcb *pcb, char *resource_name, t_log *logger);
 // para vos escobar

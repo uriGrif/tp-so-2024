@@ -6,6 +6,7 @@ void process_conn(void *void_args)
     t_log *logger = args->logger;
     int client_fd = args->fd;
     free(args);
+    t_blocked_queue* this_blocked_queue = NULL;
 
     while (client_fd != -1)
     {
@@ -23,9 +24,6 @@ void process_conn(void *void_args)
             else
                 log_debug(logger, "no se conecto de una");
             handle_pause();
-            pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-            t_blocked_queue *block_queue_to_remove = get_blocked_queue_by_fd(client_fd);
-            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
             void iterator(void *elem)
             {
                 t_pcb *pcb = (t_pcb *)elem;
@@ -33,11 +31,11 @@ void process_conn(void *void_args)
                 move_pcb_to_exit(pcb, logger);
             }
             // mando todos los procesos de esa cola a exit y elimino la cola mas la interfaz
-            if (block_queue_to_remove)
+            if (this_blocked_queue)
             {
-                sync_queue_iterate(block_queue_to_remove->block_queue,iterator);
-                sync_queue_clean(block_queue_to_remove->block_queue);
-                remove_and_destroy_blocked_queue(block_queue_to_remove);
+                sync_queue_iterate(this_blocked_queue->block_queue,iterator);
+                sync_queue_clean(this_blocked_queue->block_queue);
+                remove_and_destroy_blocked_queue(this_blocked_queue);
             }
             packet_free(packet);
             return;
@@ -51,7 +49,7 @@ void process_conn(void *void_args)
             interface->name = packet_getString(packet->buffer);
             interface->type = packet_getString(packet->buffer);
             interface_add(interface);
-            add_blocked_queue(interface->name, client_fd);
+            this_blocked_queue = add_blocked_queue(interface->name, client_fd);
             log_info(logger, "New interface registered: name: %s - type: %s", interface->name, interface->type);
             break;
         }
@@ -61,9 +59,7 @@ void process_conn(void *void_args)
             interface_decode_io_done(packet->buffer, msg);
             log_info(logger, "Interface %s requested by pid %d done", msg->interface_name, msg->pid);
             handle_pause();
-            pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-            scheduler.block_to_ready(msg->interface_name, logger);
-            pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+            scheduler.block_to_ready(this_blocked_queue, logger);
             sem_post(&scheduler.sem_ready);
             print_ready_queue(logger);
             interface_destroy_io_done(msg);

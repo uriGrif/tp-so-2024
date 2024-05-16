@@ -17,10 +17,10 @@ void dispatch_fifo(t_pcb *pcb, t_log *logger)
     }
 }
 
-void block_to_ready_fifo(char *resource, t_log *logger)
+void block_to_ready_fifo(t_blocked_queue* queue, t_log *logger)
 {
     //wait sem cola bloqueado
-    t_pcb *pcb = blocked_queue_pop(resource);
+    t_pcb *pcb = blocked_queue_pop(queue);
     if(!pcb)
         log_error(logger,"blocked queue not found");
     pcb->state = READY;

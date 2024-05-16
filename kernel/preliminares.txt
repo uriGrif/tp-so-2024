@@ -1,4 +1,4 @@
-MULTIPROGRMACION 7
+MULTIPROGRAMACION 7
 INICIAR_PROCESO preliminares/script_io_basico_1
 INICIAR_PROCESO preliminares/script_io_basico_2
 INICIAR_PROCESO preliminares/script_io_basico_3

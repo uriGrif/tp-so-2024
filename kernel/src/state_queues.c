@@ -39,7 +39,7 @@ t_blocked_queue *blocked_queue_create(char *name, int value)
 {
     t_blocked_queue *q = malloc(sizeof(t_blocked_queue));
     q->resource_name = strdup(name);
-    q->fd = value;
+    q->instances = value;
     sem_init(&q->sem_process_count, 0, 0);
     q->block_queue = sync_queue_create();
     return q;
@@ -68,13 +68,13 @@ void pcb_destroyer(void *elem)
     pcb_destroy(pcb);
 }
 
-void add_blocked_queue(char *resource_name, int value)
+t_blocked_queue* add_blocked_queue(char *resource_name, int value)
 {
-    if (resource_name)
-    {
         t_blocked_queue *q = blocked_queue_create(resource_name, value);
+        pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
         list_add(_blocked_queues, q);
-    }
+        pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+        return q;
 }
 
 t_blocked_queue *get_blocked_queue_by_name(char *resource_name)
@@ -84,26 +84,12 @@ t_blocked_queue *get_blocked_queue_by_name(char *resource_name)
         t_blocked_queue *q = (t_blocked_queue *)elem;
         return !strcmp(q->resource_name, resource_name);
     }
-
+    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
     t_blocked_queue *tmp = list_find(_blocked_queues, closure);
-    if (tmp)
-        return tmp;
-    return NULL;
+    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+    return tmp;
 }
 
-t_blocked_queue *get_blocked_queue_by_fd(int fd)
-{
-    bool closure(void *elem)
-    {
-        t_blocked_queue *q = (t_blocked_queue *)elem;
-        return fd == q->fd;
-    }
-
-    t_blocked_queue *tmp = list_find(_blocked_queues, closure);
-    if (tmp)
-        return tmp;
-    return NULL;
-}
 
 int blocked_queue_push(char *resource_name, void *elem)
 {
@@ -115,11 +101,8 @@ int blocked_queue_push(char *resource_name, void *elem)
     return 0;
 }
 
-void *blocked_queue_pop(char *resource_name)
+void *blocked_queue_pop(t_blocked_queue* queue)
 {
-    t_blocked_queue *queue = get_blocked_queue_by_name(resource_name);
-    if (!queue)
-        return NULL;
     sem_wait(&queue->sem_process_count);
     void *elem = queue_sync_pop(queue->block_queue);
     return elem;
@@ -135,24 +118,11 @@ static void destroy_blocked_queues(void)
     list_destroy_and_destroy_elements(_blocked_queues, destroyer);
 }
 
-void remove_blocked_queue_by_fd(int fd)
-{
-    bool closure(void *elem)
-    {
-        t_blocked_queue *q = (t_blocked_queue *)elem;
-        return fd == q->fd;
-    }
-    void destroyer(void *queue)
-    {
-        t_blocked_queue *q = (t_blocked_queue *)queue;
-        blocked_queue_destroy(q);
-    }
-    list_remove_and_destroy_by_condition(_blocked_queues, closure, destroyer);
-}
-
 void blocked_queues_iterate(void (*iterator)(void *))
 { // iterator tiene que recibir una cola
+    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
     list_iterate(_blocked_queues, iterator);
+    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
 }
 
 void print_ready_queue(t_log *logger)
@@ -230,7 +200,7 @@ t_pcb *remove_pcb_by_pid(t_sync_queue *queue, uint32_t pid)
 
 t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid)
 {
-    t_pcb *target, *tmp;
+    t_pcb *target = NULL, *tmp;
     void iterator(void *void_queue)
     {
         t_blocked_queue *q = (t_blocked_queue *)void_queue;
@@ -241,9 +211,7 @@ t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid)
             sem_wait(&q->sem_process_count);
         }
     }
-    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-    list_iterate(_blocked_queues, iterator);
-    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+    blocked_queues_iterate(iterator);
     return target;
 }
 

@@ -13,7 +13,7 @@
 t_pcb* ready_to_exec_rr(void);
 
 void dispatch_rr(t_pcb* pcb, t_log* logger);
-void block_to_ready_rr(char* resource,t_log* logger);
+void block_to_ready_rr(t_blocked_queue* queue,t_log* logger);
 void exec_to_ready_rr(t_pcb *pcb, t_log *logger); 
 int move_pcb_to_blocked_rr(t_pcb *pcb, char *resource_name, t_log *logger);
 void quantum_interruption_handler(void *args);
