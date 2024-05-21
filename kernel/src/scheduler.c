@@ -199,9 +199,7 @@ void instr_signal(t_pcb *pcb, t_blocked_queue *queue, t_log *logger)
     queue->instances++;
     if (queue->instances <= 0 && sync_queue_length(queue->block_queue) > 0)
     {
-        pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-        scheduler.block_to_ready(queue->resource_name, logger);
-        pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+        scheduler.block_to_ready(queue, logger);
         print_ready_queue(logger);
         sem_post(&scheduler.sem_ready);
     }
@@ -233,9 +231,7 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
     {
         char *name = (char *)resource_name;
         int *taken = dictionary_get(pcb->taken_resources, name);
-        pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
         t_blocked_queue *q = get_blocked_queue_by_name(name);
-        pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
         while (*taken > 0)
         {
             instr_signal(pcb, q, logger);

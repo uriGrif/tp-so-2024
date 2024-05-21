@@ -133,9 +133,7 @@ static char *get_pids_of_blocked_queues(void)
         if (queue)
             sync_queue_iterate(queue->block_queue, add_pid);
     }
-    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
     blocked_queues_iterate(gen_pids_one_queue);
-    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
     if (strlen(pids) > 1)
         pids[strlen(pids) - 1] = ']';
     else
