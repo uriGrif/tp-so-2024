@@ -53,8 +53,10 @@ void block_to_ready_vrr(t_blocked_queue* queue, t_log *logger)
     if(pcb->context->quantum < cfg_kernel->quantum){
         queue_sync_push(ready_plus_queue, pcb);
         log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY PLUS", pcb->context->pid);
+        print_ready_queue(logger, true);
         return;
     }
     queue_sync_push(ready_queue, pcb);
     log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->context->pid);
+    print_ready_queue(logger, false);
 }

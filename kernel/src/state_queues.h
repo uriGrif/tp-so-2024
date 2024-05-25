@@ -46,7 +46,7 @@ void blocked_queues_iterate(void (*iterator)(void *));
 
 
 
-void print_ready_queue(t_log* logger);
+void print_ready_queue(t_log* logger, bool is_ready_plus);
 
 bool is_resource(char* name);
 

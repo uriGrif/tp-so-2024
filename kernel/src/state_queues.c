@@ -125,19 +125,20 @@ void blocked_queues_iterate(void (*iterator)(void *))
     pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
 }
 
-void print_ready_queue(t_log *logger)
+void print_ready_queue(t_log *logger, bool is_ready_plus)
 {
-    char *pids = generate_string_of_pids(ready_queue);
     // esto se puede mejorar pero por ahora pasa
-    if (!strcmp(cfg_kernel->algoritmo_planificacion, "VRR"))
+    if (is_ready_plus)
     {
         char *pids_plus = generate_string_of_pids(ready_plus_queue);
-        log_info(logger, "Cola Ready: %s Cola Ready PLUS: %s", pids, pids_plus); // aca no se que poner donde va cola ???
+        log_info(logger, "Cola Ready PLUS: %s", pids_plus); // aca no se que poner donde va cola ???
         free(pids_plus);
     }
-    else
-         log_info(logger, "Cola Ready: %s", pids); // aca no se que poner donde va cola ???
-    free(pids);
+    else {
+        char *pids = generate_string_of_pids(ready_queue);
+        log_info(logger, "Cola Ready: %s", pids); // aca no se que poner donde va cola ???
+        free(pids);
+    }
 }
 
 void add_resources_to_blocked_queues(void)

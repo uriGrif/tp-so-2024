@@ -200,7 +200,7 @@ void instr_signal(t_pcb *pcb, t_blocked_queue *queue, t_log *logger)
     if (queue->instances <= 0 && sync_queue_length(queue->block_queue) > 0)
     {
         scheduler.block_to_ready(queue, logger);
-        print_ready_queue(logger);
+        // print_ready_queue(logger);
         sem_post(&scheduler.sem_ready);
     }
 }
@@ -263,7 +263,7 @@ void handle_long_term_scheduler(void *args_logger)
         pcb->state = READY;
         queue_sync_push(ready_queue, pcb);
         log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual: READY", pcb->context->pid);
-        print_ready_queue(logger);
+        print_ready_queue(logger, false);
         send_create_process(pcb);
         sem_post(&scheduler.sem_ready);
         inc_processes_in_memory_amount();

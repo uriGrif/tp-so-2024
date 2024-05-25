@@ -29,7 +29,7 @@ void exec_to_ready_rr(t_pcb *pcb, t_log *logger)
 {
     log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: READY", pcb->context->pid);
     queue_sync_push(ready_queue, pcb);
-    print_ready_queue(logger);
+    print_ready_queue(logger, false);
     sem_post(&scheduler.sem_ready);
 }
 
@@ -44,4 +44,5 @@ void block_to_ready_rr(t_blocked_queue* queue, t_log *logger)
     // popear el primero (EN DUDA)
     // pasar a ready
     block_to_ready_fifo(queue, logger);
+    print_ready_queue(logger, false);
 }

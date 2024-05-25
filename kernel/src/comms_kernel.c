@@ -61,7 +61,7 @@ void process_conn(void *void_args)
             handle_pause();
             scheduler.block_to_ready(this_blocked_queue, logger);
             sem_post(&scheduler.sem_ready);
-            print_ready_queue(logger);
+            // print_ready_queue(logger);
             interface_destroy_io_done(msg);
             break;
         }

@@ -47,7 +47,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         handle_pause();
         log_info(logger, "PID: %d - Desalojado por fin de Quantum", pcb->context->pid);
         scheduler.exec_to_ready(pcb, logger);
-        print_ready_queue(logger);
+        // print_ready_queue(logger);
         break;
     }
     case END_PROCESS:
