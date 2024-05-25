@@ -17,6 +17,7 @@
 #include <commons/collections/queue.h>
 #include <context/context.h>
 #include <instr_set.h>
+#include <tlb.h>
 
 #define LOG_LEVEL LOG_LEVEL_DEBUG
 #define LOG_PATH "cpu.log"

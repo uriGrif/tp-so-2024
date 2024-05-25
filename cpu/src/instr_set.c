@@ -121,6 +121,9 @@ void mov_in(char **args, t_log *logger)
 {
     t_register *data = register_get_by_name(args[0]);
     t_register *dir = register_get_by_name(args[1]);
+    
+    // Todo esto va a haber que cambiarlo para calcular el array de direcciones a leer  
+    /*
     t_physical_address *addr;
     if (dir->size == sizeof(uint8_t))
     {
@@ -134,6 +137,7 @@ void mov_in(char **args, t_log *logger)
     }
 
     memory_send_read(fd_memory, context.pid, addr->page_number, addr->offset, data->size);
+    
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
@@ -161,12 +165,15 @@ void mov_in(char **args, t_log *logger)
     free(addr);
     memory_destroy_read_ok(ok_msg);
     packet_free(packet);
+    */
 }
 
 void mov_out(char **args, t_log *logger)
 {
     t_register *dir = register_get_by_name(args[0]);
     t_register *data = register_get_by_name(args[1]);
+
+    /*
     t_physical_address *addr;
     if (dir->size == sizeof(uint8_t))
     {
@@ -204,6 +211,7 @@ void mov_out(char **args, t_log *logger)
     free(addr);
 
     packet_free(packet);
+    */
 }
 
 void resize(char **args, t_log *logger)
@@ -216,6 +224,7 @@ void copy_string(char **args, t_log *logger)
     t_register *source = register_get_by_name("SI");
     t_register *dest = register_get_by_name("DI");
 
+    /*
     uint32_t *si_addr_ptr = (uint32_t *)source->address;
     t_physical_address *source_addr = translate_address_4_bytes(*si_addr_ptr, PAGE_SIZE);
     uint32_t *di_addr_ptr = (uint32_t *)dest->address;
@@ -254,6 +263,7 @@ void copy_string(char **args, t_log *logger)
     free(dest_addr);
 
     packet_free(packet);
+    */
 }
 
 void wait_instr(char **args, t_log *logger)
@@ -290,6 +300,7 @@ void io_stdin_read(char **args, t_log *logger)
     char *interface_name = args[0];
     t_register *virtual_address = register_get_by_name(args[1]);
     uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
+    /*
     if (sizeof(uint8_t) == virtual_address->size)
     {
         uint8_t *value = (uint8_t *)virtual_address->address;
@@ -309,6 +320,7 @@ void io_stdin_read(char **args, t_log *logger)
     wait_for_context(&context);
     clear_interrupt();
     log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
+    */
 }
 
 void io_stdout_write(char **args, t_log *logger)
@@ -316,6 +328,7 @@ void io_stdout_write(char **args, t_log *logger)
     char *interface_name = args[0];
     t_register *virtual_address = register_get_by_name(args[1]);
     uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
+    /*
     if (sizeof(uint8_t) == virtual_address->size)
     {
         uint8_t *value = (uint8_t *)virtual_address->address;
@@ -335,6 +348,7 @@ void io_stdout_write(char **args, t_log *logger)
     wait_for_context(&context);
     clear_interrupt();
     log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+    */
 }
 
 void io_fs_create(char **args, t_log *logger)

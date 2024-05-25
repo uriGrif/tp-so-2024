@@ -5,17 +5,13 @@
 #include <math.h>
 #include <stdint.h>
 #include <commons/string.h>
+#include <tlb.h>
+#include <sys/socket.h>
+#include <proto/proto.h>
+#include <commons/log.h>
 
-typedef struct
-{
-    uint32_t page_number;
-    uint32_t offset;
-} t_physical_address;
+uint32_t translate_address_4_bytes(int fd_mem, uint32_t pid, uint32_t virtual_address, uint32_t page_size, t_log *logger);
 
-t_physical_address *translate_address_4_bytes(uint32_t virtual_address, uint32_t page_size);
-
-t_physical_address *translate_address_1_byte(uint8_t virtual_address, uint32_t page_size);
-
-char* physical_addr_to_string(t_physical_address* addr);
+uint32_t translate_address_1_byte(int fd_mem, uint32_t pid, uint8_t virtual_address, uint32_t page_size, t_log *logger);
 
 #endif

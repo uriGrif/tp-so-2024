@@ -82,3 +82,9 @@ int memory_send_write_ok(int fd)
     packet_free(packet);
     return res;
 }
+
+int memory_send_page_table_access(int fd, uint32_t pid, uint32_t page) {return 1;}
+int memory_decode_page_table_access(t_buffer *buffer, t_page_table_access *access) {return 1;} 
+
+int memory_send_frame_number(t_page_table_access *access) {return 1;}
+uint32_t memory_decode_frame_number(t_buffer *buffer) {return 1;}

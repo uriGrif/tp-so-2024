@@ -8,6 +8,7 @@ static t_config *config;
 static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
 t_exec_context context;
+t_tlb TLB;
 
 static void config_init(char* path)
 {
@@ -45,6 +46,8 @@ static void cpu_init(int argc, char** argv)
         exit(1);
     }
     config_init(argv[1]);
+
+    TLB.entries_amount = cfg_cpu->cantidad_entradas_tlb;
 
     dispatch_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_dispatch);
     interrupt_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_interrupt);
