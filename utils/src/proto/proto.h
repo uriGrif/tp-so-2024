@@ -88,6 +88,10 @@ int packet_add_uint8(t_packet *packet, uint8_t value);
 int packet_addString(t_packet *packet, char *str);
 int packet_add_string_arr(t_packet *packet, char **string_arr);
 
+int packet_add_list(t_packet* packet, t_list* list, void(*element_packer)(t_packet*, void*));
+
+t_list* packet_get_list(t_buffer* buffer, void*(*element_getter)(t_buffer*));
+
 typedef void (*t_requestHandler)(uint8_t client_fd, uint8_t operation, t_buffer *buffer, void *args);
 int socket_read(int fd, t_requestHandler requestHandler, void *args);
 

@@ -156,3 +156,24 @@ uint8_t packet_get_uint8(t_buffer *buffer)
     packet_get(buffer, &value, sizeof(uint8_t));
     return value;
 }
+
+int packet_add_list(t_packet* packet, t_list* list, void(*element_packer)(t_packet*, void*)){
+    uint32_t elements_count = list->elements_count;
+    packet_addUInt32(packet,elements_count);
+    void add_to_packet(void* elem){
+        element_packer(packet,elem);
+    }
+    list_iterate(list,add_to_packet);
+    return 0;
+}
+
+t_list* packet_get_list(t_buffer* buffer, void*(*element_getter)(t_buffer*)){
+    t_list* list = list_create();
+    uint32_t size = packet_getUInt32(buffer);
+    for (int i =0; i<size; i++){
+        list_add(list,element_getter(buffer));
+    }
+    return list;
+}
+
+

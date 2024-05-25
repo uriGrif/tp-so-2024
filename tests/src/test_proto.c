@@ -71,6 +71,8 @@ static t_animal *packet_get_animal(t_buffer *buffer)
     return res;
 }
 
+
+
 context(test_protocol)
 {
 
@@ -159,6 +161,51 @@ context(test_protocol)
         free(res);
     }end
 }end
+
+describe("protocolo: lista"){
+
+    t_list* animales;
+
+     before{
+                animales = list_create();
+                packet = packet_new(0);
+                t_animal *ani = malloc(sizeof(t_animal));
+                ani->tipo = strdup("leon");
+                ani->cant_patas = 4;
+                t_animal *ani2 = malloc(sizeof(t_animal));
+                ani2->tipo = strdup("gato");
+                ani2->cant_patas = 54;
+                list_add(animales,ani);
+                list_add(animales,ani2);
+                packet_add_list(packet,animales,packet_add_animal);
+                list_destroy(animales);
+                free(ani->tipo);
+                free(ani);
+                free(ani2->tipo);
+                free(ani2);
+            } end
+
+        after{
+            packet_free(packet);
+        } end
+
+    it("mando 2 animales y que los reciba"){
+        t_list* res = packet_get_list(packet->buffer,packet_get_animal);
+        should_int(list_size(res)) be equal to(2);
+        t_animal* a1 = list_get(res,0);
+        t_animal* a2 = list_get(res,1);
+        should_string(a1->tipo) be equal to("leon");
+        should_string(a2->tipo) be equal to("gato");
+        should_int(a1->cant_patas) be equal to(4);
+        should_int(a2->cant_patas) be equal to(54);
+        list_destroy(res);
+        free(a1->tipo);
+        free(a1);
+        free(a2->tipo);
+        free(a2);
+    } end 
+
+} end
 
     describe("protocolo: envio y recibo un packet por red"){
         before{
