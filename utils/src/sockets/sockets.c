@@ -74,6 +74,10 @@ int socket_createTcpServer(char *host, char *port)
         if (fd == -1)
             continue;
 
+        const int enable = 1;
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+            close(fd);
+
         if (bind(fd, addr->ai_addr, addr->ai_addrlen) == 0)
             break; /* Success */
 
@@ -127,6 +131,10 @@ int socket_connectToServer(char *host, char *port)
         if (fd == -1)
             continue;
 
+        const int enable = 1;
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+            close(fd);
+
         if (connect(fd, addr->ai_addr, addr->ai_addrlen) != -1)
             break;
 
@@ -165,12 +173,14 @@ int socket_read(int fd, t_requestHandler requestHandler, void *args)
         bytes_read = recv(fd, packet->buffer->stream, packet->buffer->size, 0);
 
     // no data was sent
-    if (bytes_read == -1){
+    if (bytes_read == -1)
+    {
         packet_free(packet);
         return 0;
     }
     // connection closed
-    if (bytes_read == 0){
+    if (bytes_read == 0)
+    {
         packet_free(packet);
         return -1;
     }
@@ -200,7 +210,8 @@ void socket_acceptOnDemand(int fd, t_log *logger, void (*connection_handler)(voi
         args->logger = logger;
         pthread_t client_thread;
         int res = pthread_create(&client_thread, NULL, (void *)connection_handler, (void *)args);
-        if(res){
+        if (res)
+        {
             log_error(logger, "error %s", strerror(errno));
             exit(1);
         }

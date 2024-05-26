@@ -48,10 +48,6 @@ static void init_memory(int argc, char** argv)
         exit(1);
     }
 
-    const int enable = 1;
-    if (setsockopt(fd_server, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-        log_error(logger, "setsockopt(SO_REUSEADDR) failed");
-
     init_process_list();
 
     log_info(logger, "server starting");

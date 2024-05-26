@@ -8,10 +8,9 @@ pthread_t LISTENER_THREAD;
 static pthread_t short_term_scheduler_thread;
 static pthread_t long_term_scheduler_thread;
 
-
-static void config_init(char* path)
+static void config_init(char *path)
 {
-    char* mounted_path = mount_config_directory(path);
+    char *mounted_path = mount_config_directory(path);
     config = config_create(mounted_path);
     free(mounted_path);
     if (!config)
@@ -35,7 +34,7 @@ static void config_init(char* path)
     cfg_kernel->grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
 }
 
-static void init_kernel(int argc, char** argv)
+static void init_kernel(int argc, char **argv)
 {
     logger = log_create(LOG_PATH, PROCESS_NAME, 0, LOG_LEVEL);
     if (!logger)
@@ -44,8 +43,9 @@ static void init_kernel(int argc, char** argv)
         exit(1);
     }
 
-     if(argc < 2){
-        log_error(logger,"esperaba %s [CONFIG_PATH]",argv[0]);
+    if (argc < 2)
+    {
+        log_error(logger, "esperaba %s [CONFIG_PATH]", argv[0]);
         exit(1);
     }
     config_init(argv[1]);
@@ -59,9 +59,6 @@ static void init_kernel(int argc, char** argv)
         log_error(logger, "error: %s", strerror(errno));
         exit(1);
     }
-    const int enable = 1;
-    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-        log_error(logger, "setsockopt(SO_REUSEADDR) failed");
     static t_process_conn_args args;
     args.fd = server_fd;
     args.logger = logger;
@@ -70,12 +67,12 @@ static void init_kernel(int argc, char** argv)
     // spawn a thread for the server
     pthread_create(&LISTENER_THREAD, NULL, (void *)handle_connections, (void *)&args);
     pthread_detach(LISTENER_THREAD);
-    
+
     init_scheduler();
 
     log_info(logger, "server starting");
 
-    //multiprogramacion_actual = cfg_kernel->grado_multiprogramacion;
+    // multiprogramacion_actual = cfg_kernel->grado_multiprogramacion;
 }
 
 static void kernel_close(void)
@@ -104,18 +101,19 @@ void sighandler(int signal)
     exit(0);
 }
 
-static void init_scheduler_threads(void){
-    pthread_create(&long_term_scheduler_thread, NULL, (void *)handle_long_term_scheduler, (void*) logger);
+static void init_scheduler_threads(void)
+{
+    pthread_create(&long_term_scheduler_thread, NULL, (void *)handle_long_term_scheduler, (void *)logger);
     pthread_detach(long_term_scheduler_thread);
 
-    pthread_create(&short_term_scheduler_thread, NULL, (void *)handle_short_term_scheduler, (void*) logger);
+    pthread_create(&short_term_scheduler_thread, NULL, (void *)handle_short_term_scheduler, (void *)logger);
     pthread_detach(short_term_scheduler_thread);
 }
 
 int main(int argc, char *argv[])
 {
     signal(SIGINT, sighandler);
-    init_kernel(argc,argv);
+    init_kernel(argc, argv);
 
     fd_interrupt = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_interrupt);
     fd_dispatch = socket_connectToServer(cfg_kernel->ip_cpu, cfg_kernel->puerto_cpu_dispatch);
@@ -136,7 +134,7 @@ int main(int argc, char *argv[])
     // sleep(1);
     // send_context_to_cpu(a_process->context);
     // log_info(logger,"packet sent");
-    
+
     // send_interrupt(a_process);
     // log_info(logger,"packet sent");
     // log_info(logger, "me llego PID: %d AX: %d", a_process->context->pid, a_process->context->registers.ax);
@@ -145,7 +143,6 @@ int main(int argc, char *argv[])
     // wait_for_dispatch_reason(a_process,logger);
     // pcb_destroy(a_process);
 
-    
     // inicio hilos de planificadores
 
     // inicio la consola

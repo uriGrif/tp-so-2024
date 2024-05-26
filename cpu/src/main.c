@@ -57,13 +57,6 @@ static void cpu_init(int argc, char** argv)
         log_error(logger,"error: %s", strerror(errno));
         exit(1);
     }
-
-    const int enable = 1;
-    if (setsockopt(dispatch_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-        perror("setsockopt(SO_REUSEADDR) failed");
-    if (setsockopt(interrupt_fd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-        perror("setsockopt(SO_REUSEADDR) failed");
-
     log_info(logger, "server starting");
 }
 
