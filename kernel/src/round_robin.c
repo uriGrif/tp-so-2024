@@ -44,5 +44,4 @@ void block_to_ready_rr(t_blocked_queue* queue, t_log *logger)
     // popear el primero (EN DUDA)
     // pasar a ready
     block_to_ready_fifo(queue, logger);
-    print_ready_queue(logger, false);
 }

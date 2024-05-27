@@ -25,8 +25,8 @@ void block_to_ready_fifo(t_blocked_queue* queue, t_log *logger)
         log_error(logger,"blocked queue not found");
     pcb->state = READY;
     log_info(logger, "PID: %d - Estado Anterior: BLOCKED - Estado Actual: READY", pcb->context->pid);
-    print_ready_queue(logger, false);
     queue_sync_push(ready_queue, pcb);
+    print_ready_queue(logger, false);
 }
 
 int move_pcb_to_blocked_fifo(t_pcb *pcb, char *resource_name, t_log *logger)
