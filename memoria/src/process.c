@@ -11,11 +11,13 @@ void init_process_list (void) {
 
 t_process_in_mem *t_process_in_mem_create (void) {
     t_process_in_mem *process = malloc(sizeof(t_process_in_mem));
+    process->page_table = list_create();
     return process;
 } 
 
 void t_process_in_mem_destroy (t_process_in_mem *process) {
     free(process->path);
+    list_destroy_and_destroy_elements(process->page_table,free);
     free(process);
 } 
 
@@ -33,6 +35,7 @@ void packet_get_process_in_mem (t_buffer *buffer, t_process_in_mem *process) {
     process->pid = packet_getUInt32(buffer);
     char* path = packet_getString(buffer);
     process->path = mount_instructions_directory(path);
+    //process->page_table = packet_get_list(buffer);
     free(path);
 }
 

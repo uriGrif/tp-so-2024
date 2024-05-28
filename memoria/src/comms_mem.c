@@ -24,11 +24,12 @@ void process_conn(void *void_args)
             packet_send(packet,client_fd);
             break;
         }
-        case SAVE_CONTEXT:
+        case RESIZE_PROCESS:
         {
-            uint32_t x = packet_getUInt32(packet->buffer);
-            uint32_t y = packet_getUInt32(packet->buffer);
-            log_info(logger, "nro 1 : %d, nro 2: %d", x, y);
+            uint32_t pid = packet_getUInt32(packet->buffer);
+            uint32_t size = packet_getUInt32(packet->buffer);
+            t_process_in_mem* process = find_process_by_pid(pid);
+            
             break;
         }
         case READ_MEM:

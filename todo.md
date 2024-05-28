@@ -4,7 +4,7 @@
 
 
 ### Kernel
-- [ ] Virutal round robin (REVISAR LO ULTIMO)
+- [X] Virutal round robin (REVISAR LO ULTIMO)
 - [x] Manejo de recursos (va al mismo tiempo que la cpu con las instrucciones wait y singal)
 - [x] Planificador largo plazo, cola de new con grado de multiprogramacion fijo del config
 - [x] Planificador largo plazo, permite modificar por consola el grado de multiprogramacion

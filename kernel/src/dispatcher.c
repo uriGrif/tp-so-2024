@@ -47,7 +47,6 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         handle_pause();
         log_info(logger, "PID: %d - Desalojado por fin de Quantum", pcb->context->pid);
         scheduler.exec_to_ready(pcb, logger);
-        // print_ready_queue(logger);
         break;
     }
     case END_PROCESS:
@@ -56,7 +55,14 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         handle_pause();
         log_info(logger, "Finaliza el proceso %d- Motivo: SUCCESS", pcb->context->pid);
         move_pcb_to_exit(pcb, logger);
-        //  liberar de memoria
+        break;
+    }
+    case OUT_OF_MEMORY:
+    {
+        handle_quantum();
+        handle_pause();
+        log_info(logger, "Finaliza el proceso %d- Motivo: OUT OF MEMORY", pcb->context->pid);
+        move_pcb_to_exit(pcb, logger);
         break;
     }
     case WAIT:
@@ -86,7 +92,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             break;
         }
         log_info(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
-        send_context_to_cpu(pcb->context); // creeria q en este caso se manda a ready
+        send_context_to_cpu(pcb->context);
         wait_for_dispatch_reason(pcb, logger);
         free(resource_name);
         break;

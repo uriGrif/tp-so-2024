@@ -9,8 +9,10 @@
 #include <commons/log.h>
 #include <commons/config.h>
 #include <comms_mem.h>
-#include<config.h>
+#include <config.h>
 #include <sys/signal.h>
+#include <bitarray_monitor.h>
+#include <mem_monitor.h>
 #include <process.h>
 
 

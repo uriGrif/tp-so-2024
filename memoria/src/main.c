@@ -33,12 +33,23 @@ static void init_memory(int argc, char** argv)
         exit(1);
     }
 
-     if(argc < 2){
+    if(argc < 2){
         log_error(logger,"esperaba %s [CONFIG_PATH]",argv[0]);
         exit(1);
     }
 
     config_init(argv[1]);
+
+    if(init_ram(cfg_mem->tam_memoria)) {
+        log_error(logger,"ERROR MAGISTRAL NO HAY MEMORIA PARA INICAR EL PROGRAMA");
+        exit(1);
+    }
+    init_mem_bitarray(cfg_mem->tam_memoria,cfg_mem->tam_pagina);
+
+    set_frame_ocuppied(200);
+    clear_frame(200);
+    clear_frame(25);
+    printf("ocupado: %d desocupado %d",test_frame(200),!test_frame(25));
 
     fd_server = socket_createTcpServer(NULL, cfg_mem->puerto_escucha);
 

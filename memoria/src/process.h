@@ -10,6 +10,7 @@
 typedef struct{
     int pid;
     char* path;
+    t_list* page_table;
 } t_process_in_mem;
 
 void init_process_list (void);

@@ -32,6 +32,7 @@ enum StdType
 static void send_io_std(enum StdType type, char *interface_name, uint32_t page_number, uint32_t offset, uint32_t size);
 static void send_wait_resource(char *resource_name);
 static void send_signal_resource(char *resource_name);
+static void send_resize(uint32_t size);
 
 t_instruction INSTRUCTION_SET[] = {{"SET", set}, {"SUM", sum}, {"SUB", sub}, {"JNZ", jnz}, {"IO_GEN_SLEEP", io_gen_sleep}, {"MOV_IN", mov_in}, {"MOV_OUT", mov_out}, {"RESIZE", resize}, {"COPY_STRING", copy_string}, {"WAIT", wait_instr}, {"SIGNAL", signal_instr}, {"IO_STDIN_READ", io_stdin_read}, {"IO_STDOUT_WRITE", io_stdout_write}, {"IO_FS_CREATE", io_fs_create}, {"IO_FS_DELETE", io_fs_delete}, {"IO_FS_TRUNCATE", io_fs_truncate}, {"IO_FS_WRITE", io_fs_write}, {"IO_FS_READ", io_fs_read}, {"EXIT", instruction_exit}, {NULL, NULL}};
 
@@ -216,6 +217,18 @@ void mov_out(char **args, t_log *logger)
 
 void resize(char **args, t_log *logger)
 {
+    uint32_t size = (uint32_t) atoi(args[0]);
+    send_resize(size);
+    t_packet* packet = packet_new(-1);
+    if(packet_recv(fd_memory, packet) == -1){
+        log_error(logger,"error al recibir de memoria");
+        packet_free(packet);
+        exit(1);
+    }
+    if(packet->op_code == OUT_OF_MEMORY){
+        send_dispatch_reason(OUT_OF_MEMORY,&context);
+    }
+    packet_free(packet);
 }
 
 void copy_string(char **args, t_log *logger)
@@ -375,8 +388,16 @@ void instruction_exit(char **args, t_log *logger)
     current_exec_process_has_finished = 1;
 }
 
-// WAIT and SIGNAL protocol
+//MEM PROTOCOL
 
+static void send_resize(uint32_t size){
+    t_packet *packet = packet_new(RESIZE_PROCESS);
+    packet_addUInt32(packet, context.pid);
+    packet_addUInt32(packet, size);
+    packet_free(packet);
+}
+
+// WAIT and SIGNAL protocol
 static void send_wait_resource(char *resource_name)
 {
     t_packet *packet = packet_new(WAIT);
