@@ -9,7 +9,7 @@ void init_mem_bitarray(int mem_size, int frame_size)
     int total_frames = mem_size / frame_size;
     int total_frames_in_bytes = ceil((double)total_frames / 8.0);
     char *raw_bitmap = calloc(total_frames_in_bytes, sizeof(char));
-    mem_bitarray = bitarray_create_with_mode(raw_bitmap, total_frames, LSB_FIRST);
+    mem_bitarray = bitarray_create_with_mode(raw_bitmap, total_frames_in_bytes, LSB_FIRST);
 }
 
 bool test_frame(uint32_t frame_number)

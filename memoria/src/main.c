@@ -49,7 +49,7 @@ static void init_memory(int argc, char** argv)
     set_frame_ocuppied(200);
     clear_frame(200);
     clear_frame(25);
-    printf("ocupado: %d desocupado %d",test_frame(200),!test_frame(25));
+    printf("ocupado: %d desocupado %d\n",test_frame(200),!test_frame(25));
 
     fd_server = socket_createTcpServer(NULL, cfg_mem->puerto_escucha);
 
