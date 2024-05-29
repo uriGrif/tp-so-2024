@@ -2,21 +2,30 @@
 
 t_dictionary *interface_dictionary;
 
+static pthread_mutex_t INTERFACE_MUTEX;
+
 static void interface_destroyer(void *_interface);
 
 void interface_init(void)
 {
     interface_dictionary = dictionary_create();
+    pthread_mutex_init(&INTERFACE_MUTEX,0);
 }
 
 void interface_add(t_interface *interface)
 {
+    pthread_mutex_lock(&INTERFACE_MUTEX);
     dictionary_put(interface_dictionary, interface->name, interface);
+    pthread_mutex_unlock(&INTERFACE_MUTEX);
 }
 
 t_interface *interface_get(char *name)
 {
-    return dictionary_get(interface_dictionary, name);
+    t_interface* res;
+    pthread_mutex_lock(&INTERFACE_MUTEX);
+    res= dictionary_get(interface_dictionary, name);
+    pthread_mutex_unlock(&INTERFACE_MUTEX);
+    return res;
 }
 
 t_interface *interface_get_by_fd(int fd)
@@ -26,8 +35,10 @@ t_interface *interface_get_by_fd(int fd)
         t_interface *interface = (t_interface *)elem;
         return interface->fd == fd;
     }
+    pthread_mutex_lock(&INTERFACE_MUTEX);
     t_list *list = dictionary_elements(interface_dictionary);
     t_interface *tmp = list_find(list, closure);
+    pthread_mutex_unlock(&INTERFACE_MUTEX);
     list_destroy(list);
     return tmp;
 }
@@ -41,6 +52,7 @@ void destroy_interface_dictionary(void)
     }
     dictionary_iterator(interface_dictionary, close_clients);
     dictionary_destroy_and_destroy_elements(interface_dictionary, interface_destroyer);
+    pthread_mutex_destroy(&INTERFACE_MUTEX);
 }
 
 int interface_is_connected(t_interface *interface)
@@ -71,6 +83,7 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
     // check if exists
     if (interface == NULL)
         return NULL;
+    
     // comento por ahora pero por si las dudas dejo
     // if (!interface_is_connected(interface))
     // {
@@ -87,46 +100,21 @@ t_interface *interface_validate(char *name, uint8_t instruction_to_run)
 
 void interface_destroy(t_interface *interface)
 {
-    // aca podriamos mandar a exit los procesos de la blocked queue de la interfaz
+    pthread_mutex_lock(&INTERFACE_MUTEX);
     dictionary_remove_and_destroy(interface_dictionary, interface->name, interface_destroyer);
+    pthread_mutex_unlock(&INTERFACE_MUTEX);
+}
+
+void packet_destroyer(void* _packet){
+    t_packet* p = _packet;
+    packet_free(p);
 }
 
 static void interface_destroyer(void *_interface)
 {
     t_interface *interface = (t_interface *)_interface;
+    sync_queue_destroy_with_destroyer(interface->msg_queue,packet_destroyer);
     free(interface->name);
     free(interface->type);
     free(interface);
-}
-
-/**
- * should be run at the beginning of every dispatch request that correspond to interfaces
- * handles:
- *  - validation
- *  - process scheduling
- *
- * @returns NULL on error, otherwise the corresponding `t_interface`
- */
-t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, t_pcb *pcb, t_log *logger)
-{
-    char *interface_name = packet_getString(buffer);
-    t_interface *interface = interface_validate(interface_name, instruction_to_run);
-    if (!interface)
-    {
-        log_info(logger, "Finaliza el proceso %d- Motivo: Error de interfaz %s no conectada", pcb->context->pid, interface_name);
-        free(interface_name);
-        // nunca pase por bloqueado asi que no deberia explotar
-        move_pcb_to_exit(pcb, logger);
-        return NULL;
-    }
-    if (scheduler.move_pcb_to_blocked(pcb, interface->name, logger) == -1)
-    {
-        log_error(logger, "Could not find blocked queue for %s", interface_name);
-        free(interface_name);
-        move_pcb_to_exit(pcb, logger);
-        return NULL;
-    }
-    log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, interface_name);
-    free(interface_name);
-    return interface;
 }

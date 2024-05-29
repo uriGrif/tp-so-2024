@@ -4,8 +4,8 @@
 #include <commons/collections/dictionary.h>
 #include <proto/interface.h>
 #include <sockets/sockets.h>
+#include <sync_queue/sync_queue.h>
 #include <pcb.h>
-#include <scheduler.h>
 
 enum interface_types
 {
@@ -20,6 +20,7 @@ typedef struct
     char *name;
     char *type;
     int fd;
+    t_sync_queue *msg_queue; // cola de paquetes
 } t_interface;
 
 extern t_dictionary *interface_dictionary;
@@ -34,6 +35,6 @@ int interface_can_run_instruction(t_interface *interface, uint8_t instruction_to
 void interface_destroy(t_interface *interface);
 char *interface_get_type_name(enum interface_types type);
 void destroy_interface_dictionary(void);
-t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, t_pcb *pcb, t_log *logger);
+// t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, t_pcb *pcb, t_log *logger);
 
 #endif

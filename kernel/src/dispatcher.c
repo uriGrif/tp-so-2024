@@ -21,6 +21,8 @@ void send_context_to_cpu(t_exec_context *context)
     packet_free(packet);
 }
 
+t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, t_pcb *pcb, t_log *logger);
+
 int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
 {
     t_packet *packet = packet_new(-1);
@@ -45,6 +47,8 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     case END_OF_QUANTUM:
     {
         handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
         log_info(logger, "PID: %d - Desalojado por fin de Quantum", pcb->context->pid);
         scheduler.exec_to_ready(pcb, logger);
         break;
@@ -86,6 +90,8 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         {
             handle_quantum();
             handle_pause();
+            if(handle_sigterm(pcb,logger))
+                break;
             scheduler.move_pcb_to_blocked(pcb, q->resource_name, logger);
             log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, resource_name);
             free(resource_name);
@@ -119,39 +125,57 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
     {
         handle_quantum();
         handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
         t_interface *interface = interface_middleware(packet->buffer, IO_GEN_SLEEP, pcb, logger);
         if (!interface)
             break;
         t_interface_io_gen_sleep_msg *msg = malloc(sizeof(t_interface_io_gen_sleep_msg));
         interface_decode_io_gen_sleep(packet->buffer, msg);
-        interface_send_io_gen_sleep(interface->fd, pcb->context->pid, msg->work_units);
+        t_packet* packet = interface_serialize_io_gen_sleep(interface->fd, pcb->context->pid, msg->work_units);
         interface_destroy_io_gen_sleep(msg);
+        queue_sync_push(interface->msg_queue,packet);
+        if(sync_queue_length(interface->msg_queue)==1){
+            packet_send(packet,interface->fd);
+        }
         break;
     }
     case IO_STDIN_READ:
     {
         handle_quantum();
         handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
         t_interface *interface = interface_middleware(packet->buffer, IO_STDIN_READ, pcb, logger);
         if (!interface)
             break;
         t_interface_io_stdin_read_msg *msg = malloc(sizeof(t_interface_io_stdin_read_msg));
         interface_decode_io_stdin_read(packet->buffer, msg);
-        interface_send_io_stdin_read(interface->fd, pcb->context->pid, msg->page_number, msg->offset, msg->size);
+        t_packet* packet = interface_serialize_io_stdin_read(interface->fd, pcb->context->pid, msg->page_number, msg->offset, msg->size);
         interface_destroy_io_stdin_read(msg);
+        queue_sync_push(interface->msg_queue,packet);
+        if(sync_queue_length(interface->msg_queue)==1){
+            packet_send(packet,interface->fd);
+        }
         break;
     }
     case IO_STDOUT_WRITE:
     {
         handle_quantum();
         handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
         t_interface *interface = interface_middleware(packet->buffer, IO_STDOUT_WRITE, pcb, logger);
         if (!interface)
             break;
         t_interface_io_stdout_write_msg *msg = malloc(sizeof(t_interface_io_stdout_write_msg));
         interface_decode_io_stdout_write(packet->buffer, msg);
-        interface_send_io_stdout_write(interface->fd, pcb->context->pid, msg->page_number, msg->offset, msg->size);
+        t_packet *packet = interface_serialize_io_stdout_write(interface->fd, pcb->context->pid, msg->page_number, msg->offset, msg->size);
         interface_destroy_io_stdout_write(msg);
+        queue_sync_push(interface->msg_queue,packet);
+        if(sync_queue_length(interface->msg_queue)==1){
+            packet_send(packet,interface->fd);
+        }
         break;
     }
     default:
@@ -161,4 +185,37 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
 
     packet_free(packet);
     return 0;
+}
+
+
+/**
+ * should be run at the beginning of every dispatch request that correspond to interfaces
+ * it handles:
+ *  - validation
+ *  - process scheduling
+ *
+ * @returns NULL on error, otherwise the corresponding `t_interface`
+ */
+t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, t_pcb *pcb, t_log *logger)
+{
+    char *interface_name = packet_getString(buffer);
+    t_interface *interface = interface_validate(interface_name, instruction_to_run);
+    if (!interface)
+    {
+        log_info(logger, "Finaliza el proceso %d- Motivo: Error de interfaz %s no conectada", pcb->context->pid, interface_name);
+        free(interface_name);
+        // nunca pase por bloqueado asi que no deberia explotar
+        move_pcb_to_exit(pcb, logger);
+        return NULL;
+    }
+    if (scheduler.move_pcb_to_blocked(pcb, interface->name, logger) == -1)
+    {
+        log_error(logger, "Could not find blocked queue for %s", interface_name);
+        free(interface_name);
+        move_pcb_to_exit(pcb, logger);
+        return NULL;
+    }
+    log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, interface_name);
+    free(interface_name);
+    return interface;
 }

@@ -69,6 +69,20 @@ void *sync_queue_remove_by_condition(t_sync_queue *self, bool (*closure)(void *)
     return elem;
 }
 
+bool sync_queue_remove_element(t_sync_queue* self, void* elem){
+    pthread_mutex_lock(&self->mutex);
+    bool res = list_remove_element(self->queue->elements,elem);
+    pthread_mutex_unlock(&self->mutex);
+    return res;
+}
+
+void* sync_queue_remove(t_sync_queue* self, int index){
+    pthread_mutex_lock(&self->mutex);
+    void* res = list_remove(self->queue->elements,index);
+    pthread_mutex_unlock(&self->mutex);
+    return res;
+}
+
 void sync_queue_iterate(t_sync_queue *self, void (*iterator)(void *))
 {
     pthread_mutex_lock(&self->mutex);
