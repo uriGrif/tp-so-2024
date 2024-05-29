@@ -6,6 +6,7 @@
 #include <commons/string.h>
 #include <utils/utlis.h>
 #include <utils.h>
+#include <math.h>
 #include <process.h>
 #include <proto/memory.h>
 

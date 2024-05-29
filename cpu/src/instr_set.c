@@ -227,6 +227,8 @@ void resize(char **args, t_log *logger)
     }
     if(packet->op_code == OUT_OF_MEMORY){
         send_dispatch_reason(OUT_OF_MEMORY,&context);
+        wait_for_context(&context);
+        clear_interrupt();
     }
     packet_free(packet);
 }
@@ -394,6 +396,7 @@ static void send_resize(uint32_t size){
     t_packet *packet = packet_new(RESIZE_PROCESS);
     packet_addUInt32(packet, context.pid);
     packet_addUInt32(packet, size);
+    packet_send(packet,fd_memory);
     packet_free(packet);
 }
 

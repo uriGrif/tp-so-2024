@@ -5,12 +5,14 @@
 #include <utils.h>
 #include <stdlib.h>
 #include <commons/collections/list.h>
+#include <bitarray_monitor.h>
 #include <proto/proto.h>
 
 typedef struct{
     int pid;
     char* path;
     t_list* page_table;
+    uint32_t current_size;
 } t_process_in_mem;
 
 void init_process_list (void);
@@ -21,4 +23,8 @@ void packet_get_process_in_mem (t_buffer *buffer, t_process_in_mem *process);
 void add_process (t_process_in_mem *process);
 t_process_in_mem *find_process_by_pid (uint32_t pid);
 void remove_process_by_pid (uint32_t pid);
+
+//tabla de paginas
+
+void process_remove_last_page_from_table(t_process_in_mem* process);
 #endif
