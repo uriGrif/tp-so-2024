@@ -57,4 +57,6 @@ void instr_signal(t_pcb* pcb, t_blocked_queue* queue,t_log* logger);
 // int move_pcb_to_blocked(t_pcb* pcb, char* resource_name,t_log* logger);
 void move_pcb_to_exit(t_pcb* pcb, t_log* logger);
 
+bool handle_sigterm(t_pcb* pcb,t_log* logger);
+
 #endif

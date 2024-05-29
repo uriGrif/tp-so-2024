@@ -21,6 +21,7 @@ typedef struct
     t_state state;
     char *text_path;
     t_dictionary* taken_resources;
+    bool sigterm;
     // quizas algunas mas ahora no se
 } t_pcb;
 

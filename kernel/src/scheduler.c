@@ -201,7 +201,6 @@ void instr_signal(t_pcb *pcb, t_blocked_queue *queue, t_log *logger)
     {
         scheduler.block_to_ready(queue, logger);
         // print_ready_queue(logger);
-        sem_post(&scheduler.sem_ready);
     }
 }
 
@@ -268,4 +267,13 @@ void handle_long_term_scheduler(void *args_logger)
         sem_post(&scheduler.sem_ready);
         inc_processes_in_memory_amount();
     }
+}
+
+bool handle_sigterm(t_pcb* pcb, t_log* logger){
+    if(pcb->sigterm){
+          log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", pcb->context->pid);
+          move_pcb_to_exit(pcb,logger);
+          return true;
+    }
+    return false;
 }

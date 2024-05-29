@@ -28,41 +28,51 @@ void end_process(char *pid_str, t_log *logger)
         log_error(logger, "Error: %s no es un pid valido", pid_str);
         return;
     }
-     t_pcb* victim;
+    t_pcb *victim;
     // empiezo a buscar
-    if(!paused_by_console)
+    if (!paused_by_console)
         pause_threads();
-    
-    //primero me apuro para ver si esta ejecutando pero no lo saco, dejo que el se saque solo
-    if((victim = find_pcb_by_pid(exec_queue,pid))){
+
+    // primero me apuro para ver si esta ejecutando pero no lo saco, dejo que el se saque solo
+    if ((victim = find_pcb_by_pid(exec_queue, pid)))
+    {
+        victim->sigterm = true;
         send_interrupt(INTERRUPT_EXEC);
-        //KILL_SUCCESS = true; 
-        // haciendo esto le aviso que lo quiero matar asi no me escapa a bloqueado o a exit
+        // KILL_SUCCESS = true;
+        //  haciendo esto le aviso que lo quiero matar asi no me escapa a bloqueado o a exit
     }
     // busco en new
-    else if((victim = remove_pcb_by_pid(new_queue,pid))){
+    else if ((victim = remove_pcb_by_pid(new_queue, pid)))
+    {
         sem_wait(&scheduler.sem_new);
         // no sumo grado de multiprogramacion
         log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
         log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual EXIT", victim->context->pid);
-        queue_sync_push(exit_queue,victim);
+        queue_sync_push(exit_queue, victim);
     }
     // busco en ready o ready +
-    else if((victim = remove_pcb_by_pid(ready_queue,pid)) || (victim = remove_pcb_by_pid(ready_plus_queue,pid))){
+    else if ((victim = remove_pcb_by_pid(ready_queue, pid)) || (victim = remove_pcb_by_pid(ready_plus_queue, pid)))
+    {
         sem_wait(&scheduler.sem_ready);
         log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
-        move_pcb_to_exit(victim,logger);
+        move_pcb_to_exit(victim, logger);
     }
-    //busco en bloqueados por si las dudas uso el mutex
-    else if((victim = remove_pcb_from_blocked_queues_by_pid(pid))){
-        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
-        move_pcb_to_exit(victim,logger);
+    // busco en bloqueados por si las dudas uso el mutex
+    else if ((victim = remove_pcb_from_blocked_queues_by_pid(pid, logger)))
+    {
+        if (!victim->sigterm)
+        {
+            log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
+            move_pcb_to_exit(victim, logger);
+        }
     }
-    else{
-        log_info(logger,"El proceso %d no existe o ya habia finalizado",pid);
+
+    else
+    {
+        log_info(logger, "El proceso %d no existe o ya habia finalizado", pid);
     }
-    
-    if(!paused_by_console)
+
+    if (!paused_by_console)
         resume_threads();
 }
 
@@ -115,7 +125,8 @@ void list_processes_by_state(char *x, t_log *logger)
     // sync_queue_iterate(exec_queue, log_state);
 }
 
-void list_resources(char *x, t_log *logger){
+void list_resources(char *x, t_log *logger)
+{
     print_resources(logger);
 }
 

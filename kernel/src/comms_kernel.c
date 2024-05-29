@@ -62,8 +62,7 @@ void process_conn(void *void_args)
             log_info(logger, "Interface %s requested by pid %d done", msg->interface_name, msg->pid);
             handle_pause();
             scheduler.block_to_ready(this_blocked_queue, logger);
-            sem_post(&scheduler.sem_ready);
-            
+
             t_packet* packet = queue_sync_pop(this_interface->msg_queue);
             packet_free(packet);
             if (sync_queue_length(this_interface->msg_queue) > 0) {

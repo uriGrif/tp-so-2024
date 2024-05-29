@@ -57,10 +57,9 @@ void blocked_queue_destroy_and_destroy_elements(t_blocked_queue *q)
 {
     sem_destroy(&q->sem_process_count);
     free(q->resource_name);
-    sync_queue_destroy_with_destroyer(q->block_queue,pcb_destroyer);
+    sync_queue_destroy_with_destroyer(q->block_queue, pcb_destroyer);
     free(q);
 }
-
 
 void pcb_destroyer(void *elem)
 {
@@ -68,13 +67,13 @@ void pcb_destroyer(void *elem)
     pcb_destroy(pcb);
 }
 
-t_blocked_queue* add_blocked_queue(char *resource_name, int value)
+t_blocked_queue *add_blocked_queue(char *resource_name, int value)
 {
-        t_blocked_queue *q = blocked_queue_create(resource_name, value);
-        pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-        list_add(_blocked_queues, q);
-        pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
-        return q;
+    t_blocked_queue *q = blocked_queue_create(resource_name, value);
+    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+    list_add(_blocked_queues, q);
+    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+    return q;
 }
 
 t_blocked_queue *get_blocked_queue_by_name(char *resource_name)
@@ -85,11 +84,10 @@ t_blocked_queue *get_blocked_queue_by_name(char *resource_name)
         return !strcmp(q->resource_name, resource_name);
     }
     pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-    t_blocked_queue *tmp = list_find(_blocked_queues, closure);
+    t_blocked_queue *target = list_find(_blocked_queues, closure);
     pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
-    return tmp;
+    return target;
 }
-
 
 int blocked_queue_push(char *resource_name, void *elem)
 {
@@ -101,7 +99,7 @@ int blocked_queue_push(char *resource_name, void *elem)
     return 0;
 }
 
-void *blocked_queue_pop(t_blocked_queue* queue)
+void *blocked_queue_pop(t_blocked_queue *queue)
 {
     sem_wait(&queue->sem_process_count);
     void *elem = queue_sync_pop(queue->block_queue);
@@ -134,7 +132,8 @@ void print_ready_queue(t_log *logger, bool is_ready_plus)
         log_info(logger, "Cola Ready PLUS: %s", pids_plus); // aca no se que poner donde va cola ???
         free(pids_plus);
     }
-    else {
+    else
+    {
         char *pids = generate_string_of_pids(ready_queue);
         log_info(logger, "Cola Ready: %s", pids); // aca no se que poner donde va cola ???
         free(pids);
@@ -152,30 +151,35 @@ void add_resources_to_blocked_queues(void)
     string_iterate_lines(cfg_kernel->recursos, add_resource);
 }
 
-bool is_resource(char* name){
-    for(int i =0; cfg_kernel->recursos[i]!= NULL; i++){
-        if(!strcmp(name,cfg_kernel->recursos[i]))
+bool is_resource(char *name)
+{
+    for (int i = 0; cfg_kernel->recursos[i] != NULL; i++)
+    {
+        if (!strcmp(name, cfg_kernel->recursos[i]))
             return true;
     }
     return false;
 }
 
-void print_resources(t_log* logger){
-    char* total = string_new();
+void print_resources(t_log *logger)
+{
+    char *total = string_new();
     pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-    bool closure(void * void_queue){
-        t_blocked_queue* q = (t_blocked_queue*) void_queue;
+    bool closure(void *void_queue)
+    {
+        t_blocked_queue *q = (t_blocked_queue *)void_queue;
         return is_resource(q->resource_name);
     }
-    t_list* resources = list_filter(_blocked_queues,closure);
-    void iterator(void* void_queue){
-        t_blocked_queue* queue = (t_blocked_queue*) void_queue;
-        string_append_with_format(&total,"Recurso: %s -> %d  -  ",queue->resource_name,queue->instances);
+    t_list *resources = list_filter(_blocked_queues, closure);
+    void iterator(void *void_queue)
+    {
+        t_blocked_queue *queue = (t_blocked_queue *)void_queue;
+        string_append_with_format(&total, "Recurso: %s -> %d  -  ", queue->resource_name, queue->instances);
     }
-    list_iterate(resources,iterator);
+    list_iterate(resources, iterator);
     list_destroy(resources);
     pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
-    log_info(logger,"%s",total);
+    log_info(logger, "%s", total);
     free(total);
 }
 
@@ -199,26 +203,68 @@ t_pcb *remove_pcb_by_pid(t_sync_queue *queue, uint32_t pid)
     return sync_queue_remove_by_condition(queue, closure);
 }
 
-t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid)
+t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid, t_log *logger)
 {
-    t_pcb *target = NULL, *tmp;
-    void iterator(void *void_queue)
+    // PERDON DIOS POR LO QUE VAS A VER EN ESTA FUNCION
+    t_list_iterator *queues_list_iterator = list_iterator_create(_blocked_queues);
+    pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
+    while (list_iterator_has_next(queues_list_iterator))
     {
-        t_blocked_queue *q = (t_blocked_queue *)void_queue;
-        tmp = remove_pcb_by_pid(q->block_queue, pid);
-        if (tmp)
+        t_blocked_queue *block_queue = list_iterator_next(queues_list_iterator);
+        t_list *pcb_list = block_queue->block_queue->queue->elements;
+        t_list_iterator *pcbs_iterator = list_iterator_create(pcb_list);
+
+        // target = find_pcb_by_pid(block_queue->block_queue, pid);
+        pthread_mutex_lock(&block_queue->block_queue->mutex);
+        while (list_iterator_has_next(pcbs_iterator))
         {
-            target = tmp;
-            sem_wait(&q->sem_process_count);
+            t_pcb *target = list_iterator_next(pcbs_iterator);
+            if (target->context->pid == pid)
+            {
+                if (is_resource(block_queue->resource_name))
+                {
+                    list_remove_element(pcb_list, target);
+                    sem_wait(&block_queue->sem_process_count);
+                    pthread_mutex_unlock(&block_queue->block_queue->mutex);
+                    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+                    list_iterator_destroy(pcbs_iterator);
+                    list_iterator_destroy(queues_list_iterator);
+                    return target;
+                }
+                if (list_iterator_index(pcbs_iterator) == 0)
+                {
+                    // caso en el medio IO request
+                    target->sigterm = true;
+                    pthread_mutex_unlock(&block_queue->block_queue->mutex);
+                    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+                    list_iterator_destroy(pcbs_iterator);
+                    list_iterator_destroy(queues_list_iterator);
+                    return target;
+                }
+                list_remove_element(pcb_list, target);
+                sem_wait(&block_queue->sem_process_count);
+                t_interface *interface = interface_get(block_queue->resource_name);
+                t_packet *p = sync_queue_remove(interface->msg_queue, list_iterator_index(pcbs_iterator));
+                packet_free(p);
+                pthread_mutex_unlock(&block_queue->block_queue->mutex);
+                pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+                list_iterator_destroy(pcbs_iterator);
+                list_iterator_destroy(queues_list_iterator);
+                return target;
+            }
         }
+        list_iterator_destroy(pcbs_iterator);
+        pthread_mutex_unlock(&block_queue->block_queue->mutex);
     }
-    blocked_queues_iterate(iterator);
-    return target;
+    pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
+    list_iterator_destroy(queues_list_iterator);
+    return NULL;
 }
 
-void remove_and_destroy_blocked_queue(t_blocked_queue* queue){
+void remove_and_destroy_blocked_queue(t_blocked_queue *queue)
+{
     pthread_mutex_lock(&MUTEX_LISTA_BLOCKEADOS);
-    list_remove_element(_blocked_queues,queue);
+    list_remove_element(_blocked_queues, queue);
     pthread_mutex_unlock(&MUTEX_LISTA_BLOCKEADOS);
     blocked_queue_destroy(queue);
 }

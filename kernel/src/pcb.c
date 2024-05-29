@@ -20,6 +20,7 @@ t_pcb *pcb_create(char *path)
         *instances = 0;
         dictionary_put(pcb->taken_resources,cfg_kernel->recursos[i],instances);
     }
+    pcb->sigterm = false;
     return pcb;
 }
 

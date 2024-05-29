@@ -4,10 +4,12 @@
 #include <sync_queue/sync_queue.h>
 #include <commons/collections/dictionary.h>
 #include <commons/collections/list.h>
-#include<semaphore.h>
-#include<utils.h>
+#include <semaphore.h>
+#include <utils.h>
 #include <pcb.h>
 #include <config.h>
+#include <interface.h>
+
 
 typedef struct
 {
@@ -54,6 +56,6 @@ void print_resources(t_log* logger);
 
 t_pcb *find_pcb_by_pid(t_sync_queue *queue, uint32_t pid);
 t_pcb *remove_pcb_by_pid(t_sync_queue *queue, uint32_t pid);
-t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid);
+t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid,t_log* logger);
 
 #endif
