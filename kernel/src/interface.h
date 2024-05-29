@@ -20,6 +20,7 @@ typedef struct
     char *name;
     char *type;
     int fd;
+    t_sync_queue *msg_queue; // cola de paquetes
 } t_interface;
 
 extern t_dictionary *interface_dictionary;

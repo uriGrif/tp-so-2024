@@ -7,7 +7,8 @@ void process_conn(void *void_args)
     int client_fd = args->fd;
     free(args);
     t_blocked_queue* this_blocked_queue = NULL;
-
+    t_interface* this_interface = NULL;
+    
     while (client_fd != -1)
     {
         t_packet *packet = packet_new(0);
@@ -15,11 +16,11 @@ void process_conn(void *void_args)
         {
             // t_sync_queue* blocked_queue = get_blocked_queue_by_fd(client_fd);
             //  deberia mandar todos a exit pero por ahora...
-            t_interface *interface = interface_get_by_fd(client_fd);
-            if (interface)
+            // t_interface *interface = interface_get_by_fd(client_fd);
+            if (this_interface)
             {
-                log_warning(logger, "Interfaz %s de tipo %s se desconecto, todos los bloqueados por ella iran a exit", interface->name, interface->type);
-                interface_destroy(interface);
+                log_warning(logger, "Interfaz %s de tipo %s se desconecto, todos los bloqueados por ella iran a exit", this_interface->name, this_interface->type);
+                interface_destroy(this_interface);
             }
             else
                 log_debug(logger, "no se conecto de una");
@@ -44,13 +45,14 @@ void process_conn(void *void_args)
         {
         case NEW_INTERFACE:
         {
-            t_interface *interface = malloc(sizeof(t_interface));
-            interface->fd = client_fd;
-            interface->name = packet_getString(packet->buffer);
-            interface->type = packet_getString(packet->buffer);
-            interface_add(interface);
-            this_blocked_queue = add_blocked_queue(interface->name, client_fd);
-            log_info(logger, "New interface registered: name: %s - type: %s", interface->name, interface->type);
+            this_interface = malloc(sizeof(t_interface));
+            this_interface->msg_queue = sync_queue_create();
+            this_interface->fd = client_fd;
+            this_interface->name = packet_getString(packet->buffer);
+            this_interface->type = packet_getString(packet->buffer);
+            interface_add(this_interface);
+            this_blocked_queue = add_blocked_queue(this_interface->name, client_fd);
+            log_info(logger, "New interface registered: name: %s - type: %s", this_interface->name, this_interface->type);
             break;
         }
         case IO_DONE:
@@ -61,6 +63,13 @@ void process_conn(void *void_args)
             handle_pause();
             scheduler.block_to_ready(this_blocked_queue, logger);
             sem_post(&scheduler.sem_ready);
+            
+            t_packet* packet = queue_sync_pop(this_interface->msg_queue);
+            packet_free(packet);
+            if (sync_queue_length(this_interface->msg_queue) > 0) {
+                packet = sync_queue_peek(this_interface->msg_queue,0);
+                packet_send(packet,this_interface->fd);
+            }
             // print_ready_queue(logger);
             interface_destroy_io_done(msg);
             break;

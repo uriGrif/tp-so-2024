@@ -91,9 +91,15 @@ void interface_destroy(t_interface *interface)
     dictionary_remove_and_destroy(interface_dictionary, interface->name, interface_destroyer);
 }
 
+void packet_destroyer(void* _packet){
+    t_packet* p = _packet;
+    packet_free(p);
+}
+
 static void interface_destroyer(void *_interface)
 {
     t_interface *interface = (t_interface *)_interface;
+    sync_queue_destroy_with_destroyer(interface->msg_queue,packet_destroyer);
     free(interface->name);
     free(interface->type);
     free(interface);
