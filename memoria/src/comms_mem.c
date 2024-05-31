@@ -21,12 +21,14 @@ void process_conn(void *void_args)
         {
         case CPU_HANDSHAKE:
         {
+            msleep(cfg_mem->retardo_respuesta);
             packet_addUInt32(packet, cfg_mem->tam_pagina);
             packet_send(packet, client_fd);
             break;
         }
         case RESIZE_PROCESS:
         {
+            msleep(cfg_mem->retardo_respuesta);
             uint32_t pid = packet_getUInt32(packet->buffer);
             uint32_t size = packet_getUInt32(packet->buffer);
 
@@ -104,6 +106,7 @@ void process_conn(void *void_args)
         }
         case READ_MEM:
         {
+            msleep(cfg_mem->retardo_respuesta);
             t_memory_read_msg *msg = malloc(sizeof(t_memory_read_msg));
             memory_decode_read(packet->buffer, msg);
             log_info(logger, "PID : %d - Accion : LEER - Numero de pagina : %d - Desplazamiento %d", msg->pid, msg->page_number, msg->offset);
@@ -118,6 +121,7 @@ void process_conn(void *void_args)
         }
         case WRITE_MEM:
         {
+            msleep(cfg_mem->retardo_respuesta);
             t_memory_write_msg *msg = malloc(sizeof(t_memory_write_msg));
             memory_decode_write(packet->buffer, msg);
 
@@ -137,6 +141,7 @@ void process_conn(void *void_args)
         }
         case CREATE_PROCESS:
         {
+            msleep(cfg_mem->retardo_respuesta);
             t_process_in_mem *process = t_process_in_mem_create();
             if (!process)
             {
@@ -156,6 +161,7 @@ void process_conn(void *void_args)
         }
         case END_PROCESS:
         {
+            msleep(cfg_mem->retardo_respuesta);
             uint32_t pid = packet_getUInt32(packet->buffer);
             remove_process_by_pid(pid);
             log_info(logger, "ENDING PROCESS with pid: %d", pid);
