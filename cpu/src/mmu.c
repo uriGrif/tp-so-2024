@@ -53,6 +53,7 @@ t_access_to_memory* access_to_memory_create(uint32_t logical_address, uint32_t t
 
     while (total_bytes > 0)
     {
+        result->addresses[i] = first_page + i;
         uint32_t offset = logical_address - (first_page + i) * page_size;
         if (total_bytes >= page_size)
         {
