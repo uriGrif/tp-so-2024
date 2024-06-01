@@ -70,7 +70,7 @@ t_process_in_mem *find_process_by_pid(uint32_t pid)
     return res;
 }
 
-void remove_process_by_pid(uint32_t pid)
+void remove_process_by_pid(uint32_t pid,t_log* logger)
 {
     bool closure(void *elem)
     {
@@ -78,8 +78,10 @@ void remove_process_by_pid(uint32_t pid)
         return aux_process->pid == pid;
     }
     pthread_mutex_lock(&MUTEX_PROCESS_LIST);
-    list_remove_and_destroy_by_condition(process_list, closure, destroyer);
+    t_process_in_mem* process =  list_remove_by_condition(process_list, closure);
     pthread_mutex_unlock(&MUTEX_PROCESS_LIST);
+    log_info(logger, "PID: %u - Tamaño: %d", pid, list_size(process->page_table));
+    t_process_in_mem_destroy(process);
 }
 
 void process_remove_last_page_from_table(t_process_in_mem *process)
@@ -95,4 +97,9 @@ static void clear_all_frames(t_process_in_mem* process){
         clear_frame(*frame);
     }
     list_iterate(process->page_table,iterator);
+}
+
+uint32_t get_frame(t_process_in_mem* process, uint32_t page_number){
+    uint32_t *frame =  list_get(process->page_table,page_number);
+    return *frame;
 }

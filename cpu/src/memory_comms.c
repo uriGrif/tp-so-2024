@@ -19,3 +19,18 @@ void send_mem_handshake(t_log* logger)
     log_debug(logger,"conexion incial con memoria exitosa, tam pagina: %d",PAGE_SIZE);
 }
 
+uint32_t access_page_table(uint32_t page_number){
+    t_packet* packet = packet_new(GET_FRAME);
+    packet_addUInt32(packet, context.pid);
+    packet_addUInt32(packet, page_number);
+    packet_send(packet,fd_memory);
+    packet_free(packet);
+
+    packet = packet_new(-1);
+    if(packet_recv(fd_memory,packet)==-1){
+        return -1;
+    }
+    uint32_t frame = packet_getUInt32(packet->buffer);
+    packet_free(packet);
+    return frame;
+}

@@ -21,8 +21,19 @@ void process_conn(void *void_args)
         {
         case CPU_HANDSHAKE:
         {
-            msleep(cfg_mem->retardo_respuesta);
             packet_addUInt32(packet, cfg_mem->tam_pagina);
+            packet_send(packet, client_fd);
+            break;
+        }
+        case GET_FRAME:
+        {
+            msleep(cfg_mem->retardo_respuesta);
+            uint32_t pid = packet_getUInt32(packet->buffer);
+            uint32_t page = packet_getUInt32(packet->buffer);
+            t_process_in_mem *process = find_process_by_pid(pid);
+            uint32_t frame = get_frame(process, page);
+            packet_addUInt32(packet, frame);
+            log_info(logger, "PID: %u - Pagina: %u - Marco: %u", pid, page, frame);
             packet_send(packet, client_fd);
             break;
         }
@@ -75,7 +86,7 @@ void process_conn(void *void_args)
                 if (list_size(possible_frames) < target_pages)
                 {
                     // caso OUT OF MEMORY, mando el error
-                    log_info(logger,"no hay suficiente espacio en memoria!");
+                    log_info(logger, "no hay suficiente espacio en memoria!");
                     packet->op_code = OUT_OF_MEMORY;
                     packet_send(packet, client_fd);
                     break;
@@ -109,12 +120,22 @@ void process_conn(void *void_args)
             msleep(cfg_mem->retardo_respuesta);
             t_memory_read_msg *msg = malloc(sizeof(t_memory_read_msg));
             memory_decode_read(packet->buffer, msg);
-            log_info(logger, "PID : %d - Accion : LEER - Numero de pagina : %d - Desplazamiento %d", msg->pid, msg->page_number, msg->offset);
+
+            int offset = 0;
+            void *value = malloc(msg->total_bytes);
+            void iterator(void *elem)
+            {
+                t_access_to_memory *access = (t_access_to_memory *)elem;
+                log_info(logger, "PID: %u - Accion: LEER - Direccion fisica: %u - Tamaño %u", msg->pid, access->address, access->bytes_to_access);
+                read_mem(access->address, value + offset, access->bytes_to_access);
+                offset += access->bytes_to_access;
+            }
+
+            list_iterate(msg->access_list, iterator);
 
             // arbitrary test value
-            char *str = string_substring_until("hello boy, how are you doing?", msg->size);
-            memory_send_read_ok(client_fd, str, msg->size);
-            free(str);
+            memory_send_read_ok(client_fd, value, msg->total_bytes);
+            free(value);
 
             memory_destroy_read(msg);
             break;
@@ -124,8 +145,6 @@ void process_conn(void *void_args)
             msleep(cfg_mem->retardo_respuesta);
             t_memory_write_msg *msg = malloc(sizeof(t_memory_write_msg));
             memory_decode_write(packet->buffer, msg);
-
-            log_info(logger, "PID : %d - Accion : ESCRIBIR - Numero de pagina : %d - Desplazamiento %d", msg->pid, msg->page_number, msg->offset);
 
             char *aux = malloc(msg->size + 1);
             memset(aux, 0x0, msg->size + 1);
@@ -141,7 +160,6 @@ void process_conn(void *void_args)
         }
         case CREATE_PROCESS:
         {
-            msleep(cfg_mem->retardo_respuesta);
             t_process_in_mem *process = t_process_in_mem_create();
             if (!process)
             {
@@ -155,16 +173,17 @@ void process_conn(void *void_args)
                 t_process_in_mem_destroy(process);
                 break;
             }
-            log_info(logger, "CREATE PROCESS with pid: %d - path: %s", process->pid, process->path);
+
             add_process(process);
+            msleep(cfg_mem->retardo_respuesta);
+            log_info(logger, "PID: %u - Tamaño: %d", process->pid, list_size(process->page_table));
             break;
         }
         case END_PROCESS:
         {
             msleep(cfg_mem->retardo_respuesta);
             uint32_t pid = packet_getUInt32(packet->buffer);
-            remove_process_by_pid(pid);
-            log_info(logger, "ENDING PROCESS with pid: %d", pid);
+            remove_process_by_pid(pid, logger);
             break;
         }
         case NEXT_INSTRUCTION:

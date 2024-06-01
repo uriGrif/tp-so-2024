@@ -122,51 +122,42 @@ void mov_in(char **args, t_log *logger)
 {
     t_register *data = register_get_by_name(args[0]);
     t_register *dir = register_get_by_name(args[1]);
-    
-    // Todo esto va a haber que cambiarlo para calcular el array de direcciones a leer  
-    /*
-    t_physical_address *addr;
-    if (dir->size == sizeof(uint8_t))
-    {
-        uint8_t *value = (uint8_t *)dir->address;
-        addr = translate_address_1_byte(*value, PAGE_SIZE);
-    }
-    else
-    {
-        uint32_t *value = (uint32_t *)dir->address;
-        addr = translate_address_4_bytes(*value, PAGE_SIZE);
-    }
 
-    memory_send_read(fd_memory, context.pid, addr->page_number, addr->offset, data->size);
-    
+    uint32_t *dir_value = (uint32_t *)dir->address;
+
+    t_list *access_to_memory = access_to_memory_create(*dir_value, data->size, PAGE_SIZE, logger);
+
+    memory_send_read(fd_memory, context.pid, access_to_memory, data->size);
+
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
-        log_error(logger, "error al leer de la memoria");
+        log_error(logger, "Error al leer de la memoria");
         packet_free(packet);
         return;
     }
+
     t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
     memory_decode_read_ok(packet->buffer, ok_msg, data->size);
     memcpy(data->address, ok_msg->value, data->size);
-    // luego de la operacion
-    char *addr_string = physical_addr_to_string(addr);
 
-    if (data->size == sizeof(uint8_t))
-    {
-        uint8_t *value = data->address;
-        log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %s - Valor: %u", context.pid, addr_string, *value);
-    }
-    else{
-        uint32_t* value = data->address;
-         log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %s - Valor: %u", context.pid, addr_string, *value);
-    }
 
-    free(addr_string);
-    free(addr);
+    // if (data->size == sizeof(uint8_t))
+    // {
+    //     uint8_t *value = data->address;
+    //     log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %u", context.pid, 1, *value);
+    // }
+    // else
+    // {
+    //     uint32_t *value = data->address;
+    //     log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %u", context.pid, 1, *value);
+    // }
+
+    //log_info(logger, "Value: %d", ok_msg->value);
+
     memory_destroy_read_ok(ok_msg);
     packet_free(packet);
-    */
+
 }
 
 void mov_out(char **args, t_log *logger)
@@ -196,7 +187,7 @@ void mov_out(char **args, t_log *logger)
         packet_free(packet);
         return;
     }
-    
+
     char *addr_string = physical_addr_to_string(addr);
     if (data->size == sizeof(uint8_t))
     {
@@ -217,16 +208,18 @@ void mov_out(char **args, t_log *logger)
 
 void resize(char **args, t_log *logger)
 {
-    uint32_t size = (uint32_t) atoi(args[0]);
+    uint32_t size = (uint32_t)atoi(args[0]);
     send_resize(size);
-    t_packet* packet = packet_new(-1);
-    if(packet_recv(fd_memory, packet) == -1){
-        log_error(logger,"error al recibir de memoria");
+    t_packet *packet = packet_new(-1);
+    if (packet_recv(fd_memory, packet) == -1)
+    {
+        log_error(logger, "error al recibir de memoria");
         packet_free(packet);
         exit(1);
     }
-    if(packet->op_code == OUT_OF_MEMORY){
-        send_dispatch_reason(OUT_OF_MEMORY,&context);
+    if (packet->op_code == OUT_OF_MEMORY)
+    {
+        send_dispatch_reason(OUT_OF_MEMORY, &context);
         wait_for_context(&context);
         clear_interrupt();
     }
@@ -235,7 +228,7 @@ void resize(char **args, t_log *logger)
 
 void copy_string(char **args, t_log *logger)
 {
-    uint32_t size = (uint32_t) atoi(args[0]);
+    uint32_t size = (uint32_t)atoi(args[0]);
     t_register *source = register_get_by_name("SI");
     t_register *dest = register_get_by_name("DI");
 
@@ -271,7 +264,7 @@ void copy_string(char **args, t_log *logger)
         packet_free(packet);
         return;
     }
-    
+
     // IDEM, no se si poner los logs
 
     free(source_addr);
@@ -390,13 +383,14 @@ void instruction_exit(char **args, t_log *logger)
     current_exec_process_has_finished = 1;
 }
 
-//MEM PROTOCOL
+// MEM PROTOCOL
 
-static void send_resize(uint32_t size){
+static void send_resize(uint32_t size)
+{
     t_packet *packet = packet_new(RESIZE_PROCESS);
     packet_addUInt32(packet, context.pid);
     packet_addUInt32(packet, size);
-    packet_send(packet,fd_memory);
+    packet_send(packet, fd_memory);
     packet_free(packet);
 }
 
