@@ -128,7 +128,7 @@ void mov_in(char **args, t_log *logger)
     t_list *access_to_memory = access_to_memory_create(*dir_value, data->size, PAGE_SIZE, logger);
 
     memory_send_read(fd_memory, context.pid, access_to_memory, data->size);
-
+    list_destroy_and_destroy_elements(access_to_memory,free);
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
