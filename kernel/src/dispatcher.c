@@ -151,7 +151,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             break;
         t_interface_io_stdin_read_msg *msg = malloc(sizeof(t_interface_io_stdin_read_msg));
         interface_decode_io_stdin_read(packet->buffer, msg);
-        t_packet* packet = interface_serialize_io_stdin_read(pcb->context->pid, msg->page_number, msg->offset, msg->size);
+        t_packet* packet = interface_serialize_io_stdin_read(pcb->context->pid, msg);
         interface_destroy_io_stdin_read(msg);
         queue_sync_push(interface->msg_queue,packet);
         if(sync_queue_length(interface->msg_queue)==1){

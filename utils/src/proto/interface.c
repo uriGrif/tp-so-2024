@@ -77,25 +77,24 @@ void interface_destroy_io_gen_sleep(t_interface_io_gen_sleep_msg *msg)
 }
 
 // =========== IO STDIN READ =============
-t_packet* interface_serialize_io_stdin_read(uint32_t pid, uint32_t page_number, uint32_t offset, uint32_t size)
+t_packet* interface_serialize_io_stdin_read(uint32_t pid, t_interface_io_stdin_read_msg* msg)
 {
     t_packet *packet = packet_new(IO_STDIN_READ);
     packet_addUInt32(packet, pid);
-    packet_addUInt32(packet, page_number);
-    packet_addUInt32(packet, offset);
-    packet_addUInt32(packet, size);
+    packet_add_list(packet,msg->access_list,(void*)packet_add_access_to_mem);
+    packet_addUInt32(packet, msg->size);
     return packet;
 }
 
 void interface_decode_io_stdin_read(t_buffer *buffer, t_interface_io_stdin_read_msg *msg)
 {
-    msg->page_number = packet_getUInt32(buffer);
-    msg->offset = packet_getUInt32(buffer);
+    msg->access_list = packet_get_list(buffer,(void*)packet_get_access_to_mem);
     msg->size = packet_getUInt32(buffer);
 }
 
 void interface_destroy_io_stdin_read(t_interface_io_stdin_read_msg *msg)
 {
+    list_destroy_and_destroy_elements(msg->access_list, free);
     free(msg);
 }
 

@@ -23,8 +23,7 @@ typedef struct
 
 typedef struct
 {
-    uint32_t page_number;
-    uint32_t offset;
+    t_list *access_list;
     uint32_t size;
 } t_interface_io_stdin_read_msg;
 
@@ -49,7 +48,7 @@ void interface_decode_io_gen_sleep(t_buffer *buffer, t_interface_io_gen_sleep_ms
 void interface_destroy_io_gen_sleep(t_interface_io_gen_sleep_msg *msg);
 
 // =========== IO STDIN READ =============
-t_packet* interface_serialize_io_stdin_read(uint32_t pid, uint32_t page_number, uint32_t offset, uint32_t size);
+t_packet* interface_serialize_io_stdin_read(uint32_t pid,t_interface_io_stdin_read_msg* msg);
 void interface_decode_io_stdin_read(t_buffer *buffer, t_interface_io_stdin_read_msg *msg);
 void interface_destroy_io_stdin_read(t_interface_io_stdin_read_msg *msg);
 

@@ -68,7 +68,19 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         // ask for prompt
         char* str = prompt(msg->size);
 
-        memory_send_write(memory_fd, pid, msg->page_number, msg->offset, strlen(str), str);
+        memory_send_write(memory_fd, pid, msg->access_list,msg->size,str);
+
+        t_packet *res = packet_new(-1);
+        if (packet_recv(memory_fd, res) == -1)
+        {
+            log_error(logger, "Error, desconexion de memoria");
+            packet_free(res);
+            break;
+        }
+
+        if(res->op_code != WRITE_MEM_OK){
+            log_info(logger,"Error al escribir en memoria");
+        }
 
         log_info(logger, "MEMORY SUCCESSFULLY SAVED");
 
@@ -76,6 +88,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
 
         interface_destroy_io_stdin_read(msg);
         free(str);
+        packet_free(res);
 
         break;
     }

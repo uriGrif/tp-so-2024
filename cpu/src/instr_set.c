@@ -136,8 +136,9 @@ void mov_in(char **args, t_log *logger)
         return;
     }
 
-    if(packet->op_code != READ_MEM_OK){
-        log_info(logger,"Error al leer de memoria");
+    if (packet->op_code != READ_MEM_OK)
+    {
+        log_info(logger, "Error al leer de memoria");
         packet_free(packet);
         return;
     }
@@ -179,19 +180,19 @@ void mov_out(char **args, t_log *logger)
     {
         t_access_to_memory *access = (t_access_to_memory *)elem;
         void *temp = calloc(sizeof(int), sizeof(char));
-        memcpy(temp, data->address+offset, access->bytes_to_access);
+        memcpy(temp, data->address + offset, access->bytes_to_access);
         offset += access->bytes_to_access;
         log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *(int *)temp);
         free(temp);
     }
 
-    list_iterate(access_to_memory,iterator);
+    list_iterate(access_to_memory, iterator);
 
     memory_send_write(fd_memory, context.pid, access_to_memory, data->size, data->address);
 
-    list_destroy_and_destroy_elements(access_to_memory,free);
+    list_destroy_and_destroy_elements(access_to_memory, free);
 
-    t_packet* packet = packet_new(-1);
+    t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
         log_error(logger, "Error, se desconecto la memoria");
@@ -199,9 +200,10 @@ void mov_out(char **args, t_log *logger)
         exit(1);
     }
 
-    if(packet->op_code != WRITE_MEM_OK){
-        log_info(logger,"Error al escribir en memoria");
-        //hacer algo?? no se 
+    if (packet->op_code != WRITE_MEM_OK)
+    {
+        log_info(logger, "Error al escribir en memoria");
+        // hacer algo?? no se
         packet_free(packet);
         return;
     }
@@ -311,27 +313,16 @@ void io_stdin_read(char **args, t_log *logger)
     char *interface_name = args[0];
     t_register *virtual_address = register_get_by_name(args[1]);
     uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
-    /*
-    if (sizeof(uint8_t) == virtual_address->size)
-    {
-        uint8_t *value = (uint8_t *)virtual_address->address;
-        t_physical_address *physical_mem_dir = translate_address_1_byte(*value, PAGE_SIZE);
-        send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
-        free(physical_mem_dir);
-        wait_for_context(&context);
-        clear_interrupt();
-        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
-        return;
-    }
-    uint32_t *value = (uint32_t *)virtual_address->address;
-    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value, PAGE_SIZE);
 
-    send_io_std(IN, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
-    free(physical_mem_dir);
+    uint32_t *dir_value = (uint32_t *)virtual_address->address;
+
+    t_list *access_to_memory = access_to_memory_create(*dir_value, *size_dir, PAGE_SIZE, logger);
+
+    send_io_std(IN, interface_name, access_to_memory, *size_dir);
+    list_destroy_and_destroy_elements(access_to_memory, free);
     wait_for_context(&context);
     clear_interrupt();
     log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
-    */
 }
 
 void io_stdout_write(char **args, t_log *logger)
