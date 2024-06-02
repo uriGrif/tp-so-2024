@@ -45,8 +45,6 @@ static void init_memory(int argc, char** argv)
         exit(1);
     }
     init_mem_bitarray(cfg_mem->tam_memoria,cfg_mem->tam_pagina);
-    write_mem(0,"hola",4);
-    write_mem(4," !!!",4);
     fd_server = socket_createTcpServer(NULL, cfg_mem->puerto_escucha);
 
     if (fd_server == -1)

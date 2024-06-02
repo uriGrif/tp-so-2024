@@ -16,7 +16,7 @@
 #include <process.h>
 
 
-#define LOG_LEVEL LOG_LEVEL_DEBUG
+#define LOG_LEVEL LOG_LEVEL_INFO
 #define LOG_PATH "mem.log"
 #define PROCESS_NAME "MEMORIA"
 

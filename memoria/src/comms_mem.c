@@ -146,12 +146,15 @@ void process_conn(void *void_args)
             t_memory_write_msg *msg = malloc(sizeof(t_memory_write_msg));
             memory_decode_write(packet->buffer, msg);
 
-            char *aux = malloc(msg->size + 1);
-            memset(aux, 0x0, msg->size + 1);
-            strncpy(aux, msg->value, msg->size);
+            int offset = 0;
+            void iterator(void* elem){
+                t_access_to_memory* access = (t_access_to_memory*) elem;
+                log_info(logger, "PID: %u - Accion: ESCRIBIR - Direccion fisica: %u - Tamaño %u", msg->pid, access->address, access->bytes_to_access);
+                write_mem(access->address,msg->value + offset,access->bytes_to_access);
+                offset += access->bytes_to_access;
+            }
 
-            log_info(logger, "DATA TO SAVE: %s", aux);
-            free(aux);
+            list_iterate(msg->access_list,iterator);
 
             memory_send_write_ok(client_fd);
 

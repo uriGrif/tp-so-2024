@@ -18,11 +18,10 @@ typedef struct
 
 typedef struct
 {
-    int pid;
-    uint32_t page_number;
-    uint32_t offset;
+    uint32_t pid;
+    uint32_t total_bytes;
+    t_list* access_list;
     void *value;
-    uint32_t size;
 } t_memory_write_msg;
 
 typedef struct {
@@ -41,7 +40,7 @@ int memory_decode_page_table_access(t_buffer *buffer, t_page_table_access *acces
 int memory_send_frame_number(t_page_table_access *access);
 uint32_t memory_decode_frame_number(t_buffer *buffer);
 
-int memory_send_read(int fd, int pid, t_list* access_list, uint32_t total_bytes);
+int memory_send_read(int fd, uint32_t pid, t_list* access_list, uint32_t total_bytes);
 void memory_decode_read(t_buffer *buffer, t_memory_read_msg *msg);
 void memory_destroy_read(t_memory_read_msg *msg);
 
@@ -52,7 +51,7 @@ void memory_destroy_read_ok(t_memory_read_ok_msg *msg);
 void packet_add_access_to_mem(t_packet* packet,t_access_to_memory* access);
 t_access_to_memory* packet_get_access_to_mem(t_buffer* buffer);
 
-int memory_send_write(int fd, int pid, uint32_t page_number, uint32_t offset, uint32_t size, void *value);
+int memory_send_write(int fd, uint32_t pid, t_list* access_list, uint32_t total_bytes, void *value);
 void memory_decode_write(t_buffer *buffer, t_memory_write_msg *msg);
 void memory_destroy_write(t_memory_write_msg *msg);
 

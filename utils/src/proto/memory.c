@@ -12,7 +12,7 @@ t_access_to_memory* packet_get_access_to_mem(t_buffer* buffer){
     return access;
 }
 
-int memory_send_read(int fd, int pid, t_list* access_list, uint32_t total_bytes)
+int memory_send_read(int fd, uint32_t pid, t_list* access_list, uint32_t total_bytes)
 {
     t_packet *packet = packet_new(READ_MEM);
     packet_addUInt32(packet, pid);
@@ -57,14 +57,13 @@ void memory_destroy_read_ok(t_memory_read_ok_msg *msg)
     free(msg);
 }
 
-int memory_send_write(int fd, int pid, uint32_t page_number, uint32_t offset, uint32_t size, void *value)
+int memory_send_write(int fd, uint32_t pid, t_list* access_list, uint32_t total_bytes, void *value)
 {
     t_packet *packet = packet_new(WRITE_MEM);
     packet_addUInt32(packet, pid);
-    packet_addUInt32(packet, page_number);
-    packet_addUInt32(packet, offset);
-    packet_addUInt32(packet, size);
-    packet_add(packet, value, size);
+    packet_addUInt32(packet,total_bytes);
+    packet_add_list(packet,access_list,(void*)packet_add_access_to_mem);
+    packet_add(packet,value,total_bytes);
     int res = packet_send(packet, fd);
     packet_free(packet);
     return res;
@@ -73,16 +72,16 @@ int memory_send_write(int fd, int pid, uint32_t page_number, uint32_t offset, ui
 void memory_decode_write(t_buffer *buffer, t_memory_write_msg *msg)
 {
     msg->pid = packet_getUInt32(buffer);
-    msg->page_number = packet_getUInt32(buffer);
-    msg->offset = packet_getUInt32(buffer);
-    msg->size = packet_getUInt32(buffer);
-    msg->value = malloc(msg->size);
-    packet_get(buffer, msg->value, msg->size);
+    msg->total_bytes = packet_getUInt32(buffer);
+    msg->access_list = packet_get_list(buffer,(void*)packet_get_access_to_mem);
+    msg->value = malloc(msg->total_bytes);
+    packet_get(buffer, msg->value,msg->total_bytes);
 }
 
 void memory_destroy_write(t_memory_write_msg *msg)
 {
     free(msg->value);
+    list_destroy_and_destroy_elements(msg->access_list,free);
     free(msg);
 }
 

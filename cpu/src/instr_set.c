@@ -131,7 +131,13 @@ void mov_in(char **args, t_log *logger)
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
-        log_error(logger, "Error al leer de la memoria");
+        log_error(logger, "Error, desconexion de memoria");
+        packet_free(packet);
+        return;
+    }
+
+    if(packet->op_code != READ_MEM_OK){
+        log_info(logger,"Error al leer de memoria");
         packet_free(packet);
         return;
     }
@@ -141,22 +147,22 @@ void mov_in(char **args, t_log *logger)
     memcpy(data->address, ok_msg->value, data->size);
 
     int offset = 0;
-    void iterator(void* elem) {
-        t_access_to_memory* access = (t_access_to_memory*) elem;
-        void* temp = calloc(sizeof(int),sizeof(char));
+    void iterator(void *elem)
+    {
+        t_access_to_memory *access = (t_access_to_memory *)elem;
+        void *temp = calloc(sizeof(int), sizeof(char));
         memcpy(temp, ok_msg->value + offset, access->bytes_to_access);
         offset += access->bytes_to_access;
-        log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *(int*)temp);
+        log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *(int *)temp);
         free(temp);
     }
-        // aiuda
+    // aiuda
     list_iterate(access_to_memory, iterator);
 
-    list_destroy_and_destroy_elements(access_to_memory,free);
+    list_destroy_and_destroy_elements(access_to_memory, free);
 
     memory_destroy_read_ok(ok_msg);
     packet_free(packet);
-
 }
 
 void mov_out(char **args, t_log *logger)
@@ -164,45 +170,43 @@ void mov_out(char **args, t_log *logger)
     t_register *dir = register_get_by_name(args[0]);
     t_register *data = register_get_by_name(args[1]);
 
-    /*
-    t_physical_address *addr;
-    if (dir->size == sizeof(uint8_t))
+    uint32_t *dir_value = (uint32_t *)dir->address;
+
+    t_list *access_to_memory = access_to_memory_create(*dir_value, data->size, PAGE_SIZE, logger);
+
+    int offset = 0;
+    void iterator(void *elem)
     {
-        uint8_t *value = (uint8_t *)dir->address;
-        addr = translate_address_1_byte(*value, PAGE_SIZE);
-    }
-    else
-    {
-        uint32_t *value = (uint32_t *)dir->address;
-        addr = translate_address_4_bytes(*value, PAGE_SIZE);
+        t_access_to_memory *access = (t_access_to_memory *)elem;
+        void *temp = calloc(sizeof(int), sizeof(char));
+        memcpy(temp, data->address+offset, access->bytes_to_access);
+        offset += access->bytes_to_access;
+        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *(int *)temp);
+        free(temp);
     }
 
-    memory_send_write(fd_memory, context.pid, addr->page_number, addr->offset, data->size, (void *)data->address);
+    list_iterate(access_to_memory,iterator);
 
-    t_packet *packet = packet_new(-1);
+    memory_send_write(fd_memory, context.pid, access_to_memory, data->size, data->address);
+
+    list_destroy_and_destroy_elements(access_to_memory,free);
+
+    t_packet* packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
-        log_error(logger, "error al leer de la memoria");
+        log_error(logger, "Error, se desconecto la memoria");
+        packet_free(packet);
+        exit(1);
+    }
+
+    if(packet->op_code != WRITE_MEM_OK){
+        log_info(logger,"Error al escribir en memoria");
+        //hacer algo?? no se 
         packet_free(packet);
         return;
     }
 
-    char *addr_string = physical_addr_to_string(addr);
-    if (data->size == sizeof(uint8_t))
-    {
-        uint8_t *value = data->address;
-        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %s - Valor: %u", context.pid, addr_string, *value);
-    }
-    else{
-        uint32_t* value = data->address;
-        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %s - Valor: %u", context.pid, addr_string, *value);
-    }
-
-    free(addr_string);
-    free(addr);
-
     packet_free(packet);
-    */
 }
 
 void resize(char **args, t_log *logger)
@@ -341,7 +345,7 @@ void io_stdout_write(char **args, t_log *logger)
     t_list *access_to_memory = access_to_memory_create(*dir_value, *size_dir, PAGE_SIZE, logger);
 
     send_io_std(OUT, interface_name, access_to_memory, *size_dir);
-    list_destroy_and_destroy_elements(access_to_memory,free);
+    list_destroy_and_destroy_elements(access_to_memory, free);
     wait_for_context(&context);
     clear_interrupt();
     log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
@@ -412,13 +416,13 @@ static void send_io_gen_sleep(char *interface_name, int work_units)
     packet_free(packet);
 }
 
-static void send_io_std(enum StdType type, char *interface_name, t_list* access_list, uint32_t size)
+static void send_io_std(enum StdType type, char *interface_name, t_list *access_list, uint32_t size)
 {
     t_packet *packet = packet_new(type == IN ? IO_STDIN_READ : IO_STDOUT_WRITE);
     packet_add_context(packet, &context);
     packet_addString(packet, interface_name);
-    packet_add_list(packet, access_list, (void*) packet_add_access_to_mem);
-    packet_addUInt32(packet,size);
+    packet_add_list(packet, access_list, (void *)packet_add_access_to_mem);
+    packet_addUInt32(packet, size);
     packet_send(packet, cli_dispatch_fd);
     packet_free(packet);
 }
