@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <proto/proto.h>
-#include <proto/interface.h>
 #include <proto/memory.h>
+#include <proto/interface.h>
 #include <string.h>
 #include <commons/string.h>
 #include <errno.h>

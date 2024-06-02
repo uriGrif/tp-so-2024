@@ -1,3 +1,7 @@
+#ifndef MEMORY_PROTO_H
+#define MEMORY_PROTO_H
+
+
 #include <proto/proto.h>
 
 typedef struct
@@ -45,8 +49,13 @@ int memory_send_read_ok(int fd, void *value, uint32_t size);
 void memory_decode_read_ok(t_buffer *buffer, t_memory_read_ok_msg *msg, uint32_t size);
 void memory_destroy_read_ok(t_memory_read_ok_msg *msg);
 
+void packet_add_access_to_mem(t_packet* packet,t_access_to_memory* access);
+t_access_to_memory* packet_get_access_to_mem(t_buffer* buffer);
+
 int memory_send_write(int fd, int pid, uint32_t page_number, uint32_t offset, uint32_t size, void *value);
 void memory_decode_write(t_buffer *buffer, t_memory_write_msg *msg);
 void memory_destroy_write(t_memory_write_msg *msg);
 
 int memory_send_write_ok(int fd);
+
+#endif

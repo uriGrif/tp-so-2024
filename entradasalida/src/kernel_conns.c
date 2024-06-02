@@ -86,12 +86,12 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_interface_io_stdout_write_msg *msg = malloc(sizeof(t_interface_io_stdout_write_msg));
         interface_decode_io_stdout_write(buffer, msg);
 
-        memory_send_read(memory_fd, pid, msg->page_number, msg->offset, msg->size);
+        memory_send_read(memory_fd, pid, msg->access_list, msg->size);
 
         t_packet *res = packet_new(-1);
         if (packet_recv(memory_fd, res) == -1)
         {
-            log_info(logger, "ERROR WHILE SAVING TO MEMORY");
+            log_error(logger, "Error al leer de memoria");
             break;
         }
 
@@ -99,7 +99,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         {
             t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
             memory_decode_read_ok(res->buffer, ok_msg, msg->size);
-            char* result = string_from_read_mem_msg(ok_msg,msg->size);
+            char* result = string_from_read_mem_msg(ok_msg, msg->size);
             log_info(logger, "MEMORY VALUE: %s",result);
             free(result);
             memory_destroy_read_ok(ok_msg);

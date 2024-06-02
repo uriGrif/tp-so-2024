@@ -29,7 +29,7 @@ enum StdType
     IN,
     OUT
 };
-static void send_io_std(enum StdType type, char *interface_name, uint32_t page_number, uint32_t offset, uint32_t size);
+static void send_io_std(enum StdType type, char *interface_name, t_list *access_list, uint32_t size);
 static void send_wait_resource(char *resource_name);
 static void send_signal_resource(char *resource_name);
 static void send_resize(uint32_t size);
@@ -128,7 +128,6 @@ void mov_in(char **args, t_log *logger)
     t_list *access_to_memory = access_to_memory_create(*dir_value, data->size, PAGE_SIZE, logger);
 
     memory_send_read(fd_memory, context.pid, access_to_memory, data->size);
-    list_destroy_and_destroy_elements(access_to_memory,free);
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
@@ -141,19 +140,19 @@ void mov_in(char **args, t_log *logger)
     memory_decode_read_ok(packet->buffer, ok_msg, data->size);
     memcpy(data->address, ok_msg->value, data->size);
 
+    int offset = 0;
+    void iterator(void* elem) {
+        t_access_to_memory* access = (t_access_to_memory*) elem;
+        void* temp = calloc(sizeof(int),sizeof(char));
+        memcpy(temp, ok_msg->value + offset, access->bytes_to_access);
+        offset += access->bytes_to_access;
+        log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *(int*)temp);
+        free(temp);
+    }
+        // aiuda
+    list_iterate(access_to_memory, iterator);
 
-    // if (data->size == sizeof(uint8_t))
-    // {
-    //     uint8_t *value = data->address;
-    //     log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %u", context.pid, 1, *value);
-    // }
-    // else
-    // {
-    //     uint32_t *value = data->address;
-    //     log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %u", context.pid, 1, *value);
-    // }
-
-    //log_info(logger, "Value: %d", ok_msg->value);
+    list_destroy_and_destroy_elements(access_to_memory,free);
 
     memory_destroy_read_ok(ok_msg);
     packet_free(packet);
@@ -336,27 +335,16 @@ void io_stdout_write(char **args, t_log *logger)
     char *interface_name = args[0];
     t_register *virtual_address = register_get_by_name(args[1]);
     uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
-    /*
-    if (sizeof(uint8_t) == virtual_address->size)
-    {
-        uint8_t *value = (uint8_t *)virtual_address->address;
-        t_physical_address *physical_mem_dir = translate_address_1_byte(*value, PAGE_SIZE);
-        send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
-        free(physical_mem_dir);
-        wait_for_context(&context);
-        clear_interrupt();
-        log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
-        return;
-    }
-    uint32_t *value = (uint32_t *)virtual_address->address;
-    t_physical_address *physical_mem_dir = translate_address_4_bytes(*value, PAGE_SIZE);
 
-    send_io_std(OUT, interface_name, physical_mem_dir->page_number, physical_mem_dir->offset, *size_dir);
-    free(physical_mem_dir);
+    uint32_t *dir_value = (uint32_t *)virtual_address->address;
+
+    t_list *access_to_memory = access_to_memory_create(*dir_value, *size_dir, PAGE_SIZE, logger);
+
+    send_io_std(OUT, interface_name, access_to_memory, *size_dir);
+    list_destroy_and_destroy_elements(access_to_memory,free);
     wait_for_context(&context);
     clear_interrupt();
-    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
-    */
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
 }
 
 void io_fs_create(char **args, t_log *logger)
@@ -424,14 +412,13 @@ static void send_io_gen_sleep(char *interface_name, int work_units)
     packet_free(packet);
 }
 
-static void send_io_std(enum StdType type, char *interface_name, uint32_t page_number, uint32_t offset, uint32_t size)
+static void send_io_std(enum StdType type, char *interface_name, t_list* access_list, uint32_t size)
 {
     t_packet *packet = packet_new(type == IN ? IO_STDIN_READ : IO_STDOUT_WRITE);
     packet_add_context(packet, &context);
     packet_addString(packet, interface_name);
-    packet_addUInt32(packet, page_number);
-    packet_addUInt32(packet, offset);
-    packet_addUInt32(packet, size);
+    packet_add_list(packet, access_list, (void*) packet_add_access_to_mem);
+    packet_addUInt32(packet,size);
     packet_send(packet, cli_dispatch_fd);
     packet_free(packet);
 }

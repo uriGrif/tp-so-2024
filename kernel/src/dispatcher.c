@@ -132,11 +132,11 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             break;
         t_interface_io_gen_sleep_msg *msg = malloc(sizeof(t_interface_io_gen_sleep_msg));
         interface_decode_io_gen_sleep(packet->buffer, msg);
-        t_packet* packet = interface_serialize_io_gen_sleep(interface->fd, pcb->context->pid, msg->work_units);
+        t_packet* packet = interface_serialize_io_gen_sleep(pcb->context->pid, msg->work_units);
         interface_destroy_io_gen_sleep(msg);
         queue_sync_push(interface->msg_queue,packet);
         if(sync_queue_length(interface->msg_queue)==1){
-            packet_send(packet,interface->fd);
+            packet_send(packet, interface->fd);
         }
         break;
     }
@@ -151,7 +151,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             break;
         t_interface_io_stdin_read_msg *msg = malloc(sizeof(t_interface_io_stdin_read_msg));
         interface_decode_io_stdin_read(packet->buffer, msg);
-        t_packet* packet = interface_serialize_io_stdin_read(interface->fd, pcb->context->pid, msg->page_number, msg->offset, msg->size);
+        t_packet* packet = interface_serialize_io_stdin_read(pcb->context->pid, msg->page_number, msg->offset, msg->size);
         interface_destroy_io_stdin_read(msg);
         queue_sync_push(interface->msg_queue,packet);
         if(sync_queue_length(interface->msg_queue)==1){
@@ -170,11 +170,11 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             break;
         t_interface_io_stdout_write_msg *msg = malloc(sizeof(t_interface_io_stdout_write_msg));
         interface_decode_io_stdout_write(packet->buffer, msg);
-        t_packet *packet = interface_serialize_io_stdout_write(interface->fd, pcb->context->pid, msg->page_number, msg->offset, msg->size);
+        t_packet *packet = interface_serialize_io_stdout_write(pcb->context->pid, msg);
         interface_destroy_io_stdout_write(msg);
         queue_sync_push(interface->msg_queue,packet);
         if(sync_queue_length(interface->msg_queue)==1){
-            packet_send(packet,interface->fd);
+            packet_send(packet, interface->fd);
         }
         break;
     }
