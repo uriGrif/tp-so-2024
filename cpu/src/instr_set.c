@@ -70,17 +70,17 @@ void sum(char **args, t_log *logger)
 
     if (sizeof(uint8_t) == dest->size)
     {
-        uint8_t *src_value = (uint8_t *)src->address;
+        uint8_t src_value = register_get_value(src);
         uint8_t *dest_value = (uint8_t *)dest->address;
 
-        *dest_value += *src_value;
+        *dest_value += src_value;
         return;
     }
 
-    uint32_t *src_value = (uint32_t *)src->address;
+    uint32_t src_value = register_get_value(src);
     uint32_t *dest_value = (uint32_t *)dest->address;
 
-    *dest_value += *src_value;
+    *dest_value += src_value;
 }
 
 void sub(char **args, t_log *logger)
@@ -90,17 +90,17 @@ void sub(char **args, t_log *logger)
 
     if (sizeof(uint8_t) == dest->size)
     {
-        uint8_t *src_value = (uint8_t *)src->address;
+        uint8_t src_value = register_get_value(src);
         uint8_t *dest_value = (uint8_t *)dest->address;
 
-        *dest_value -= *src_value;
+        *dest_value -= src_value;
         return;
     }
 
-    uint32_t *src_value = (uint32_t *)src->address;
+    uint32_t src_value = register_get_value(src);
     uint32_t *dest_value = (uint32_t *)dest->address;
 
-    *dest_value -= *src_value;
+    *dest_value -= src_value;
 }
 
 void jnz(char **args, t_log *logger)
