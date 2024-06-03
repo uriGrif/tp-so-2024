@@ -2,10 +2,11 @@
 
 static char *io_op_to_string(t_opcode operation);
 
-static char *string_from_read_mem_msg(t_memory_read_ok_msg* msg, size_t size){
-    char* aux = malloc(size + 1);
-    memset(aux,0x0,size +1);
-    strncpy(aux,msg->value,size);
+static char *string_from_read_mem_msg(t_memory_read_ok_msg *msg, size_t size)
+{
+    char *aux = malloc(size + 1);
+    memset(aux, 0x0, size + 1);
+    strncpy(aux, msg->value, size);
     return aux;
 }
 
@@ -38,8 +39,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         interface_send_io_done(kernel_fd, interface_name, pid);
     }
 
-    void send_error(uint8_t error_code){
-        interface_send_io_error(kernel_fd,interface_name,pid,error_code);
+    void send_error(uint8_t error_code)
+    {
+        interface_send_io_error(kernel_fd, interface_name, pid, error_code);
     }
 
     void do_work(int work)
@@ -66,9 +68,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         interface_decode_io_stdin_read(buffer, msg);
 
         // ask for prompt
-        char* str = prompt(msg->size);
+        char *str = prompt(msg->size);
 
-        memory_send_write(memory_fd, pid, msg->access_list,msg->size,str);
+        memory_send_write(memory_fd, pid, msg->access_list, msg->size, str);
 
         t_packet *res = packet_new(-1);
         if (packet_recv(memory_fd, res) == -1)
@@ -78,8 +80,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
             break;
         }
 
-        if(res->op_code != WRITE_MEM_OK){
-            log_info(logger,"Error al escribir en memoria");
+        if (res->op_code != WRITE_MEM_OK)
+        {
+            log_info(logger, "Error al escribir en memoria");
         }
 
         log_info(logger, "MEMORY SUCCESSFULLY SAVED");
@@ -94,8 +97,6 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     }
     case IO_STDOUT_WRITE:
     {
-        do_work(1);
-
         t_interface_io_stdout_write_msg *msg = malloc(sizeof(t_interface_io_stdout_write_msg));
         interface_decode_io_stdout_write(buffer, msg);
 
@@ -112,8 +113,8 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         {
             t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
             memory_decode_read_ok(res->buffer, ok_msg, msg->size);
-            char* result = string_from_read_mem_msg(ok_msg, msg->size);
-            log_info(logger, "MEMORY VALUE: %s",result);
+            char *result = string_from_read_mem_msg(ok_msg, msg->size);
+            log_info(logger, "MEMORY VALUE: %s", result);
             free(result);
             memory_destroy_read_ok(ok_msg);
         }

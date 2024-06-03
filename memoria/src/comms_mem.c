@@ -117,10 +117,9 @@ void process_conn(void *void_args)
         }
         case READ_MEM:
         {
-            msleep(cfg_mem->retardo_respuesta);
             t_memory_read_msg *msg = malloc(sizeof(t_memory_read_msg));
             memory_decode_read(packet->buffer, msg);
-
+            msleep(cfg_mem->retardo_respuesta*list_size(msg->access_list));
             int offset = 0;
             void *value = malloc(msg->total_bytes);
             void iterator(void *elem)
@@ -142,9 +141,9 @@ void process_conn(void *void_args)
         }
         case WRITE_MEM:
         {
-            msleep(cfg_mem->retardo_respuesta);
             t_memory_write_msg *msg = malloc(sizeof(t_memory_write_msg));
             memory_decode_write(packet->buffer, msg);
+            msleep(cfg_mem->retardo_respuesta*list_size(msg->access_list));
 
             int offset = 0;
             void iterator(void* elem){
