@@ -151,10 +151,10 @@ void mov_in(char **args, t_log *logger)
     void iterator(void *elem)
     {
         t_access_to_memory *access = (t_access_to_memory *)elem;
-        void *temp = calloc(sizeof(int), sizeof(char));
+        int *temp = calloc(1, sizeof(int));
         memcpy(temp, ok_msg->value + offset, access->bytes_to_access);
         offset += access->bytes_to_access;
-        log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *(int *)temp);
+        log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *temp);
         free(temp);
     }
     // aiuda
@@ -179,10 +179,10 @@ void mov_out(char **args, t_log *logger)
     void iterator(void *elem)
     {
         t_access_to_memory *access = (t_access_to_memory *)elem;
-        void *temp = calloc(sizeof(int), sizeof(char));
+        int *temp = calloc(1, sizeof(int));
         memcpy(temp, data->address + offset, access->bytes_to_access);
         offset += access->bytes_to_access;
-        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *(int *)temp);
+        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %d - Valor: %d", context.pid, access->address, *temp);
         free(temp);
     }
 
