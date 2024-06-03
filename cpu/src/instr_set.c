@@ -123,9 +123,9 @@ void mov_in(char **args, t_log *logger)
     t_register *data = register_get_by_name(args[0]);
     t_register *dir = register_get_by_name(args[1]);
 
-    uint32_t *dir_value = (uint32_t *)dir->address;
+    uint32_t dir_value = register_get_value(dir);
 
-    t_list *access_to_memory = access_to_memory_create(*dir_value, data->size, PAGE_SIZE, logger);
+    t_list *access_to_memory = access_to_memory_create(dir_value, data->size, PAGE_SIZE, logger);
 
     memory_send_read(fd_memory, context.pid, access_to_memory, data->size);
     t_packet *packet = packet_new(-1);
@@ -171,9 +171,9 @@ void mov_out(char **args, t_log *logger)
     t_register *dir = register_get_by_name(args[0]);
     t_register *data = register_get_by_name(args[1]);
 
-    uint32_t *dir_value = (uint32_t *)dir->address;
+    uint32_t dir_value = register_get_value(dir);
 
-    t_list *access_to_memory = access_to_memory_create(*dir_value, data->size, PAGE_SIZE, logger);
+    t_list *access_to_memory = access_to_memory_create(dir_value, data->size, PAGE_SIZE, logger);
 
     int offset = 0;
     void iterator(void *elem)
@@ -234,8 +234,8 @@ void resize(char **args, t_log *logger)
 void copy_string(char **args, t_log *logger)
 {
     uint32_t size = (uint32_t)atoi(args[0]);
-    t_register *source = register_get_by_name("SI");
-    t_register *dest = register_get_by_name("DI");
+    // t_register *source = register_get_by_name("SI");
+    // t_register *dest = register_get_by_name("DI");
 
     /*
     uint32_t *si_addr_ptr = (uint32_t *)source->address;
@@ -312,13 +312,14 @@ void io_stdin_read(char **args, t_log *logger)
 {
     char *interface_name = args[0];
     t_register *virtual_address = register_get_by_name(args[1]);
-    uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
+    t_register *size_reg = register_get_by_name(args[2]);
+    uint32_t size = register_get_value(size_reg);
 
-    uint32_t *dir_value = (uint32_t *)virtual_address->address;
+    uint32_t dir_value = register_get_value(virtual_address);
 
-    t_list *access_to_memory = access_to_memory_create(*dir_value, *size_dir, PAGE_SIZE, logger);
+    t_list *access_to_memory = access_to_memory_create(dir_value, size, PAGE_SIZE, logger);
 
-    send_io_std(IN, interface_name, access_to_memory, *size_dir);
+    send_io_std(IN, interface_name, access_to_memory, size);
     list_destroy_and_destroy_elements(access_to_memory, free);
     wait_for_context(&context);
     clear_interrupt();
@@ -329,13 +330,14 @@ void io_stdout_write(char **args, t_log *logger)
 {
     char *interface_name = args[0];
     t_register *virtual_address = register_get_by_name(args[1]);
-    uint32_t *size_dir = (uint32_t *)register_get_by_name(args[2])->address;
+    t_register *size_reg = register_get_by_name(args[2]);
+    uint32_t size = register_get_value(size_reg);
 
-    uint32_t *dir_value = (uint32_t *)virtual_address->address;
+    uint32_t dir_value = register_get_value(virtual_address);
 
-    t_list *access_to_memory = access_to_memory_create(*dir_value, *size_dir, PAGE_SIZE, logger);
+    t_list *access_to_memory = access_to_memory_create(dir_value, size, PAGE_SIZE, logger);
 
-    send_io_std(OUT, interface_name, access_to_memory, *size_dir);
+    send_io_std(OUT, interface_name, access_to_memory, size);
     list_destroy_and_destroy_elements(access_to_memory, free);
     wait_for_context(&context);
     clear_interrupt();

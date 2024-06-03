@@ -23,3 +23,11 @@ t_register *register_get_by_name(char *name)
     }
     return NULL;
 }
+
+uint32_t register_get_value(t_register* reg){
+    uint32_t* value = calloc(1,sizeof(uint32_t));
+    memcpy(value,reg->address,reg->size);
+    uint32_t result = *value;
+    free(value);
+    return result;
+}

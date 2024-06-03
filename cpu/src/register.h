@@ -16,4 +16,6 @@ typedef struct
 
 t_register *register_get_by_name(char *name);
 
+uint32_t register_get_value(t_register* reg);
+
 #endif
