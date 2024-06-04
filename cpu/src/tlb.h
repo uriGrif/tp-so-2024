@@ -6,7 +6,7 @@
 #include <time.h>
 
 typedef struct {
-    t_list entries;
+    t_list* entries;
     uint32_t entries_amount;
 } t_tlb;
 
