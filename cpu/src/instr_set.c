@@ -234,49 +234,84 @@ void resize(char **args, t_log *logger)
 void copy_string(char **args, t_log *logger)
 {
     uint32_t size = (uint32_t)atoi(args[0]);
-    // t_register *source = register_get_by_name("SI");
-    // t_register *dest = register_get_by_name("DI");
+   
+    t_list *access_to_memory = access_to_memory_create(context.registers.si, size, PAGE_SIZE, logger);
 
-    /*
-    uint32_t *si_addr_ptr = (uint32_t *)source->address;
-    t_physical_address *source_addr = translate_address_4_bytes(*si_addr_ptr, PAGE_SIZE);
-    uint32_t *di_addr_ptr = (uint32_t *)dest->address;
-    t_physical_address *dest_addr = translate_address_4_bytes(*di_addr_ptr, PAGE_SIZE);
-
-    void *buffer = malloc(size);
-
-    memory_send_read(fd_memory, context.pid, source_addr->page_number, source_addr->offset, size);
-
+    memory_send_read(fd_memory, context.pid, access_to_memory, size);
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
-        log_error(logger, "error al leer de la memoria");
+        log_error(logger, "Error, desconexion de memoria");
         packet_free(packet);
         return;
     }
+
+    if (packet->op_code != READ_MEM_OK)
+    {
+        log_info(logger, "Error al leer de memoria");
+        packet_free(packet);
+        return;
+    }
+
+
     t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
     memory_decode_read_ok(packet->buffer, ok_msg, size);
-    memcpy(buffer, ok_msg->value, size);
-    packet_free(packet);
-    // No se si aca hace falta poner el log de que lei de memoria
 
-    memory_send_write(fd_memory, context.pid, dest_addr->page_number, dest_addr->offset, size, buffer);
+    packet_free(packet);
+    
+    int offset = 0;
+    void iterator_read(void *elem)
+    {
+        t_access_to_memory *access = (t_access_to_memory *)elem;
+        char* temp = calloc(access->bytes_to_access+1,1);
+        memcpy(temp, ok_msg->value + offset, access->bytes_to_access);
+        offset += access->bytes_to_access;
+        log_info(logger, "PID: %d - Accion: LEER - Direccion Fisica: %d - Valor: %s", context.pid, access->address, temp);
+        free(temp);
+    }
+    // aiuda
+    list_iterate(access_to_memory, iterator_read);
+
+    list_destroy_and_destroy_elements(access_to_memory, free);
+
+    access_to_memory = access_to_memory_create(context.registers.di, size, PAGE_SIZE, logger);
+
+    offset = 0;
+    void iterator_write(void *elem)
+    {
+        t_access_to_memory *access = (t_access_to_memory *)elem;
+        char* temp = calloc(access->bytes_to_access+1,1);
+        memcpy(temp, ok_msg->value + offset, access->bytes_to_access);
+        offset += access->bytes_to_access;
+        log_info(logger, "PID: %d - Accion: ESCRIBIR - Direccion Fisica: %d - Valor: %s", context.pid, access->address, temp);
+        free(temp);
+    }
+
+    list_iterate(access_to_memory, iterator_write);
+
+    memory_send_write(fd_memory, context.pid, access_to_memory, size, ok_msg->value);
+
+    list_destroy_and_destroy_elements(access_to_memory, free);
+
+    memory_destroy_read_ok(ok_msg);
 
     packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
     {
-        log_error(logger, "error al leer de la memoria");
+        log_error(logger, "Error, se desconecto la memoria");
+        packet_free(packet);
+        exit(1);
+    }
+
+    if (packet->op_code != WRITE_MEM_OK)
+    {
+        log_info(logger, "Error al escribir en memoria");
+        // hacer algo?? no se
         packet_free(packet);
         return;
     }
 
-    // IDEM, no se si poner los logs
-
-    free(source_addr);
-    free(dest_addr);
-
     packet_free(packet);
-    */
 }
 
 void wait_instr(char **args, t_log *logger)
