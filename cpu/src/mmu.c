@@ -8,7 +8,7 @@ uint32_t get_frame(uint32_t page_number, t_log *logger) {
             log_error(logger,"error al obtener el frame de memoria");
             exit(1);
         }
-        tlb_insert(context.pid, page_number, frame_number);
+        tlb_insert(context.pid, page_number, frame_number,logger);
     }
     log_info(logger,"PID: %u - OBTENER MARCO - Página: %u - Marco: %u",context.pid,page_number,frame_number); 
     return frame_number;

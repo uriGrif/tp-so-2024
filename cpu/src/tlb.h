@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
 
 typedef enum {
     FIFO_TLB,
@@ -25,10 +26,10 @@ typedef struct {
     time_t last_use;
 } t_tlb_row;
 
-extern t_tlb TLB;
+void tlb_init(int entries_amount, char *tlb_algorithm);
 
 int tlb_search(uint32_t pid, uint32_t page, t_log *logger); // returns -1 if not found
 
-void tlb_insert(uint32_t pid, uint32_t page, uint32_t frame);
+void tlb_insert(uint32_t pid, uint32_t page, uint32_t frame,t_log* logger);
 
 #endif
