@@ -33,6 +33,20 @@ static void config_init(char* path)
     // printf("puerto me %s %s\n", cfg_CPU->puerto_escucha_interrupt, cfg_CPU->puerto_escucha_dispatch);
 }
 
+static void tlb_init() {
+    TLB.entries = list_create();
+    TLB.entries_amount = cfg_cpu->cantidad_entradas_tlb;
+    if (!strcmp("FIFO", cfg_cpu->algoritmo_tlb)) {
+        TLB.algorithm = FIFO_TLB;
+    } else {
+        TLB.algorithm = LRU_TLB;
+    }
+}
+
+static void tlb_destroy() {
+    list_destroy_and_destroy_elements(TLB.entries, free);
+}
+
 static void cpu_init(int argc, char** argv)
 {
     if(argc < 2){
@@ -47,7 +61,7 @@ static void cpu_init(int argc, char** argv)
     }
     config_init(argv[1]);
 
-    TLB.entries_amount = cfg_cpu->cantidad_entradas_tlb;
+    tlb_init();
 
     dispatch_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_dispatch);
     interrupt_fd = socket_createTcpServer(NULL, cfg_cpu->puerto_escucha_interrupt);
@@ -79,6 +93,7 @@ static void cpu_close(void)
 {
     interrupt_mutex_destroy();
     pthread_cancel(thread_intr);
+    tlb_destroy();
     log_destroy(logger);
     free(cfg_cpu);
     config_destroy(config);
@@ -98,6 +113,7 @@ int main(int argc, char *argv[])
     signal(SIGINT, sighandler);
     // dejo en listen los fds dispatch e interrupt
     cpu_init(argc,argv);
+    tlb_init();
     start_interrupt_listener();
 
     // me conecto a memoria

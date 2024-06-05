@@ -1,13 +1,14 @@
 #include <mmu.h>
 
 uint32_t get_frame(uint32_t page_number, t_log *logger) {
-    uint32_t frame_number = tlb_search(context.pid, page_number);
+    uint32_t frame_number = tlb_search(context.pid, page_number, logger);
     if (frame_number == -1) {
         frame_number = access_page_table(page_number);
         if(frame_number == -1){
             log_error(logger,"error al obtener el frame de memoria");
             exit(1);
         }
+        tlb_insert(context.pid, page_number, frame_number);
     }
     log_info(logger,"PID: %u - OBTENER MARCO - Página: %u - Marco: %u",context.pid,page_number,frame_number); 
     return frame_number;
