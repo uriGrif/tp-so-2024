@@ -179,7 +179,6 @@ void change_multiprogramming(int new_grade)
         int target_sem_value;
         if ((target_sem_value = (new_grade - processes_in_memory_amount)) <= 0)
             target_sem_value = 0;
-        printf("estoy por entrar a multi sem con %d  target: %d\n", current_multiprogramming_sem_mirror, target_sem_value);
         while (current_multiprogramming_sem_mirror > target_sem_value)
         {
             sem_wait(&current_multiprogramming_grade);
