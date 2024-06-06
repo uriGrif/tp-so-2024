@@ -44,7 +44,7 @@ void end_process(char *pid_str, t_log *logger)
     // busco en new
     else if ((victim = remove_pcb_by_pid(new_queue, pid)))
     {
-        sem_wait(&scheduler.sem_new);
+        sigterm_new++;
         // no sumo grado de multiprogramacion
         log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
         log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual EXIT", victim->context->pid);

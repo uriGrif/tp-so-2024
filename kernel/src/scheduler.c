@@ -19,6 +19,8 @@ static pthread_mutex_t max_multiprogramming_grade_mutex;
 static uint32_t processes_in_memory_amount = 0;
 static pthread_mutex_t processes_in_memory_amount_mutex;
 
+int sigterm_new = 0;
+
 t_scheduler scheduler;
 
 static void init_scheduler_sems(void)
@@ -200,13 +202,12 @@ void instr_signal(t_pcb *pcb, t_blocked_queue *queue, t_log *logger)
     if (queue->instances <= 0 && sync_queue_length(queue->block_queue) > 0)
     {
         scheduler.block_to_ready(queue, logger);
-        // print_ready_queue(logger);
     }
 }
 
 void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {
-    
+
     queue_sync_push(exit_queue, pcb);
     log_info(logger, "PID: %d - Estado Anterior: %s - Estado Actual: EXIT", pcb->context->pid, pcb_state_to_string(pcb));
     pcb->state = EXIT;
@@ -251,14 +252,24 @@ void handle_long_term_scheduler(void *args_logger)
     while (1)
     {
         // todo esto esto es para hacer el  wait llevando el valor del semaforo
+        // ----
+
         pthread_mutex_lock(&current_multiprogramming_grade_mutex);
         current_multiprogramming_sem_mirror--;
         pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
         sem_wait(&current_multiprogramming_grade);
-        // ----
-        handle_pause();
+
         sem_wait(&scheduler.sem_new);
+        handle_pause();
+        while (sigterm_new>0)
+        {
+            sem_wait(&scheduler.sem_new);
+            handle_pause();
+            sigterm_new--;
+        }
+
         t_pcb *pcb = queue_sync_pop(new_queue);
+
         pcb->state = READY;
         queue_sync_push(ready_queue, pcb);
         log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual: READY", pcb->context->pid);
@@ -269,11 +280,13 @@ void handle_long_term_scheduler(void *args_logger)
     }
 }
 
-bool handle_sigterm(t_pcb* pcb, t_log* logger){
-    if(pcb->sigterm){
-          log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", pcb->context->pid);
-          move_pcb_to_exit(pcb,logger);
-          return true;
+bool handle_sigterm(t_pcb *pcb, t_log *logger)
+{
+    if (pcb->sigterm)
+    {
+        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", pcb->context->pid);
+        move_pcb_to_exit(pcb, logger);
+        return true;
     }
     return false;
 }
