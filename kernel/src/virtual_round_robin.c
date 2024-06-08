@@ -52,6 +52,11 @@ void block_to_ready_vrr(t_blocked_queue *queue, t_log *logger)
         log_error(logger, "blocked queue not found");
         return;
     }
+    if(is_resource(queue->resource_name)){
+        int* taken = dictionary_get(pcb->taken_resources,queue->resource_name);
+        (*taken)++;
+        log_debug(logger,"tomados por %d : %s->%d",pcb->context->pid,queue->resource_name,*taken);
+    }
     if (handle_sigterm(pcb, logger))
         return;
     pcb->state = READY;

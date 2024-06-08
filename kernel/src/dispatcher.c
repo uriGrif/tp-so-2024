@@ -91,9 +91,6 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             free(resource_name);
             break;
         }
-        int* taken = dictionary_get(pcb->taken_resources,resource_name);
-        (*taken)++;
-        log_debug(logger,"tomados por %d : %s->%d",pcb->context->pid,resource_name,*taken);
         q->instances--;
         if (q->instances < 0)
         {
@@ -106,6 +103,9 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             free(resource_name);
             break;
         }
+        int* taken = dictionary_get(pcb->taken_resources,resource_name);
+        (*taken)++;
+        log_debug(logger,"tomados por %d : %s->%d",pcb->context->pid,resource_name,*taken);
         log_debug(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
         send_context_to_cpu(pcb->context);
         wait_for_dispatch_reason(pcb, logger);

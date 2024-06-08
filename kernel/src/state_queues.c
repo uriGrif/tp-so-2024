@@ -223,6 +223,7 @@ t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid, t_log *logger)
             {
                 if (is_resource(block_queue->resource_name))
                 {
+                    block_queue->instances++;
                     list_remove_element(pcb_list, target);
                     sem_wait(&block_queue->sem_process_count);
                     pthread_mutex_unlock(&block_queue->block_queue->mutex);
