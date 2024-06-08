@@ -14,14 +14,15 @@ char *fetch(int fd_memoria, t_log *logger)
     request = packet_new(-1);
     if (packet_recv(fd_memoria, request) == -1)
     {
-        log_error(logger, "no me llego nada\n");
+        log_error(logger, "no me llego nada");
         packet_free(request);
-        return NULL;
+        exit(1);
     }
     if (request->op_code != NEXT_INSTRUCTION)
     {
-        log_error(logger, "opcode invaliido\n");
+        log_error(logger, "No hay proxima instruccion");
         packet_free(request);
+        send_dispatch_reason(NO_INSTRUCTION,&context);
         return NULL;
     }
 
