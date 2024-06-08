@@ -7,10 +7,11 @@ char *prompt(int size)
     char *line;
     do
     {
-        line = readline("press Enter to send a message\n");
-        if (line && *line)
+        line = readline("press Enter to send a message: ");
+        if (line && *line && strlen(line)>=size)
             break;
         free(line);
+        printf("debes ingresar %d caracteres por favor!\n",size);
     } while (1);
     char* result = calloc(size+1,sizeof(char));
     strncpy(result,line,size);
