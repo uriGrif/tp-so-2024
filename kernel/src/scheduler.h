@@ -39,6 +39,8 @@ typedef struct
 
 extern t_scheduler scheduler;
 
+extern int sigterm_new;
+
 
 void handle_pause(void);
 void pause_threads(void);

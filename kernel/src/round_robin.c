@@ -40,8 +40,5 @@ int move_pcb_to_blocked_rr(t_pcb *pcb, char *resource_name, t_log *logger)
 
 void block_to_ready_rr(t_blocked_queue* queue, t_log *logger)
 {
-    // buscar la cola por nombre de recurso
-    // popear el primero (EN DUDA)
-    // pasar a ready
     block_to_ready_fifo(queue, logger);
 }

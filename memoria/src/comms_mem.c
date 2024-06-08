@@ -86,9 +86,10 @@ void process_conn(void *void_args)
                 if (list_size(possible_frames) < target_pages)
                 {
                     // caso OUT OF MEMORY, mando el error
-                    log_info(logger, "no hay suficiente espacio en memoria!");
+                    log_info(logger, "PID: %d no hay suficiente espacio en memoria!");
                     packet->op_code = OUT_OF_MEMORY;
                     packet_send(packet, client_fd);
+                    list_destroy_and_destroy_elements(possible_frames,free);
                     break;
                 }
                 void ocuppy_frame(void *elem)
