@@ -44,7 +44,7 @@ int tlb_search(uint32_t pid, uint32_t page, t_log *logger)
 
     if (TLB.algorithm == LRU_TLB)
     {
-        time(&entry->last_use);
+        entry->last_use =  current_timestamp();
     }
 
     return entry->frame;
@@ -62,7 +62,7 @@ void tlb_insert(uint32_t pid, uint32_t page, uint32_t frame, t_log *logger)
         entry->pid = pid;
         entry->page = page;
         entry->frame = frame;
-        time(&entry->last_use);
+        entry->last_use = current_timestamp();
         list_add(TLB.entries, entry);
         return;
     }
@@ -71,7 +71,7 @@ void tlb_insert(uint32_t pid, uint32_t page, uint32_t frame, t_log *logger)
     {
         t_tlb_row *entry1 = (t_tlb_row *)elem1;
         t_tlb_row *entry2 = (t_tlb_row *)elem2;
-        if (difftime(entry1->last_use, entry2->last_use) < 0)
+        if (entry1->last_use <  entry2->last_use)
             return entry1;
         else
             return entry2;
@@ -84,5 +84,5 @@ void tlb_insert(uint32_t pid, uint32_t page, uint32_t frame, t_log *logger)
     lowest_timestamp->pid = pid;
     lowest_timestamp->page = page;
     lowest_timestamp->frame = frame;
-    time(&lowest_timestamp->last_use);
+    lowest_timestamp->last_use = current_timestamp();
 }

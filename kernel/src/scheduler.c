@@ -208,9 +208,10 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {
 
     queue_sync_push(exit_queue, pcb);
+    send_end_process(pcb->context->pid);
+    recv_end_process(logger);
     log_info(logger, "PID: %d - Estado Anterior: %s - Estado Actual: EXIT", pcb->context->pid, pcb_state_to_string(pcb));
     pcb->state = EXIT;
-    send_end_process(pcb->context->pid);
     pthread_mutex_lock(&max_multiprogramming_grade_mutex);
     pthread_mutex_lock(&processes_in_memory_amount_mutex);
     if (processes_in_memory_amount <= max_multiprogramming_grade)
@@ -260,7 +261,7 @@ void handle_long_term_scheduler(void *args_logger)
 
         sem_wait(&scheduler.sem_new);
         handle_pause();
-        while (sigterm_new>0)
+        while (sigterm_new > 0)
         {
             sem_wait(&scheduler.sem_new);
             handle_pause();
@@ -269,11 +270,22 @@ void handle_long_term_scheduler(void *args_logger)
 
         t_pcb *pcb = queue_sync_pop(new_queue);
 
+        send_create_process(pcb);
+        if (recv_create_process(logger))
+        {
+            log_info(logger, "Finaliza el proceso %d- Motivo: No se encontro archivo de pseudocodigo", pcb->context->pid);
+            pthread_mutex_lock(&current_multiprogramming_grade_mutex);
+            current_multiprogramming_sem_mirror++;
+            pthread_mutex_unlock(&current_multiprogramming_grade_mutex);
+            sem_post(&current_multiprogramming_grade);
+            queue_sync_push(exit_queue,pcb);
+            log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual: EXIT", pcb->context->pid);
+            continue;
+        }
         pcb->state = READY;
         queue_sync_push(ready_queue, pcb);
         log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual: READY", pcb->context->pid);
         print_ready_queue(logger, false);
-        send_create_process(pcb);
         sem_post(&scheduler.sem_ready);
         inc_processes_in_memory_amount();
     }

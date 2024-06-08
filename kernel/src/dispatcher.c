@@ -69,6 +69,15 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         move_pcb_to_exit(pcb, logger);
         break;
     }
+     case NO_INSTRUCTION:
+    {
+        // caso en el que no se enceuntre la proxima instruccion en el fetch
+        handle_quantum();
+        handle_pause();
+        log_info(logger, "Finaliza el proceso %d- Motivo: No se encontro siguiente instruccion", pcb->context->pid);
+        move_pcb_to_exit(pcb, logger);
+        break;
+    }
     case WAIT:
     {
         char *resource_name = packet_getString(packet->buffer);
@@ -97,7 +106,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             free(resource_name);
             break;
         }
-        log_info(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
+        log_debug(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
         send_context_to_cpu(pcb->context);
         wait_for_dispatch_reason(pcb, logger);
         free(resource_name);

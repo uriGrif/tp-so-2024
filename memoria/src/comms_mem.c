@@ -45,7 +45,7 @@ void process_conn(void *void_args)
 
             t_process_in_mem *process = find_process_by_pid(pid);
             uint32_t target_pages = ceil((double)size / cfg_mem->tam_pagina);
-            log_info(logger, "target: %d", target_pages);
+            log_debug(logger, "target: %d", target_pages);
 
             if (process->current_size < size)
                 log_info(logger, "PID: %d - Tamanio actual: %d - Tamanio a Ampliar: %d", pid, process->current_size, size);
@@ -86,7 +86,7 @@ void process_conn(void *void_args)
                 if (list_size(possible_frames) < target_pages)
                 {
                     // caso OUT OF MEMORY, mando el error
-                    log_info(logger, "PID: %d no hay suficiente espacio en memoria!");
+                    log_info(logger, "PID: %d no hay suficiente espacio en memoria!",pid);
                     packet->op_code = OUT_OF_MEMORY;
                     packet_send(packet, client_fd);
                     list_destroy_and_destroy_elements(possible_frames,free);
@@ -163,10 +163,14 @@ void process_conn(void *void_args)
         }
         case CREATE_PROCESS:
         {
+            msleep(cfg_mem->retardo_respuesta);
             t_process_in_mem *process = t_process_in_mem_create();
             if (!process)
             {
                 log_error(logger, "not enough space for creating process");
+                t_packet* err = packet_new(ERROR_CREATING_PROCESS);
+                packet_send(err,client_fd);
+                packet_free(err);
                 break;
             }
             packet_get_process_in_mem(packet->buffer, process);
@@ -174,12 +178,14 @@ void process_conn(void *void_args)
             {
                 log_error(logger, "el archivo de instrucciones de este archivo no fue encontrado");
                 t_process_in_mem_destroy(process);
+                packet->op_code = ERROR_CREATING_PROCESS;
+                packet_send(packet,client_fd);
                 break;
             }
 
             add_process(process);
-            msleep(cfg_mem->retardo_respuesta);
             log_info(logger, "PID: %u - Tamaño: %d", process->pid, list_size(process->page_table));
+            packet_send(packet,client_fd);
             break;
         }
         case END_PROCESS:
@@ -187,6 +193,7 @@ void process_conn(void *void_args)
             msleep(cfg_mem->retardo_respuesta);
             uint32_t pid = packet_getUInt32(packet->buffer);
             remove_process_by_pid(pid, logger);
+            packet_send(packet,client_fd);
             break;
         }
         case NEXT_INSTRUCTION:
@@ -200,6 +207,8 @@ void process_conn(void *void_args)
             if (!process)
             {
                 log_error(logger, "process with pid %d not found", pid);
+                packet->op_code = NO_INSTRUCTION;
+                packet_send(packet, client_fd);
                 break;
             }
             char *next_instruction = file_get_nth_line(process->path, pc);

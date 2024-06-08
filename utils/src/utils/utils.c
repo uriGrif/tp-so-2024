@@ -60,7 +60,6 @@ char *file_get_nth_line(char *file_path, int n)
     return NULL;
 }
 
-int msToSeconds(int ms) { return ms / 1000; }
 
 int msleep(long msec)
 {
@@ -90,3 +89,11 @@ int file_exists(char* file_path){
 char* mount_config_directory(char* config_path){
     return string_from_format("configs/%s",config_path);
 }
+
+long long current_timestamp(void){
+    struct timeval te; 
+    gettimeofday(&te, NULL); 
+    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+    //printf("milliseconds: %lld\n", milliseconds);
+    return milliseconds;
+} 

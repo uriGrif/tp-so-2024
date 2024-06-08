@@ -5,6 +5,7 @@
 #include <commons/log.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <utils/utlis.h>
 #include <time.h>
 #include <string.h>
 
@@ -23,7 +24,7 @@ typedef struct {
     uint32_t pid;
     uint32_t page;
     uint32_t frame;
-    time_t last_use;
+    long long last_use;
 } t_tlb_row;
 
 void tlb_init(int entries_amount, char *tlb_algorithm);

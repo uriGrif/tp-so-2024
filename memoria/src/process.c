@@ -80,6 +80,8 @@ void remove_process_by_pid(uint32_t pid,t_log* logger)
     pthread_mutex_lock(&MUTEX_PROCESS_LIST);
     t_process_in_mem* process =  list_remove_by_condition(process_list, closure);
     pthread_mutex_unlock(&MUTEX_PROCESS_LIST);
+    if(!process)
+        return;
     log_info(logger, "PID: %u - Tamaño: %d", pid, list_size(process->page_table));
     t_process_in_mem_destroy(process);
 }
