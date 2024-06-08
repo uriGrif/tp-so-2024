@@ -86,7 +86,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         {
             handle_quantum();
             handle_pause();
-            log_debug(logger, "Finaliza el proceso %d- Motivo: No existe el recurso %s", pcb->context->pid, resource_name);
+            log_info(logger, "Finaliza el proceso %d- Motivo: No existe el recurso %s", pcb->context->pid, resource_name);
             move_pcb_to_exit(pcb, logger);
             free(resource_name);
             break;
@@ -106,7 +106,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             free(resource_name);
             break;
         }
-        log_info(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
+        log_debug(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
         send_context_to_cpu(pcb->context);
         wait_for_dispatch_reason(pcb, logger);
         free(resource_name);
