@@ -208,10 +208,10 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 {
 
     queue_sync_push(exit_queue, pcb);
-    log_info(logger, "PID: %d - Estado Anterior: %s - Estado Actual: EXIT", pcb->context->pid, pcb_state_to_string(pcb));
-    pcb->state = EXIT;
     send_end_process(pcb->context->pid);
     recv_end_process(logger);
+    log_info(logger, "PID: %d - Estado Anterior: %s - Estado Actual: EXIT", pcb->context->pid, pcb_state_to_string(pcb));
+    pcb->state = EXIT;
     pthread_mutex_lock(&max_multiprogramming_grade_mutex);
     pthread_mutex_lock(&processes_in_memory_amount_mutex);
     if (processes_in_memory_amount <= max_multiprogramming_grade)

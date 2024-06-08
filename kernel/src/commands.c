@@ -97,7 +97,7 @@ void multiprogramming(char *value, t_log *logger)
         return;
     }
     change_multiprogramming(new_grade);
-    log_info(logger, "voy a cambiar el grado de multiprogramacion a: %d\n", new_grade);
+    log_debug(logger, "voy a cambiar el grado de multiprogramacion a: %d", new_grade);
 }
 
 void list_processes_by_state(char *x, t_log *logger)
