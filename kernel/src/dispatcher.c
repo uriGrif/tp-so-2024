@@ -96,8 +96,10 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         {
             handle_quantum();
             handle_pause();
-            if(handle_sigterm(pcb,logger))
-                break;
+            if(handle_sigterm(pcb,logger)){
+                 q->instances++;
+                 break;   
+            }
             scheduler.move_pcb_to_blocked(pcb, q->resource_name, logger);
             log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, resource_name);
             free(resource_name);
