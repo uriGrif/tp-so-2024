@@ -187,6 +187,101 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         }
         break;
     }
+    case IO_FS_CREATE:
+    {
+        handle_quantum();
+        handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
+        t_interface *interface = interface_middleware(packet->buffer, IO_FS_CREATE, pcb, logger);
+        if (!interface)
+            break;
+        t_interface_io_dialfs_create_msg *msg = malloc(sizeof(t_interface_io_dialfs_create_msg));
+        interface_decode_io_dialfs_create(packet->buffer, msg);
+        t_packet *packet = interface_serialize_io_dialfs_create(pcb->context->pid, msg);
+        interface_destroy_io_dialfs_create(msg);
+        queue_sync_push(interface->msg_queue,packet);
+        if(sync_queue_length(interface->msg_queue)==1){
+            packet_send(packet, interface->fd);
+        }
+        break;
+    }
+    case IO_FS_DELETE:
+    {
+        handle_quantum();
+        handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
+        t_interface *interface = interface_middleware(packet->buffer, IO_FS_DELETE, pcb, logger);
+        if (!interface)
+            break;
+        t_interface_io_dialfs_del_msg *msg = malloc(sizeof(t_interface_io_dialfs_del_msg));
+        interface_decode_io_dialfs_del(packet->buffer, msg);
+        t_packet *packet = interface_serialize_io_dialfs_del(pcb->context->pid, msg);
+        interface_destroy_io_dialfs_del(msg);
+        queue_sync_push(interface->msg_queue,packet);
+        if(sync_queue_length(interface->msg_queue)==1){
+            packet_send(packet, interface->fd);
+        }
+        break;
+    }
+    case IO_FS_TRUNCATE:
+    {
+        handle_quantum();
+        handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
+        t_interface *interface = interface_middleware(packet->buffer, IO_FS_TRUNCATE, pcb, logger);
+        if (!interface)
+            break;
+        t_interface_io_dialfs_truncate_msg *msg = malloc(sizeof(t_interface_io_dialfs_truncate_msg));
+        interface_decode_io_dialfs_truncate(packet->buffer, msg);
+        t_packet *packet = interface_serialize_io_dialfs_truncate(pcb->context->pid, msg);
+        interface_destroy_io_dialfs_truncate(msg);
+        queue_sync_push(interface->msg_queue,packet);
+        if(sync_queue_length(interface->msg_queue)==1){
+            packet_send(packet, interface->fd);
+        }
+        break;
+    }
+    case IO_FS_READ:
+    {
+        handle_quantum();
+        handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
+        t_interface *interface = interface_middleware(packet->buffer, IO_FS_READ, pcb, logger);
+        if (!interface)
+            break;
+        t_interface_io_dialfs_read_msg *msg = malloc(sizeof(t_interface_io_dialfs_read_msg));
+        interface_decode_io_dialfs_read(packet->buffer, msg);
+        t_packet *packet = interface_serialize_io_dialfs_read(pcb->context->pid, msg);
+        interface_destroy_io_dialfs_read(msg);
+        queue_sync_push(interface->msg_queue,packet);
+        if(sync_queue_length(interface->msg_queue)==1){
+            packet_send(packet, interface->fd);
+        }
+        break;
+    }
+    case IO_FS_WRITE:
+    {
+        handle_quantum();
+        handle_pause();
+        if(handle_sigterm(pcb,logger))
+            break;
+        t_interface *interface = interface_middleware(packet->buffer, IO_FS_WRITE, pcb, logger);
+        if (!interface)
+            break;
+        t_interface_io_dialfs_write_msg *msg = malloc(sizeof(t_interface_io_dialfs_write_msg));
+        interface_decode_io_dialfs_write(packet->buffer, msg);
+        t_packet *packet = interface_serialize_io_dialfs_write(pcb->context->pid, msg);
+        interface_destroy_io_dialfs_write(msg);
+        queue_sync_push(interface->msg_queue,packet);
+        if(sync_queue_length(interface->msg_queue)==1){
+            packet_send(packet, interface->fd);
+        }
+        break;
+    }
     default:
         log_error(logger, "operacion desconocida opcode: %d", packet->op_code);
         break;

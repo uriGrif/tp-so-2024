@@ -33,6 +33,10 @@ static void send_io_std(enum StdType type, char *interface_name, t_list *access_
 static void send_wait_resource(char *resource_name);
 static void send_signal_resource(char *resource_name);
 static void send_resize(uint32_t size);
+static void send_dial_fs_create(char* interface_name, char* file_name);
+static void send_dial_fs_delete(char* interface_name, char* file_name);
+static void send_dial_fs_truncate(char* interface_name, char* file_name,uint32_t size);
+static void send_dial_fs_read_write(char* interface_name, char* file_name,t_list* access_list,uint32_t size,uint32_t file_pointer,bool is_write);
 
 t_instruction INSTRUCTION_SET[] = {{"SET", set}, {"SUM", sum}, {"SUB", sub}, {"JNZ", jnz}, {"IO_GEN_SLEEP", io_gen_sleep}, {"MOV_IN", mov_in}, {"MOV_OUT", mov_out}, {"RESIZE", resize}, {"COPY_STRING", copy_string}, {"WAIT", wait_instr}, {"SIGNAL", signal_instr}, {"IO_STDIN_READ", io_stdin_read}, {"IO_STDOUT_WRITE", io_stdout_write}, {"IO_FS_CREATE", io_fs_create}, {"IO_FS_DELETE", io_fs_delete}, {"IO_FS_TRUNCATE", io_fs_truncate}, {"IO_FS_WRITE", io_fs_write}, {"IO_FS_READ", io_fs_read}, {"EXIT", instruction_exit}, {NULL, NULL}};
 
@@ -381,19 +385,82 @@ void io_stdout_write(char **args, t_log *logger)
 
 void io_fs_create(char **args, t_log *logger)
 {
+    char* interface_name = args[0];
+    char* file_name = args[1];
+    send_dial_fs_create(interface_name, file_name);
+    wait_for_context(&context);
+    clear_interrupt();
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
+
 }
 void io_fs_delete(char **args, t_log *logger)
 {
+    char* interface_name = args[0];
+    char* file_name = args[1];
+    send_dial_fs_delete(interface_name, file_name);
+    wait_for_context(&context);
+    clear_interrupt();
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
 }
+
 void io_fs_truncate(char **args, t_log *logger)
 {
+    char* interface_name = args[0];
+    char* file_name = args[1];
+    t_register *size_reg = register_get_by_name(args[2]);
+    uint32_t size = register_get_value(size_reg);
+    send_dial_fs_truncate(interface_name,file_name,size);
+    wait_for_context(&context);
+    clear_interrupt();
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);
 }
 
 void io_fs_write(char **args, t_log *logger)
 {
+    char* interface_name = args[0];
+    char* file_name = args[1];
+    t_register *dir_reg = register_get_by_name(args[2]);
+    t_register *size_reg = register_get_by_name(args[3]);
+    t_register *pointer_reg = register_get_by_name(args[4]);
+
+    uint32_t size = register_get_value(size_reg);
+
+    uint32_t dir_value = register_get_value(dir_reg);
+
+    uint32_t file_pointer = register_get_value(pointer_reg);
+
+    t_list *access_to_memory = access_to_memory_create(dir_value, size, PAGE_SIZE, logger);
+
+    send_dial_fs_read_write(interface_name, file_name, access_to_memory, size, file_pointer, true);  
+
+    list_destroy_and_destroy_elements(access_to_memory, free);
+    wait_for_context(&context);
+    clear_interrupt();
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);  
+
 }
 void io_fs_read(char **args, t_log *logger)
 {
+    char* interface_name = args[0];
+    char* file_name = args[1];
+    t_register *dir_reg = register_get_by_name(args[2]);
+    t_register *size_reg = register_get_by_name(args[3]);
+    t_register *pointer_reg = register_get_by_name(args[4]);
+
+    uint32_t size = register_get_value(size_reg);
+
+    uint32_t dir_value = register_get_value(dir_reg);
+
+    uint32_t file_pointer = register_get_value(pointer_reg);
+
+    t_list *access_to_memory = access_to_memory_create(dir_value, size, PAGE_SIZE, logger);
+
+    send_dial_fs_read_write(interface_name, file_name, access_to_memory, size, file_pointer, false);  
+
+    list_destroy_and_destroy_elements(access_to_memory, free);
+    wait_for_context(&context);
+    clear_interrupt();
+    log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum, context.registers.ax);  
 }
 // para no tener conflitcto
 void instruction_exit(char **args, t_log *logger)
@@ -451,6 +518,47 @@ static void send_io_std(enum StdType type, char *interface_name, t_list *access_
     packet_addString(packet, interface_name);
     packet_add_list(packet, access_list, (void *)packet_add_access_to_mem);
     packet_addUInt32(packet, size);
+    packet_send(packet, cli_dispatch_fd);
+    packet_free(packet);
+}
+
+static void send_dial_fs_create(char* interface_name, char* file_name){
+    t_packet* packet = packet_new(IO_FS_CREATE);
+    packet_add_context(packet, &context);
+    packet_addString(packet,interface_name);
+    packet_addString(packet,file_name);
+    packet_send(packet, cli_dispatch_fd);
+    packet_free(packet);
+}
+
+static void send_dial_fs_delete(char* interface_name, char* file_name){
+    t_packet* packet = packet_new(IO_FS_DELETE);
+    packet_add_context(packet, &context);
+    packet_addString(packet,interface_name);
+    packet_addString(packet,file_name);
+    packet_send(packet, cli_dispatch_fd);
+    packet_free(packet);
+}
+
+static void send_dial_fs_truncate(char* interface_name, char* file_name,uint32_t size){
+    t_packet* packet = packet_new(IO_FS_DELETE);
+    packet_add_context(packet, &context);
+    packet_addString(packet,interface_name);
+    packet_addString(packet,file_name);
+    packet_addUInt32(packet, size);
+    packet_send(packet, cli_dispatch_fd);
+    packet_free(packet);
+}
+
+static void send_dial_fs_read_write(char* interface_name, char* file_name,t_list* access_list,uint32_t size,uint32_t file_pointer,bool is_write){
+    t_opcode op_code = is_write ? IO_FS_WRITE : IO_FS_READ;
+    t_packet* packet = packet_new(op_code);
+    packet_add_context(packet, &context);
+    packet_addString(packet,interface_name);
+    packet_addString(packet,file_name);
+    packet_add_list(packet, access_list, (void *)packet_add_access_to_mem);
+    packet_addUInt32(packet, size);
+    packet_addUInt32(packet, file_pointer);
     packet_send(packet, cli_dispatch_fd);
     packet_free(packet);
 }

@@ -127,27 +127,70 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     }
     case IO_FS_CREATE:
     {
+        t_interface_io_dialfs_create_msg *msg = malloc(sizeof(t_interface_io_dialfs_create_msg));
+        interface_decode_io_dialfs_create(buffer, msg);
+        do_work(1);
+        log_info(logger,"PID: %d - Crear Archivo: %s", pid, msg->file_name);
+
         send_done();
+
+        interface_destroy_io_dialfs_create(msg);
         break;
     }
     case IO_FS_DELETE:
     {
+        t_interface_io_dialfs_del_msg *msg = malloc(sizeof(t_interface_io_dialfs_del_msg));
+        interface_decode_io_dialfs_del(buffer, msg);
+        do_work(1);
+        log_info(logger,"PID: %d - Eliminar Archivo: %s", pid, msg->file_name);
+
         send_done();
+
+        interface_destroy_io_dialfs_del(msg);
         break;
     }
     case IO_FS_TRUNCATE:
     {
+        t_interface_io_dialfs_truncate_msg *msg = malloc(sizeof(t_interface_io_dialfs_truncate_msg));
+        interface_decode_io_dialfs_truncate(buffer, msg);
+        do_work(1);
+        log_info(logger,"PID: %d - Truncar Archivo: %s - Tamaño: %d", pid, msg->file_name, msg->size);
+
         send_done();
+
+        interface_destroy_io_dialfs_truncate(msg);
         break;
     }
     case IO_FS_READ:
     {
+        void print_access(void* elem){
+            t_access_to_memory* access = (t_access_to_memory*) elem;
+            log_debug(logger,"dir fisica: %d - tamanio: %d",access->address,access->bytes_to_access);
+        }
+        t_interface_io_dialfs_read_msg *msg = malloc(sizeof(t_interface_io_dialfs_read_msg));
+        interface_decode_io_dialfs_read(buffer, msg);
+        do_work(1);
+        log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
+        list_iterate(msg->access_list,print_access);
         send_done();
+
+        interface_destroy_io_dialfs_read(msg);
         break;
     }
     case IO_FS_WRITE:
     {
+         void print_access(void* elem){
+            t_access_to_memory* access = (t_access_to_memory*) elem;
+            log_debug(logger,"dir fisica: %d - tamanio: %d",access->address,access->bytes_to_access);
+        }
+        t_interface_io_dialfs_write_msg *msg = malloc(sizeof(t_interface_io_dialfs_write_msg));
+        interface_decode_io_dialfs_write(buffer, msg);
+        do_work(1);
+        log_info(logger,"PID: %d - Escribir a Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
+        list_iterate(msg->access_list,print_access);
         send_done();
+
+        interface_destroy_io_dialfs_write(msg);
         break;
     }
     case DESTROY_PROCESS:

@@ -62,18 +62,31 @@ int interface_is_connected(t_interface *interface)
 
 int interface_can_run_instruction(t_interface *interface, uint8_t instruction_to_run)
 {
-    switch (instruction_to_run)
-    {
-    case IO_GEN_SLEEP:
+    if(IO_GEN_SLEEP == instruction_to_run)
         return strcmp(interface->type, "GENERICA") == 0;
-    case IO_STDIN_READ:
+    if(IO_STDIN_READ == instruction_to_run)
         return strcmp(interface->type, "STDIN") == 0;
-    case IO_STDOUT_WRITE:
+    if(IO_STDOUT_WRITE == instruction_to_run)
         return strcmp(interface->type, "STDOUT") == 0;
-    // the rest of instructions correspond to the file system
-    default:
+    if(IO_FS_CREATE == instruction_to_run || IO_FS_DELETE == instruction_to_run ||
+    IO_FS_TRUNCATE == instruction_to_run || IO_FS_READ == instruction_to_run
+    || IO_FS_WRITE == instruction_to_run)
         return strcmp(interface->type, "DIALFS") == 0;
-    }
+    return 0; 
+
+
+    // switch (instruction_to_run)
+    // {
+    // case IO_GEN_SLEEP:
+    //     return strcmp(interface->type, "GENERICA") == 0;
+    // case IO_STDIN_READ:
+    //     return strcmp(interface->type, "STDIN") == 0;
+    // case IO_STDOUT_WRITE:
+    //     return strcmp(interface->type, "STDOUT") == 0;
+    // // the rest of instructions correspond to the file system
+    // default:
+    //     return strcmp(interface->type, "DIALFS") == 0;
+    // }
 }
 
 t_interface *interface_validate(char *name, uint8_t instruction_to_run)

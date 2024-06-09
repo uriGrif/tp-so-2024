@@ -1,0 +1,10 @@
+RESIZE 128
+SET AX 10
+SET DX 31
+SET EBX 1000
+IO_FS_CREATE Int5 notas.txt
+IO_FS_TRUNCATE Int5 notas.txt AX
+IO_FS_WRITE Int5 notas.txt AX AX EBX
+IO_FS_READ Int5 notas.txt DX AX EBX
+IO_FS_DELETE Int5 notas.txt
+EXIT
