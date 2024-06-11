@@ -18,7 +18,7 @@
 
 #define LOG_LEVEL LOG_LEVEL_INFO
 #define LOG_PATH "mem.log"
-#define PROCESS_NAME "MEMORIA"
+#define PROCESS_NAME "memoria"
 
 
 #endif

@@ -10,7 +10,7 @@ int kernel_fd;
 
 static void config_init(void)
 {
-    char* mounted_path = mount_config_directory(config_path);
+    char* mounted_path = mount_config_directory(PROCESS_NAME,config_path);
     config = config_create(mounted_path);
     free(mounted_path);
     if (!config)

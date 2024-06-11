@@ -10,7 +10,7 @@ static pthread_t long_term_scheduler_thread;
 
 static void config_init(char *path)
 {
-    char *mounted_path = mount_config_directory(path);
+    char *mounted_path = mount_config_directory(PROCESS_NAME,path);
     config = config_create(mounted_path);
     free(mounted_path);
     if (!config)

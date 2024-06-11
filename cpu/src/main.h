@@ -21,7 +21,7 @@
 
 #define LOG_LEVEL LOG_LEVEL_DEBUG
 #define LOG_PATH "cpu.log"
-#define PROCESS_NAME "CPU"
+#define PROCESS_NAME "cpu"
 
 typedef struct
 {

@@ -13,6 +13,6 @@
 
 #define LOG_LEVEL LOG_LEVEL_DEBUG
 #define LOG_PATH "IO.log"
-#define PROCESS_NAME "IO"
+#define PROCESS_NAME "entradasalida"
 
 #endif

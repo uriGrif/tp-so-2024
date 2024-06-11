@@ -86,8 +86,8 @@ int file_exists(char* file_path){
     return !access(file_path,F_OK);
 }
 
-char* mount_config_directory(char* config_path){
-    return string_from_format("configs/%s",config_path);
+char* mount_config_directory(char* module_name,char* config_path){
+    return string_from_format("/home/utnso/tp-2024-1c-fossil/%s/configs/%s",module_name,config_path);
 }
 
 long long current_timestamp(void){

@@ -1,4 +1,0 @@
-INICIAR_PROCESO p1.txt
-INICIAR_PROCESO p2.txt
-INICIAR_PROCESO preliminares/script_solo_cpu_2
-INICIAR_PROCESO preliminares/script_solo_cpu_2

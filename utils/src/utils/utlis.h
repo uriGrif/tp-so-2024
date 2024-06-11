@@ -38,6 +38,6 @@ int msleep(long msec);
 
 long long current_timestamp(void);
 
-char *mount_config_directory(char *config_path);
+char *mount_config_directory(char* module_name,char *config_path);
 
 #endif

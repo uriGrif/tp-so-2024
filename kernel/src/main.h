@@ -25,6 +25,6 @@
 
 #define LOG_LEVEL LOG_LEVEL_DEBUG
 #define LOG_PATH "kernel.log"
-#define PROCESS_NAME "Kernel"
+#define PROCESS_NAME "kernel"
 
 #endif
