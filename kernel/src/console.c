@@ -129,6 +129,8 @@ void execute_script(char *file_path, t_log *logger)
     string_append(&final_path,file_path);
     t_list *commands = file_get_list_of_lines(final_path);
 
+    free(final_path);
+
     if (list_is_empty(commands))
         log_warning(logger,"script no encontrado\n");
 

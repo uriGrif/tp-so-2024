@@ -91,14 +91,18 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
             free(resource_name);
             break;
         }
+        pthread_mutex_lock(&q->resource_mutex);
         q->instances--;
+        pthread_mutex_unlock(&q->resource_mutex);
         if (q->instances < 0)
         {
             handle_quantum();
             handle_pause();
             if(handle_sigterm(pcb,logger)){
-                 q->instances++;
-                 break;   
+                pthread_mutex_lock(&q->resource_mutex);
+                q->instances++;
+                pthread_mutex_unlock(&q->resource_mutex);
+                break;   
             }
             scheduler.move_pcb_to_blocked(pcb, q->resource_name, logger);
             log_info(logger, "PID: %d - Bloqueado por: %s", pcb->context->pid, resource_name);

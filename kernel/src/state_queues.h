@@ -21,6 +21,7 @@ typedef struct
     };
     sem_t sem_process_count;
     t_sync_queue *block_queue;
+    pthread_mutex_t resource_mutex;
 } t_blocked_queue;
 
 extern t_sync_queue *new_queue;

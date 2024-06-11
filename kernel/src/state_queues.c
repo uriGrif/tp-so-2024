@@ -145,7 +145,8 @@ void add_resources_to_blocked_queues(void)
     int i = 0;
     void add_resource(char *resource)
     {
-        add_blocked_queue(resource, atoi(*(cfg_kernel->instancias_recursos + i)));
+        t_blocked_queue *queue = add_blocked_queue(resource, atoi(*(cfg_kernel->instancias_recursos + i)));
+        pthread_mutex_init(&queue->resource_mutex, 0);
         i++;
     }
     string_iterate_lines(cfg_kernel->recursos, add_resource);
@@ -223,7 +224,9 @@ t_pcb *remove_pcb_from_blocked_queues_by_pid(uint32_t pid, t_log *logger)
             {
                 if (is_resource(block_queue->resource_name))
                 {
+                    pthread_mutex_lock(&block_queue->resource_mutex);
                     block_queue->instances++;
+                    pthread_mutex_unlock(&block_queue->resource_mutex);
                     list_remove_element(pcb_list, target);
                     sem_wait(&block_queue->sem_process_count);
                     pthread_mutex_unlock(&block_queue->block_queue->mutex);

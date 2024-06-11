@@ -197,7 +197,9 @@ void instr_signal(t_pcb *pcb, t_blocked_queue *queue, t_log *logger)
 {
     int *taken = dictionary_get(pcb->taken_resources, queue->resource_name);
     *taken = (*taken - 1) > 0 ? (*taken - 1) : 0;
+    pthread_mutex_lock(&queue->resource_mutex);
     queue->instances++;
+    pthread_mutex_unlock(&queue->resource_mutex);
     if (queue->instances <= 0 && sync_queue_length(queue->block_queue) > 0)
     {
         scheduler.block_to_ready(queue, logger);
