@@ -132,8 +132,8 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         }
         instr_signal(pcb,q,logger);    
         send_context_to_cpu(pcb->context);
-        wait_for_dispatch_reason(pcb, logger);
         free(resource_name);
+        wait_for_dispatch_reason(pcb, logger);
         break;
     }
     case IO_GEN_SLEEP:
