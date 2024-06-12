@@ -229,20 +229,15 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
 
     // le libero todos los recursos
 
-    void iterator(void *resource_name)
-    {
-        char *name = (char *)resource_name;
-        int *taken = dictionary_get(pcb->taken_resources, name);
+    void iterator(char *name,void* elem){
+        int *taken = (int*) elem;
         t_blocked_queue *q = get_blocked_queue_by_name(name);
         while (*taken > 0)
         {
             instr_signal(pcb, q, logger);
         }
     }
-    t_list *keys = dictionary_keys(pcb->taken_resources);
-    list_iterate(keys, iterator);
-
-    list_destroy(keys);
+   dictionary_iterator(pcb->taken_resources,iterator);
 }
 
 void handle_long_term_scheduler(void *args_logger)
