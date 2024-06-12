@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <utils/hello.h>
 #include <errno.h>
 #include <sockets/sockets.h>
 #include <commons/log.h>
