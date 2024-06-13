@@ -102,6 +102,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
                 pthread_mutex_lock(&q->resource_mutex);
                 q->instances++;
                 pthread_mutex_unlock(&q->resource_mutex);
+                free(resource_name);
                 break;   
             }
             scheduler.move_pcb_to_blocked(pcb, q->resource_name, logger);
@@ -114,8 +115,8 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         log_debug(logger,"tomados por %d : %s->%d",pcb->context->pid,resource_name,*taken);
         log_debug(logger, "Instancias del recurso %s: %d", resource_name, q->instances);
         send_context_to_cpu(pcb->context);
-        wait_for_dispatch_reason(pcb, logger);
         free(resource_name);
+        wait_for_dispatch_reason(pcb, logger);
         break;
     }
     case SIGNAL:
