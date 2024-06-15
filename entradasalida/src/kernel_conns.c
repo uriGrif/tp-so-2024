@@ -130,6 +130,15 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_interface_io_dialfs_create_msg *msg = malloc(sizeof(t_interface_io_dialfs_create_msg));
         interface_decode_io_dialfs_create(buffer, msg);
         do_work(1);
+        if(file_already_exists(msg->file_name)){
+            log_warning(logger,"PID %d - No hace nada porque el archivo %s ya fue creado",pid,msg->file_name);
+            send_done();
+            interface_destroy_io_dialfs_create(msg);
+            break;
+        }
+
+        create_file(msg->file_name);
+        
         log_info(logger,"PID: %d - Crear Archivo: %s", pid, msg->file_name);
 
         send_done();
@@ -142,6 +151,14 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_interface_io_dialfs_del_msg *msg = malloc(sizeof(t_interface_io_dialfs_del_msg));
         interface_decode_io_dialfs_del(buffer, msg);
         do_work(1);
+        if(!file_already_exists(msg->file_name)){
+            log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
+            send_done();
+            interface_destroy_io_dialfs_del(msg);
+            break;
+        }
+        
+        delete_file(msg->file_name);
         log_info(logger,"PID: %d - Eliminar Archivo: %s", pid, msg->file_name);
 
         send_done();

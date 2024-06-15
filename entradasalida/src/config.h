@@ -15,6 +15,8 @@ typedef struct
     int block_count;
 } t_io_config;
 
+extern t_io_config *cfg_io;
+
 extern char* interface_name;
 
 #endif

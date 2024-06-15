@@ -2,7 +2,7 @@
 
 static t_log *logger;
 static t_config *config;
-static t_io_config *cfg_io;
+t_io_config *cfg_io;
 char *interface_name;
 static char *config_path;
 int memory_fd;
@@ -50,10 +50,14 @@ static void io_init(int argc, char **argv)
     config_path = argv[2];
 
     config_init();
+    if(!strcmp(cfg_io->tipo_interfaz,"DIALFS"))
+        load_fs(logger);
 }
 
 static void io_close(void)
 {
+    if(!strcmp(cfg_io->tipo_interfaz,"DIALFS"))
+        close_fs();
     socket_freeConn(memory_fd);
     socket_freeConn(kernel_fd);
     log_destroy(logger);

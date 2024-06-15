@@ -8,6 +8,7 @@
 #include <proto/interface.h>
 #include <string.h>
 #include <commons/string.h>
+#include <fcb.h>
 #include <errno.h>
 #include <commons/log.h>
 #include <config.h>

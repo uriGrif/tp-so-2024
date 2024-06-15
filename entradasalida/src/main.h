@@ -6,6 +6,7 @@
 #include <sockets/sockets.h>
 #include <proto/proto.h>
 #include <errno.h>
+#include <init_fs.h>
 #include <commons/log.h>
 #include <commons/config.h>
 #include <kernel_conns.h>
