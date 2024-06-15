@@ -35,8 +35,8 @@ void create_file(char* file_name){
 
     char* first_block_str = string_itoa(first_block);
 
-    config_set_value(config,"BLOQUE_INICIAL",first_block_str);
-    config_set_value(config,"TAMANIO_ARCHIVO","0");
+    config_set_value(config,METADATA_BLOQUE_INICIAL,first_block_str);
+    config_set_value(config,METADATA_TAMANIO_ARCHIVO,"0");
     config_save(config);
 
     dictionary_put(metada_dictionary,file_name,config);
@@ -65,4 +65,20 @@ void delete_file(char* file_name){
     remove(final_name);
     free(final_name);
     free(fcb);
+}
+
+void fcb_set_size(char* file_name,uint32_t size){
+    t_config* config = dictionary_get(metada_dictionary,file_name);
+    char* result = string_itoa(size);
+    config_set_value(config,METADATA_TAMANIO_ARCHIVO,result);
+    config_save(config);
+    free(result);
+}
+
+void fcb_set_first_block(char* file_name,int block){
+    t_config* config = dictionary_get(metada_dictionary,file_name);
+    char* result = string_itoa(block);
+    config_set_value(config,METADATA_BLOQUE_INICIAL,result);
+    config_save(config);
+    free(result);
 }

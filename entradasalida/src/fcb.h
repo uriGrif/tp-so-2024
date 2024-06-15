@@ -10,6 +10,10 @@
 #include <dirent.h>
 #include <bitmap_monitor.h>
 
+#define METADATA_BLOQUE_INICIAL "BLOQUE_INICIAL"
+#define METADATA_TAMANIO_ARCHIVO "TAMANIO_ARCHIVO"
+
+
 typedef struct {
     int first_block;
     int size;
