@@ -7,6 +7,7 @@
 #include <blocks.h>
 #include <bitmap_monitor.h>
 #include <fcb.h>
+#include <sys/stat.h>
 
 void load_fs(t_log *logger);
 void close_fs(void);
