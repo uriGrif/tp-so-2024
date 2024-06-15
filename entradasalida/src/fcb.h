@@ -23,5 +23,8 @@ void init_fcbs(void);
 void create_file(char* file_name);
 void delete_file(char *file_name);
 bool file_already_exists(char* file_name);
+void fcb_set_size(char* file_name,uint32_t size);
+void fcb_set_first_block(char* file_name,int block);
+t_fcb* get_metadata(char* file_name);
 
 #endif

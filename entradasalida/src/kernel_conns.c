@@ -171,10 +171,40 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_interface_io_dialfs_truncate_msg *msg = malloc(sizeof(t_interface_io_dialfs_truncate_msg));
         interface_decode_io_dialfs_truncate(buffer, msg);
         do_work(1);
-        log_info(logger,"PID: %d - Truncar Archivo: %s - Tamaño: %d", pid, msg->file_name, msg->size);
+        if(!file_already_exists(msg->file_name)){
+            log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
+            send_done();
+            interface_destroy_io_dialfs_truncate(msg);
+            break;
+        }
+        
+        uint32_t target_blocks = ceil((double) msg->size/cfg_io->block_size);
 
+        t_fcb* fcb = get_metadata(msg->file_name);    
+        uint32_t current_blocks = ceil((double) fcb->size / cfg_io->block_size);
+        
+        if (target_blocks < current_blocks) {
+            uint32_t first_block_to_remove = fcb->first_block + target_blocks;
+            free_blocks(first_block_to_remove, current_blocks - target_blocks);
+        } else if(target_blocks > current_blocks) {
+            uint32_t free_contiguous_blocks = free_contiguous_blocks_from(fcb->first_block + current_blocks);
+            if(target_blocks > free_contiguous_blocks){
+                // compacto
+            }
+            occupy_free_blocks(fcb->first_block + current_blocks, target_blocks);
+        }
+
+        fcb_set_size(msg->file_name, msg->size);
+        
+        log_info(logger, "PID: %d - Truncar Archivo: %s - Tamaño: %d", pid, msg->file_name, msg->size);
+
+        log_debug(logger, "Bit del bloque 0: %d", test_bit_from_bitmap(0));
+        log_debug(logger, "Bit del bloque 4: %d", test_bit_from_bitmap(4));
+        log_debug(logger, "Bit del bloque 5: %d", test_bit_from_bitmap(5));
+        
         send_done();
 
+        free(fcb);
         interface_destroy_io_dialfs_truncate(msg);
         break;
     }

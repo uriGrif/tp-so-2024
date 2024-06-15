@@ -48,8 +48,8 @@ int find_first_free_block() {
     return block_index;
 }
 
-int free_contiguous_blocks_from(int file_end){
-    int count = 0;
+uint32_t free_contiguous_blocks_from(int file_end){
+    uint32_t count = 0;
     for(int i=file_end; !bitarray_test_bit(bitarray,i);i++)
         count++;
     return count;
@@ -67,4 +67,8 @@ void free_blocks(int from, int block_count){
         bitarray_clean_bit(bitarray,from + i);
     }
     msync(bitarray->bitarray,bitarray->size,MS_SYNC);
+}
+
+bool test_bit_from_bitmap(int bit) {
+    return bitarray_test_bit(bitarray, bit);
 }

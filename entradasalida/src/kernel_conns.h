@@ -7,6 +7,7 @@
 #include <proto/memory.h>
 #include <proto/interface.h>
 #include <string.h>
+#include <math.h>
 #include <commons/string.h>
 #include <fcb.h>
 #include <errno.h>

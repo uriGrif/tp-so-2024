@@ -541,7 +541,7 @@ static void send_dial_fs_delete(char* interface_name, char* file_name){
 }
 
 static void send_dial_fs_truncate(char* interface_name, char* file_name,uint32_t size){
-    t_packet* packet = packet_new(IO_FS_DELETE);
+    t_packet* packet = packet_new(IO_FS_TRUNCATE);
     packet_add_context(packet, &context);
     packet_addString(packet,interface_name);
     packet_addString(packet,file_name);

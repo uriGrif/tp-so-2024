@@ -34,3 +34,4 @@ void clear_frame(uint32_t frame_number)
     pthread_mutex_unlock(&MUTEX_MEM_BITARRAY);
 }
 // quizas destroy
+
