@@ -240,6 +240,17 @@ void move_pcb_to_exit(t_pcb *pcb, t_log *logger)
    dictionary_iterator(pcb->taken_resources,iterator);
 }
 
+
+void block_to_exit(t_blocked_queue* queue, t_log *logger)
+{
+    //wait sem cola bloqueado
+    t_pcb *pcb = blocked_queue_pop(queue);
+    if(!pcb)
+        log_error(logger,"blocked queue not found");
+    log_info(logger, "Finaliza el proceso %d - Motivo: Error de interfaz", pcb->context->pid);
+    move_pcb_to_exit(pcb, logger);
+}
+
 void handle_long_term_scheduler(void *args_logger)
 {
     sem_init(&current_multiprogramming_grade, 0, max_multiprogramming_grade);

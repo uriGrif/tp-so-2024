@@ -73,6 +73,17 @@ void process_conn(void *void_args)
             interface_destroy_io_done(msg);
             break;
         }
+        case IO_ERROR: {
+            handle_pause();
+            t_packet* packet = queue_sync_pop(this_interface->msg_queue);
+            packet_free(packet);
+            if (sync_queue_length(this_interface->msg_queue) > 0) {
+                packet = sync_queue_peek(this_interface->msg_queue,0);
+                packet_send(packet,this_interface->fd);
+            }
+            block_to_exit(this_blocked_queue, logger);
+            break;
+        }
         case -1:
             log_error(logger, "client disconnect");
             packet_free(packet);

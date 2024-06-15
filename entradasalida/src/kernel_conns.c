@@ -39,9 +39,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         interface_send_io_done(kernel_fd, interface_name, pid);
     }
 
-    void send_error(uint8_t error_code)
+    void send_error(void)
     {
-        interface_send_io_error(kernel_fd, interface_name, pid, error_code);
+        interface_send_io_error(kernel_fd, interface_name, pid, IO_ERROR);
     }
 
     void do_work(int work)
@@ -106,6 +106,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         if (packet_recv(memory_fd, res) == -1)
         {
             log_error(logger, "Error al leer de memoria");
+            packet_free(res);
             break;
         }
 
@@ -168,9 +169,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     }
     case IO_FS_TRUNCATE:
     {
+        do_work(1);
         t_interface_io_dialfs_truncate_msg *msg = malloc(sizeof(t_interface_io_dialfs_truncate_msg));
         interface_decode_io_dialfs_truncate(buffer, msg);
-        do_work(1);
         if(!file_already_exists(msg->file_name)){
             log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
             send_done();
@@ -210,34 +211,87 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
     }
     case IO_FS_READ:
     {
-        void print_access(void* elem){
-            t_access_to_memory* access = (t_access_to_memory*) elem;
-            log_debug(logger,"dir fisica: %d - tamanio: %d",access->address,access->bytes_to_access);
-        }
+        do_work(1);
         t_interface_io_dialfs_read_msg *msg = malloc(sizeof(t_interface_io_dialfs_read_msg));
         interface_decode_io_dialfs_read(buffer, msg);
-        do_work(1);
-        log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
-        list_iterate(msg->access_list,print_access);
-        send_done();
 
+        if(!file_already_exists(msg->file_name)){
+            log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
+            send_error();
+            interface_destroy_io_dialfs_read(msg);
+            break;
+        }
+        
+        t_fcb *fcb = get_metadata(msg->file_name);
+
+        void *value = read_blocks(fcb->first_block, msg->file_pointer, msg->size);
+
+        log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
+ 
+        memory_send_write(memory_fd, pid, msg->access_list, msg->size, value);
+
+        t_packet *res = packet_new(-1);
+        if (packet_recv(memory_fd, res) == -1)
+        {
+            log_error(logger, "Error, desconexion de memoria");
+            packet_free(res);
+            break;
+        }
+
+        if (res->op_code != WRITE_MEM_OK)
+        {
+            log_info(logger, "Error al escribir en memoria");
+        }
+        
+        send_done();
+ 
+        free(value);
+        packet_free(res);
         interface_destroy_io_dialfs_read(msg);
+        free(fcb);
         break;
     }
     case IO_FS_WRITE:
     {
-         void print_access(void* elem){
-            t_access_to_memory* access = (t_access_to_memory*) elem;
-            log_debug(logger,"dir fisica: %d - tamanio: %d",access->address,access->bytes_to_access);
-        }
+        do_work(1);
         t_interface_io_dialfs_write_msg *msg = malloc(sizeof(t_interface_io_dialfs_write_msg));
         interface_decode_io_dialfs_write(buffer, msg);
-        do_work(1);
+        
+        if(!file_already_exists(msg->file_name)){
+            log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
+            send_error();
+            interface_destroy_io_dialfs_write(msg);
+            break;
+        }
+        
+
+        memory_send_read(memory_fd, pid, msg->access_list, msg->size);
+
+        t_packet *res = packet_new(-1);
+        
+        if (packet_recv(memory_fd, res) == -1)
+        {
+            log_error(logger, "SE JODIO LA MEMORIA");
+            packet_free(res);
+            break;
+        }
+        
+        t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
+        memory_decode_read_ok(res->buffer, ok_msg, msg->size);
+
+        t_fcb* fcb = get_metadata(msg->file_name);    
+
+        write_blocks(fcb->first_block, msg->file_pointer, ok_msg->value, msg->size);
+
+        memory_destroy_read_ok(ok_msg);
+        
         log_info(logger,"PID: %d - Escribir a Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
-        list_iterate(msg->access_list,print_access);
+    
         send_done();
 
         interface_destroy_io_dialfs_write(msg);
+        free(fcb);
+        packet_free(res);
         break;
     }
     case DESTROY_PROCESS:

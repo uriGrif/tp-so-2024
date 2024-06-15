@@ -52,6 +52,7 @@ typedef enum
     IO_FS_WRITE,
     IO_FS_READ,
     IO_DONE,
+    IO_ERROR,
 } t_opcode;
 
 typedef struct

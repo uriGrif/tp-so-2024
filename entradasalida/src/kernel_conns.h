@@ -15,6 +15,7 @@
 #include <config.h>
 #include <utils/utlis.h>
 #include <prompt.h>
+#include <blocks.h>
 
 int registerResourceInKernel(int kernel_fd, t_log *logger, t_io_config *config);
 
