@@ -1,7 +1,7 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
-#define SCRIPTS_ABSOLUTE_PATH "/media/sf_sistemas_operativos/tp-2024-1c-fossil/tp-2024-1c-fossil/kernel/scripts"
+#define SCRIPTS_ABSOLUTE_PATH "/home/utnso/tp-2024-1c-fossil/kernel/scripts"
 
 #include <readline/readline.h>
 #include <readline/history.h>
