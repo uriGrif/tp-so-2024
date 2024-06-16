@@ -77,8 +77,10 @@ static void init_kernel(int argc, char **argv)
 
 static void kernel_close(void)
 {
-    pthread_cancel(short_term_scheduler_thread);
-    pthread_cancel(long_term_scheduler_thread);
+   if(short_term_scheduler_thread)
+        pthread_cancel(short_term_scheduler_thread);
+    if(long_term_scheduler_thread)
+        pthread_cancel(long_term_scheduler_thread);
     rl_clear_history();
     destroy_scheduler();
     destroy_queues();
