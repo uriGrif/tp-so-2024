@@ -39,7 +39,11 @@ void decode_and_execute(char *instruction, t_log *logger)
     char *string_of_args = args_as_string(args);
     t_instruction *inst = instruction_get_by_name(instr_name);
     log_info(logger, "PID: %d - Ejecutando: %s - %s", context.pid, instr_name, string_of_args);
-    execute(inst->instr, args, logger);
+    if(!inst){
+        log_error(logger,"INSTRUCCION INVALIDA, NO EJECUTO NADA");
+    }
+    else
+        execute(inst->instr, args, logger);
     free(string_of_args);
     string_array_destroy(tokens);
     free(instruction);
