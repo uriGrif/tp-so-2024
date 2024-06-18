@@ -6,10 +6,14 @@ uint32_t get_frame(uint32_t page_number, t_log *logger)
     if (frame_number == -1)
     {
         frame_number = access_page_table(page_number);
-        if (frame_number == -1)
+        if (frame_number == -5)
         {
             log_error(logger, "error al obtener el frame de memoria");
             exit(1);
+        }
+        if(-1 == frame_number){
+            log_info(logger,"PID: %u - Página: %u INVALIDA",context.pid,page_number);
+            return frame_number;
         }
         tlb_insert(context.pid, page_number, frame_number, logger);
     }
@@ -35,6 +39,11 @@ t_list *access_to_memory_create(uint32_t logical_address, uint32_t total_bytes, 
         uint32_t offset = logical_address - page_number * page_size;
 
         uint32_t frame_number = get_frame(page_number, logger);
+
+        if(frame_number == -1){
+            list_destroy_and_destroy_elements(result,free);
+            return NULL;
+        }
 
         uint32_t physical_address = frame_number * page_size + offset;
 

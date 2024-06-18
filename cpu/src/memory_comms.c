@@ -29,7 +29,7 @@ uint32_t access_page_table(uint32_t page_number){
     packet = packet_new(-1);
     if(packet_recv(fd_memory,packet)==-1){
         packet_free(packet);
-        return -1;
+        return -5;
     }
     uint32_t frame = packet_getUInt32(packet->buffer);
     packet_free(packet);

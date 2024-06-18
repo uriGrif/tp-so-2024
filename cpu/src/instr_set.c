@@ -52,6 +52,12 @@ t_instruction *instruction_get_by_name(char *name)
     return NULL;
 }
 
+static void send_invalid_page_access(void){
+    send_dispatch_reason(INVALID_PAGE,&context);
+    wait_for_context(&context);
+    clear_interrupt();
+}
+
 void set(char **args, t_log *logger)
 {
     t_register *reg = register_get_by_name(args[0]);
@@ -131,6 +137,11 @@ void mov_in(char **args, t_log *logger)
 
     t_list *access_to_memory = access_to_memory_create(dir_value, data->size, PAGE_SIZE, logger);
 
+    if(!access_to_memory){
+        send_invalid_page_access();
+        return;
+    }
+
     memory_send_read(fd_memory, context.pid, access_to_memory, data->size);
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
@@ -177,6 +188,11 @@ void mov_out(char **args, t_log *logger)
     uint32_t dir_value = register_get_value(dir);
 
     t_list *access_to_memory = access_to_memory_create(dir_value, data->size, PAGE_SIZE, logger);
+
+    if(!access_to_memory){
+        send_invalid_page_access();
+        return;
+    }
 
     int offset = 0;
     void iterator(void *elem)
@@ -239,6 +255,11 @@ void copy_string(char **args, t_log *logger)
    
     t_list *access_to_memory = access_to_memory_create(context.registers.si, size, PAGE_SIZE, logger);
 
+    if(!access_to_memory){
+        send_invalid_page_access();
+        return;
+    }
+
     memory_send_read(fd_memory, context.pid, access_to_memory, size);
     t_packet *packet = packet_new(-1);
     if (packet_recv(fd_memory, packet) == -1)
@@ -277,6 +298,11 @@ void copy_string(char **args, t_log *logger)
     list_destroy_and_destroy_elements(access_to_memory, free);
 
     access_to_memory = access_to_memory_create(context.registers.di, size, PAGE_SIZE, logger);
+
+    if(!access_to_memory){
+        send_invalid_page_access();
+        return;
+    }
 
     offset = 0;
     void iterator_write(void *elem)
@@ -356,6 +382,11 @@ void io_stdin_read(char **args, t_log *logger)
 
     t_list *access_to_memory = access_to_memory_create(dir_value, size, PAGE_SIZE, logger);
 
+    if(!access_to_memory){
+        send_invalid_page_access();
+        return;
+    }
+
     send_io_std(IN, interface_name, access_to_memory, size);
     list_destroy_and_destroy_elements(access_to_memory, free);
     wait_for_context(&context);
@@ -373,6 +404,11 @@ void io_stdout_write(char **args, t_log *logger)
     uint32_t dir_value = register_get_value(virtual_address);
 
     t_list *access_to_memory = access_to_memory_create(dir_value, size, PAGE_SIZE, logger);
+
+    if(!access_to_memory){
+        send_invalid_page_access();
+        return;
+    }
 
     send_io_std(OUT, interface_name, access_to_memory, size);
     list_destroy_and_destroy_elements(access_to_memory, free);
@@ -429,6 +465,11 @@ void io_fs_write(char **args, t_log *logger)
 
     t_list *access_to_memory = access_to_memory_create(dir_value, size, PAGE_SIZE, logger);
 
+    if(!access_to_memory){
+        send_invalid_page_access();
+        return;
+    }
+
     send_dial_fs_read_write(interface_name, file_name, access_to_memory, size, file_pointer, true);  
 
     list_destroy_and_destroy_elements(access_to_memory, free);
@@ -452,6 +493,11 @@ void io_fs_read(char **args, t_log *logger)
     uint32_t file_pointer = register_get_value(pointer_reg);
 
     t_list *access_to_memory = access_to_memory_create(dir_value, size, PAGE_SIZE, logger);
+
+    if(!access_to_memory){
+        send_invalid_page_access();
+        return;
+    }
 
     send_dial_fs_read_write(interface_name, file_name, access_to_memory, size, file_pointer, false);  
 

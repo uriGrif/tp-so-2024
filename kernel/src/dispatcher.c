@@ -69,6 +69,14 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         move_pcb_to_exit(pcb, logger);
         break;
     }
+     case INVALID_PAGE:
+    {
+        handle_quantum();
+        handle_pause();
+        log_info(logger, "Finaliza el proceso %d- Motivo: Acceso Pagina ivalida", pcb->context->pid);
+        move_pcb_to_exit(pcb, logger);
+        break;
+    }
      case NO_INSTRUCTION:
     {
         // caso en el que no se enceuntre la proxima instruccion en el fetch

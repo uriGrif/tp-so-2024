@@ -4,7 +4,7 @@ static t_list *process_list;
 
 static pthread_mutex_t MUTEX_PROCESS_LIST;
 
-static void clear_all_frames(t_process_in_mem* process);
+static void clear_all_frames(t_process_in_mem *process);
 
 void init_process_list(void)
 {
@@ -70,7 +70,7 @@ t_process_in_mem *find_process_by_pid(uint32_t pid)
     return res;
 }
 
-void remove_process_by_pid(uint32_t pid,t_log* logger)
+void remove_process_by_pid(uint32_t pid, t_log *logger)
 {
     bool closure(void *elem)
     {
@@ -78,9 +78,9 @@ void remove_process_by_pid(uint32_t pid,t_log* logger)
         return aux_process->pid == pid;
     }
     pthread_mutex_lock(&MUTEX_PROCESS_LIST);
-    t_process_in_mem* process =  list_remove_by_condition(process_list, closure);
+    t_process_in_mem *process = list_remove_by_condition(process_list, closure);
     pthread_mutex_unlock(&MUTEX_PROCESS_LIST);
-    if(!process)
+    if (!process)
         return;
     log_info(logger, "PID: %u - Tamaño: %d", pid, list_size(process->page_table));
     t_process_in_mem_destroy(process);
@@ -93,15 +93,20 @@ void process_remove_last_page_from_table(t_process_in_mem *process)
     free(frame);
 }
 
-static void clear_all_frames(t_process_in_mem* process){
-    void iterator(void* elem){
-        uint32_t* frame = (uint32_t*) elem;
+static void clear_all_frames(t_process_in_mem *process)
+{
+    void iterator(void *elem)
+    {
+        uint32_t *frame = (uint32_t *)elem;
         clear_frame(*frame);
     }
-    list_iterate(process->page_table,iterator);
+    list_iterate(process->page_table, iterator);
 }
 
-uint32_t get_frame(t_process_in_mem* process, uint32_t page_number){
-    uint32_t *frame =  list_get(process->page_table,page_number);
+uint32_t get_frame(t_process_in_mem *process, uint32_t page_number)
+{
+    if (page_number >= list_size(process->page_table))
+        return -1;
+    uint32_t *frame = list_get(process->page_table, page_number);
     return *frame;
 }
