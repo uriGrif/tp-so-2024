@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <time.h>
+#include <commons/config.h>
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <errno.h>
@@ -39,5 +40,7 @@ int msleep(long msec);
 long long current_timestamp(void);
 
 char *mount_config_directory(char* module_name,char *config_path);
+
+bool config_has_all_properties(t_config* config, char** properties);
 
 #endif

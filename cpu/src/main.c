@@ -1,5 +1,6 @@
 #include <main.h>
 
+static char * CPU_PROPERTIES[] = {"IP_MEMORIA","PUERTO_MEMORIA","PUERTO_ESCUCHA_DISPATCH","PUERTO_ESCUCHA_INTERRUPT","CANTIDAD_ENTRADAS_TLB","ALGORITMO_TLB",NULL};
 t_log *logger;
 static int dispatch_fd;
 static int interrupt_fd;
@@ -8,7 +9,7 @@ static t_config *config;
 static t_cpu_config *cfg_cpu;
 static pthread_t thread_intr;
 t_exec_context context;
-t_tlb TLB;
+
 
 static void config_init(char* path)
 {
@@ -17,10 +18,13 @@ static void config_init(char* path)
     free(mounted_path);
     if (!config)
     {
-        perror("error al cargar el config");
+        log_error(logger,"error al cargar el config");
         exit(1);
     }
-
+    if(!config_has_all_properties(config,CPU_PROPERTIES)){
+        log_error(logger,"Finalizo el cpu, le fatan atributos al config");
+        exit(1);
+    }
     cfg_cpu = malloc(sizeof(t_cpu_config));
 
     cfg_cpu->ip_memoria = config_get_string_value(config, "IP_MEMORIA");

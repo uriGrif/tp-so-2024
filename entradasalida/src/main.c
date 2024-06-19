@@ -1,5 +1,7 @@
 #include <main.h>
 
+
+static char *IO_PROPERTIES[] = {"TIPO_INTERFAZ", "TIEMPO_UNIDAD_TRABAJO", "IP_KERNEL", "PUERTO_KERNEL", "IP_MEMORIA", "PUERTO_MEMORIA", "PATH_BASE_DIALFS", "BLOCK_SIZE", "BLOCK_COUNT", "RETRASO_COMPACTACION", NULL};
 static t_log *logger;
 static t_config *config;
 t_io_config *cfg_io;
@@ -15,7 +17,11 @@ static void config_init(void)
     free(mounted_path);
     if (!config)
     {
-        perror("error al cargar el config");
+        log_error(logger,"error al cargar el config");
+        exit(1);
+    }
+    if(!config_has_all_properties(config,IO_PROPERTIES)){
+        log_error(logger,"Finalizo el programa, le faltan entradas al config");
         exit(1);
     }
     cfg_io = malloc(sizeof(t_io_config));

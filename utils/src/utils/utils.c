@@ -87,7 +87,7 @@ int file_exists(char* file_path){
 }
 
 char* mount_config_directory(char* module_name,char* config_path){
-    return string_from_format("/home/utnso/tp-2024-1c-fossil/%s/configs/%s",module_name,config_path);
+    return string_from_format("/home/gturri/tp-2024-1c-fossil/%s/configs/%s",module_name,config_path);
 }
 
 long long current_timestamp(void){
@@ -97,3 +97,11 @@ long long current_timestamp(void){
     //printf("milliseconds: %lld\n", milliseconds);
     return milliseconds;
 } 
+
+bool config_has_all_properties(t_config* config, char** properties){
+    for(int i =0 ; properties[i]!=NULL; i++){
+        if(!config_has_property(config,properties[i]))
+            return false;
+    }
+    return true;
+}

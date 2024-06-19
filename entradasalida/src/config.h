@@ -1,6 +1,7 @@
 #ifndef IO_CONFIG_H
 #define IO_CONFIG_H
 
+
 typedef struct
 {
     char *name;
@@ -17,6 +18,7 @@ typedef struct
 
 extern t_io_config *cfg_io;
 
-extern char* interface_name;
+extern char *interface_name;
+
 
 #endif

@@ -1,5 +1,6 @@
 #include <main.h>
 
+static char * KERNEL_PROPERTIES[] = {"PUERTO_ESCUCHA","IP_MEMORIA","IP_CPU","PUERTO_CPU_DISPATCH","PUERTO_CPU_INTERRUPT","ALGORITMO_PLANIFICACION","QUANTUM","RECURSOS","INSTANCIAS_RECURSOS","GRADO_MULTIPROGRAMACION",NULL};
 static t_log *logger;
 static t_config *config;
 static int server_fd;
@@ -15,7 +16,11 @@ static void config_init(char *path)
     free(mounted_path);
     if (!config)
     {
-        perror("error al crear el config");
+        log_error(logger,"error al crear el config");
+        exit(1);
+    }
+    if(!config_has_all_properties(config,KERNEL_PROPERTIES)){
+        log_error(logger,"Finalizo el kernel, le faltan atributos al config");
         exit(1);
     }
 

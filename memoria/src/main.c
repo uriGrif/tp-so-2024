@@ -1,5 +1,6 @@
 #include <main.h>
 
+static char * MEM_PROPERTIES[] = {"PUERTO_ESCUCHA","TAM_MEMORIA","TAM_PAGINA","PATH_INSTRUCCIONES","RETARDO_RESPUESTA",NULL};
 static t_log *logger;
 static t_config *config;
 t_mem_config *cfg_mem;
@@ -13,6 +14,10 @@ static void config_init(char* path)
     if (!config)
     {
         log_error(logger, "error al cargar el config");
+        exit(1);
+    }
+    if(!config_has_all_properties(config,MEM_PROPERTIES)){
+        log_error(logger, "Finalizo la memoria, le faltan atributos al config");
         exit(1);
     }
 
