@@ -298,7 +298,7 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
 
         memory_destroy_read_ok(ok_msg);
 
-        log_info(logger, "PID: %d - Escribir a Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
+        log_info(logger, "PID: %d - Escribir a Archivo: %s - Tamaño a Escribir: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
 
         send_done();
 
