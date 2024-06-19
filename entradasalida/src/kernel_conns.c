@@ -131,16 +131,17 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_interface_io_dialfs_create_msg *msg = malloc(sizeof(t_interface_io_dialfs_create_msg));
         interface_decode_io_dialfs_create(buffer, msg);
         do_work(1);
-        if(file_already_exists(msg->file_name)){
-            log_warning(logger,"PID %d - No hace nada porque el archivo %s ya fue creado",pid,msg->file_name);
+        if (file_already_exists(msg->file_name))
+        {
+            log_warning(logger, "PID %d - No hace nada porque el archivo %s ya fue creado", pid, msg->file_name);
             send_done();
             interface_destroy_io_dialfs_create(msg);
             break;
         }
 
         create_file(msg->file_name);
-        
-        log_info(logger,"PID: %d - Crear Archivo: %s", pid, msg->file_name);
+
+        log_info(logger, "PID: %d - Crear Archivo: %s", pid, msg->file_name);
 
         send_done();
 
@@ -152,15 +153,16 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_interface_io_dialfs_del_msg *msg = malloc(sizeof(t_interface_io_dialfs_del_msg));
         interface_decode_io_dialfs_del(buffer, msg);
         do_work(1);
-        if(!file_already_exists(msg->file_name)){
+        if (!file_already_exists(msg->file_name))
+        {
             log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
             send_done();
             interface_destroy_io_dialfs_del(msg);
             break;
         }
-        
+
         delete_file(msg->file_name);
-        log_info(logger,"PID: %d - Eliminar Archivo: %s", pid, msg->file_name);
+        log_info(logger, "PID: %d - Eliminar Archivo: %s", pid, msg->file_name);
 
         send_done();
 
@@ -172,37 +174,47 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         do_work(1);
         t_interface_io_dialfs_truncate_msg *msg = malloc(sizeof(t_interface_io_dialfs_truncate_msg));
         interface_decode_io_dialfs_truncate(buffer, msg);
-        if(!file_already_exists(msg->file_name)){
+        if (!file_already_exists(msg->file_name))
+        {
             log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
             send_done();
             interface_destroy_io_dialfs_truncate(msg);
             break;
         }
         
-        uint32_t target_blocks = ceil((double) msg->size/cfg_io->block_size);
+        uint32_t target_blocks = ceil((double)msg->size / cfg_io->block_size);
+        log_debug(logger,"variables: tam recibido %d taget_blocks; %d",msg->size,target_blocks);
+        t_fcb *fcb = get_metadata(msg->file_name);
+        uint32_t current_blocks = ceil((double)fcb->size / cfg_io->block_size) ? ceil((double)fcb->size / cfg_io->block_size) : 1;
+        // if (!current_blocks)
+        //     current_blocks = 1;
 
-        t_fcb* fcb = get_metadata(msg->file_name);    
-        uint32_t current_blocks = ceil((double) fcb->size / cfg_io->block_size);
-        
-        if (target_blocks < current_blocks) {
+        if (target_blocks < current_blocks)
+        {
             uint32_t first_block_to_remove = fcb->first_block + target_blocks;
             free_blocks(first_block_to_remove, current_blocks - target_blocks);
-        } else if(target_blocks > current_blocks) {
+        }
+        else if (target_blocks > current_blocks)
+        {
             uint32_t free_contiguous_blocks = free_contiguous_blocks_from(fcb->first_block + current_blocks);
-            if(target_blocks > free_contiguous_blocks){
-                // compacto
+            log_debug(logger,"free contigous: %d",free_contiguous_blocks);
+            if (target_blocks - current_blocks > free_contiguous_blocks)
+            {
+                log_info(logger, "PID: %d - Inicio Compactacion", pid);
+                compact(msg->file_name, target_blocks);
+                msleep(cfg_io->retraso_compactacion);
+                log_info(logger, "PID: %d - Fin compactacion", pid);
             }
-            occupy_free_blocks(fcb->first_block + current_blocks, target_blocks);
+            else
+            {
+                occupy_free_blocks(fcb->first_block + current_blocks, target_blocks - current_blocks);
+            }
         }
 
         fcb_set_size(msg->file_name, msg->size);
-        
+
         log_info(logger, "PID: %d - Truncar Archivo: %s - Tamaño: %d", pid, msg->file_name, msg->size);
 
-        log_debug(logger, "Bit del bloque 0: %d", test_bit_from_bitmap(0));
-        log_debug(logger, "Bit del bloque 4: %d", test_bit_from_bitmap(4));
-        log_debug(logger, "Bit del bloque 5: %d", test_bit_from_bitmap(5));
-        
         send_done();
 
         free(fcb);
@@ -215,19 +227,20 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_interface_io_dialfs_read_msg *msg = malloc(sizeof(t_interface_io_dialfs_read_msg));
         interface_decode_io_dialfs_read(buffer, msg);
 
-        if(!file_already_exists(msg->file_name)){
+        if (!file_already_exists(msg->file_name))
+        {
             log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
             send_error();
             interface_destroy_io_dialfs_read(msg);
             break;
         }
-        
+
         t_fcb *fcb = get_metadata(msg->file_name);
 
         void *value = read_blocks(fcb->first_block, msg->file_pointer, msg->size);
 
-        log_info(logger,"PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
- 
+        log_info(logger, "PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
+
         memory_send_write(memory_fd, pid, msg->access_list, msg->size, value);
 
         t_packet *res = packet_new(-1);
@@ -242,9 +255,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         {
             log_info(logger, "Error al escribir en memoria");
         }
-        
+
         send_done();
- 
+
         free(value);
         packet_free(res);
         interface_destroy_io_dialfs_read(msg);
@@ -256,49 +269,42 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         do_work(1);
         t_interface_io_dialfs_write_msg *msg = malloc(sizeof(t_interface_io_dialfs_write_msg));
         interface_decode_io_dialfs_write(buffer, msg);
-        
-        if(!file_already_exists(msg->file_name)){
+
+        if (!file_already_exists(msg->file_name))
+        {
             log_warning(logger, "PID %d - El archivo %s no existe", pid, msg->file_name);
             send_error();
             interface_destroy_io_dialfs_write(msg);
             break;
         }
-        
 
         memory_send_read(memory_fd, pid, msg->access_list, msg->size);
 
         t_packet *res = packet_new(-1);
-        
+
         if (packet_recv(memory_fd, res) == -1)
         {
             log_error(logger, "SE JODIO LA MEMORIA");
             packet_free(res);
             break;
         }
-        
+
         t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
         memory_decode_read_ok(res->buffer, ok_msg, msg->size);
 
-        t_fcb* fcb = get_metadata(msg->file_name);    
+        t_fcb *fcb = get_metadata(msg->file_name);
 
         write_blocks(fcb->first_block, msg->file_pointer, ok_msg->value, msg->size);
 
         memory_destroy_read_ok(ok_msg);
-        
-        log_info(logger,"PID: %d - Escribir a Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
-    
+
+        log_info(logger, "PID: %d - Escribir a Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
+
         send_done();
 
         interface_destroy_io_dialfs_write(msg);
         free(fcb);
         packet_free(res);
-        break;
-    }
-    case DESTROY_PROCESS:
-    {
-        char *response = packet_getString(buffer);
-        log_info(logger, "Hi I am IO i received %s", response);
-        free(response);
         break;
     }
     default:

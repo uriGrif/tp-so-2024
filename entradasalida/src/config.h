@@ -14,6 +14,7 @@ typedef struct
     char *path_base_dialfs;
     int block_size;
     int block_count;
+    int retraso_compactacion;
 } t_io_config;
 
 extern t_io_config *cfg_io;

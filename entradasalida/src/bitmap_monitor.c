@@ -7,11 +7,10 @@ static void create_bitmap_file(t_log* logger){
     char* bitmap_name = mount_pathbase("bitmap.dat");
     FILE* f = fopen(bitmap_name,"wb+");
     int block_count_in_bytes = ceil(cfg_io->block_count / 8.0);
-    char* raw_bitmap = calloc(block_count_in_bytes,sizeof(char));
-    fwrite(raw_bitmap, sizeof(char), block_count_in_bytes,f);
+    int fd = fileno(f);
+    ftruncate(fd, block_count_in_bytes);
     fclose(f);
     free(bitmap_name);
-    free(raw_bitmap);
     log_debug(logger,"se ha creado un nuevo archivo de bitmap.dat");
 }
 
@@ -50,9 +49,11 @@ int find_first_free_block() {
 
 uint32_t free_contiguous_blocks_from(int file_end){
     uint32_t count = 0;
-    for(int i=file_end; !bitarray_test_bit(bitarray,i);i++)
+    while(count<(cfg_io->block_count - file_end) && !bitarray_test_bit(bitarray,count + file_end))
         count++;
+
     return count;
+
 }
 
 void occupy_free_blocks(int from, int block_count){

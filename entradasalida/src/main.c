@@ -35,6 +35,7 @@ static void config_init(void)
     cfg_io->path_base_dialfs = config_get_string_value(config, "PATH_BASE_DIALFS");
     cfg_io->block_size = config_get_int_value(config, "BLOCK_SIZE");
     cfg_io->block_count = config_get_int_value(config, "BLOCK_COUNT");
+    cfg_io->retraso_compactacion = config_get_int_value(config,"RETRASO_COMPACTACION");
 }
 
 static void io_init(int argc, char **argv)
