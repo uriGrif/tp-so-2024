@@ -247,7 +247,7 @@ void block_to_exit(t_blocked_queue* queue, t_log *logger)
     t_pcb *pcb = blocked_queue_pop(queue);
     if(!pcb)
         log_error(logger,"blocked queue not found");
-    log_info(logger, "Finaliza el proceso %d - Motivo: Error de interfaz", pcb->context->pid);
+    log_info(logger, "Finaliza el proceso %d - Motivo: Error de interfaz DIALFS", pcb->context->pid);
     move_pcb_to_exit(pcb, logger);
 }
 

@@ -73,3 +73,14 @@ void free_blocks(int from, int block_count){
 bool test_bit_from_bitmap(int bit) {
     return bitarray_test_bit(bitarray, bit);
 }
+
+uint32_t total_free_blocks (void){
+    uint32_t count = 0;
+    for(int i = 0 ; i < cfg_io->block_count; i++){
+        if(!bitarray_test_bit(bitarray,i))
+            count++;
+    }
+
+    return count;
+
+}

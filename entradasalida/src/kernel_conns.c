@@ -181,9 +181,9 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
             interface_destroy_io_dialfs_truncate(msg);
             break;
         }
-        
+
         uint32_t target_blocks = ceil((double)msg->size / cfg_io->block_size);
-        log_debug(logger,"variables: tam recibido %d taget_blocks; %d",msg->size,target_blocks);
+        log_debug(logger, "variables: tam recibido %d taget_blocks; %d", msg->size, target_blocks);
         t_fcb *fcb = get_metadata(msg->file_name);
         uint32_t current_blocks = ceil((double)fcb->size / cfg_io->block_size) ? ceil((double)fcb->size / cfg_io->block_size) : 1;
         // if (!current_blocks)
@@ -196,8 +196,16 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         }
         else if (target_blocks > current_blocks)
         {
+            if ((target_blocks - current_blocks) > total_free_blocks())
+            {
+                log_error(logger, "No hay suficiente espacio disponible en el disco para ampliar el archivo %s", msg->file_name);
+                send_error();
+                free(fcb);
+                interface_destroy_io_dialfs_truncate(msg);
+                break;
+            }
             uint32_t free_contiguous_blocks = free_contiguous_blocks_from(fcb->first_block + current_blocks);
-            log_debug(logger,"free contigous: %d",free_contiguous_blocks);
+            log_debug(logger, "free contigous: %d", free_contiguous_blocks);
             if (target_blocks - current_blocks > free_contiguous_blocks)
             {
                 log_info(logger, "PID: %d - Inicio Compactacion", pid);

@@ -20,6 +20,8 @@ void occupy_free_blocks(int from, int block_count);
 
 void free_blocks(int from, int block_count);
 
+uint32_t total_free_blocks(void);
+
 uint32_t free_contiguous_blocks_from(int file_end);
 
 bool test_bit_from_bitmap(int bit);
