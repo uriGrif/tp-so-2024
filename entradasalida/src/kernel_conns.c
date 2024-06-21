@@ -22,6 +22,11 @@ int registerResourceInKernel(int kernel_fd, t_log *logger, t_io_config *cfg_io)
     return res;
 }
 
+static bool invalid_read_write(t_fcb* fcb, uint32_t size, uint32_t file_pointer){
+    int last_byte_requested = size + file_pointer;
+    return fcb->size < last_byte_requested;
+}
+
 void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer *buffer, void *_args)
 {
     struct kernel_incoming_message_args *args = (struct kernel_incoming_message_args *)_args;
@@ -245,6 +250,11 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
 
         t_fcb *fcb = get_metadata(msg->file_name);
 
+        if(invalid_read_write(fcb,msg->size,msg->file_pointer)){
+            log_error(logger,"PID %d - Lectura invalida en archivo %s",pid,msg->file_name);
+            exit(1);
+        }
+
         void *value = read_blocks(fcb->first_block, msg->file_pointer, msg->size);
 
         log_info(logger, "PID: %d - Leer Archivo: %s - Tamaño a Leer: %d - Puntero Archivo: %d", pid, msg->file_name, msg->size, msg->file_pointer);
@@ -285,6 +295,12 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
             interface_destroy_io_dialfs_write(msg);
             break;
         }
+        t_fcb *fcb = get_metadata(msg->file_name);
+
+        if(invalid_read_write(fcb,msg->size,msg->file_pointer)){
+            log_error(logger,"PID %d - Escritura invalida en archivo %s",pid,msg->file_name);
+            exit(1);
+        }
 
         memory_send_read(memory_fd, pid, msg->access_list, msg->size);
 
@@ -300,7 +316,6 @@ void handleKernelIncomingMessage(uint8_t client_fd, uint8_t operation, t_buffer 
         t_memory_read_ok_msg *ok_msg = malloc(sizeof(t_memory_read_ok_msg));
         memory_decode_read_ok(res->buffer, ok_msg, msg->size);
 
-        t_fcb *fcb = get_metadata(msg->file_name);
 
         write_blocks(fcb->first_block, msg->file_pointer, ok_msg->value, msg->size);
 
