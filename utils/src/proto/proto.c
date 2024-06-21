@@ -117,21 +117,7 @@ char *packet_getString(t_buffer *buffer)
     return result;
 }
 
-int packet_add_string_arr(t_packet *packet, char **string_arr)
-{
-    char *strings = string_arr_as_string(string_arr);
-    packet_addString(packet, strings);
-    free(strings);
-    return 0;
-}
 
-char **packet_get_string_arr(t_buffer *buffer)
-{
-    char *str_as_arr = packet_getString(buffer);
-    char **arr = string_get_string_as_array(str_as_arr);
-    free(str_as_arr);
-    return arr;
-}
 
 int packet_addUInt32(t_packet *packet, uint32_t value)
 {

@@ -102,8 +102,6 @@ void multiprogramming(char *value, t_log *logger)
 
 void list_processes_by_state(char *x, t_log *logger)
 {
-    // TODO
-    // log_info(logger,"voy a listar todos los procesos por estado\n");
     char *pids = generate_string_of_pids(new_queue);
     log_info(logger, "Estado NEW: %s", pids);
     free(pids);
@@ -121,8 +119,6 @@ void list_processes_by_state(char *x, t_log *logger)
     pids = generate_string_of_pids(exit_queue);
     log_info(logger, "Estado EXIT: %s", pids);
     free(pids);
-    // sync_queue_iterate(ready_queue, log_state);
-    // sync_queue_iterate(exec_queue, log_state);
 }
 
 void list_resources(char *x, t_log *logger)

@@ -10,7 +10,7 @@ static void create_blocks(t_log *logger)
     ftruncate(fd, cfg_io->block_count * cfg_io->block_size);
     fclose(f);
     free(blocks_name);
-    log_debug(logger, "se ha creado un nuevo archivo de bloques.dat");
+    log_info(logger, "se ha creado un nuevo archivo de bloques.dat");
 }
 
 void load_blocks(t_log *logger)

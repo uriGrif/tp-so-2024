@@ -30,7 +30,6 @@ static void init_scheduler_sems(void)
 
     sem_init(&sem_paused, 0, 0);
     pthread_mutex_init(&MUTEX_PAUSE, NULL);
-    // me reservo las dos primeras para el corto y largo plazo
 
     pthread_mutex_init(&processes_in_memory_amount_mutex, NULL);
     pthread_mutex_init(&max_multiprogramming_grade_mutex, NULL);
@@ -126,7 +125,7 @@ void handle_short_term_scheduler(void *args_logger)
 {
     t_log *logger = (t_log *)args_logger;
     set_scheduling_algorithm();
-    log_debug(logger, "el algoritmo seleccionado fue: %s", cfg_kernel->algoritmo_planificacion);
+    log_info(logger, "El algoritmo seleccionado fue: %s", cfg_kernel->algoritmo_planificacion);
 
     while (1)
     {
@@ -138,15 +137,6 @@ void handle_short_term_scheduler(void *args_logger)
         queue_sync_pop(exec_queue);
     }
 }
-
-// int move_pcb_to_blocked(t_pcb *pcb, char *resource_name, t_log *logger)
-// {
-//     if(blocked_queue_push(resource_name, pcb) == -1)
-//         return -1;
-//     pcb->state = BLOCKED;
-//     log_info(logger, "PID: %d - Estado Anterior: EXEC - Estado Actual: BLOCKED", pcb->context->pid);
-//     return 0;
-// }
 
 static void inc_processes_in_memory_amount(void)
 {

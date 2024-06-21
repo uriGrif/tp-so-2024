@@ -133,24 +133,9 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    log_info(logger, "connected to server\n");
+    log_info(logger, "connected to server");
+    // inicio hilos planificadores
     init_scheduler_threads();
-
-    // t_pcb* a_process = pcb_create("ejemplo1.txt");
-    // send_create_process(a_process);
-    // sleep(1);
-    // send_context_to_cpu(a_process->context);
-    // log_info(logger,"packet sent");
-
-    // send_interrupt(a_process);
-    // log_info(logger,"packet sent");
-    // log_info(logger, "me llego PID: %d AX: %d", a_process->context->pid, a_process->context->registers.ax);
-
-    // send_context_to_cpu(a_process->context);
-    // wait_for_dispatch_reason(a_process,logger);
-    // pcb_destroy(a_process);
-
-    // inicio hilos de planificadores
 
     // inicio la consola
     start_console(logger);

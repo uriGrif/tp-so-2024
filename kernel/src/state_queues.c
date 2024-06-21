@@ -129,13 +129,13 @@ void print_ready_queue(t_log *logger, bool is_ready_plus)
     if (is_ready_plus)
     {
         char *pids_plus = generate_string_of_pids(ready_plus_queue);
-        log_info(logger, "Cola Ready PLUS: %s", pids_plus); // aca no se que poner donde va cola ???
+        log_info(logger, "Cola Ready PLUS: %s", pids_plus);
         free(pids_plus);
     }
     else
     {
         char *pids = generate_string_of_pids(ready_queue);
-        log_info(logger, "Cola Ready: %s", pids); // aca no se que poner donde va cola ???
+        log_info(logger, "Cola Ready: %s", pids);
         free(pids);
     }
 }

@@ -79,7 +79,7 @@ void tlb_insert(uint32_t pid, uint32_t page, uint32_t frame, t_log *logger)
 
     t_tlb_row *lowest_timestamp = (t_tlb_row *)list_get_minimum(TLB.entries, min_tlb);
 
-    log_debug(logger, "Saque entrada pagina: %d del pid: %d y puse la pagina: %d del pid: %d\n", lowest_timestamp->page, lowest_timestamp->pid, page, pid);
+    log_info(logger, "TLB - Reemplaza PAGINA: %d - PID: %d por PAGINA: %d - PID: %d", lowest_timestamp->page, lowest_timestamp->pid, page, pid);
 
     lowest_timestamp->pid = pid;
     lowest_timestamp->page = page;

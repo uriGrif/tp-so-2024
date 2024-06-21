@@ -16,7 +16,7 @@ void send_mem_handshake(t_log* logger)
     }
     PAGE_SIZE = packet_getUInt32(packet->buffer);
     packet_free(packet);
-    log_debug(logger,"conexion incial con memoria exitosa, tam pagina: %d",PAGE_SIZE);
+    log_info(logger,"conexion incial con memoria exitosa, tam pagina: %d",PAGE_SIZE);
 }
 
 uint32_t access_page_table(uint32_t page_number){

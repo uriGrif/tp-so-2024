@@ -12,9 +12,6 @@ int init_ram(int size){
 }
 
 void write_mem(uint32_t physical_address, void * value, uint32_t size){
-    // este size nunca puede ser mayor que tam_pagina - offset
-    // porque me estaria yendo a otro marco !!!!
-    // physical addres = nro_marco * tam_marco + offset
     pthread_mutex_lock(&MEM_MUTEX);
     memcpy(physical_mem + physical_address,value,size);
     pthread_mutex_unlock(&MEM_MUTEX);
@@ -22,9 +19,6 @@ void write_mem(uint32_t physical_address, void * value, uint32_t size){
 }
 
 void read_mem(uint32_t physical_address, void * value, uint32_t size){
-    // este size nunca puede ser mayor que tam_pagina - offset
-    // porque me estaria yendo a otro marco !!!!
-    // physical addres = nro_marco * tam_marco + offset
     pthread_mutex_lock(&MEM_MUTEX);
     memcpy(value,physical_mem + physical_address,size);
     pthread_mutex_unlock(&MEM_MUTEX);

@@ -332,7 +332,7 @@ void signal_instr(char **args, t_log *logger)
     char *resource_name = args[0];
     send_signal_resource(resource_name);
     wait_for_context(&context);
-    // log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
+    log_debug(logger, "me llego: pid: %d, quantum: %d", context.pid, context.quantum);
 }
 
 void io_gen_sleep(char **args, t_log *logger)

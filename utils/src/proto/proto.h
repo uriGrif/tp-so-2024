@@ -84,12 +84,11 @@ int packet_recv(int fd, t_packet *packet);
 uint32_t packet_getUInt32(t_buffer *buffer);
 uint8_t packet_get_uint8(t_buffer *buffer);
 char *packet_getString(t_buffer *buffer);
-char **packet_get_string_arr(t_buffer *buffer);
+
 
 int packet_addUInt32(t_packet *packet, uint32_t value);
 int packet_add_uint8(t_packet *packet, uint8_t value);
 int packet_addString(t_packet *packet, char *str);
-int packet_add_string_arr(t_packet *packet, char **string_arr);
 
 int packet_add_list(t_packet* packet, t_list* list, void(*element_packer)(t_packet*, void*));
 

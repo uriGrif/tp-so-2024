@@ -11,7 +11,7 @@ static void create_bitmap_file(t_log* logger){
     ftruncate(fd, block_count_in_bytes);
     fclose(f);
     free(bitmap_name);
-    log_debug(logger,"se ha creado un nuevo archivo de bitmap.dat");
+    log_info(logger,"se ha creado un nuevo archivo de bitmap.dat");
 }
 
 void load_bitmap(t_log* logger){

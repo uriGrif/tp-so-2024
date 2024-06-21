@@ -16,12 +16,6 @@
 #define BUFFER_MAX_LENGTH 100
 
 /**
- * @fn    string_arr_as_string
- * @brief convierte un array de strings en un string del tipo "[str1,str2,str3]" SI O SI TIENE QUE TERMINAR EN NULL SI NO ANDA
- */
-char *string_arr_as_string(char **string_arr);
-
-/**
  * @fn    file_get_list_of_lines
  * @brief de un archivo, devuelve una lista con todas las lineas sin el '\n'
  */
