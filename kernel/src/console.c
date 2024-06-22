@@ -125,7 +125,7 @@ void start_console(t_log *logger)
 
 void execute_script(char *file_path, t_log *logger)
 {
-    char* final_path = strdup(SCRIPTS_ABSOLUTE_PATH);
+    char* final_path = strdup(cfg_kernel->pathbase_scripts);
     string_append(&final_path,file_path);
     t_list *commands = file_get_list_of_lines(final_path);
 

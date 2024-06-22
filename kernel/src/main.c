@@ -1,6 +1,6 @@
 #include <main.h>
 
-static char * KERNEL_PROPERTIES[] = {"PUERTO_ESCUCHA","IP_MEMORIA","IP_CPU","PUERTO_CPU_DISPATCH","PUERTO_CPU_INTERRUPT","ALGORITMO_PLANIFICACION","QUANTUM","RECURSOS","INSTANCIAS_RECURSOS","GRADO_MULTIPROGRAMACION",NULL};
+static char * KERNEL_PROPERTIES[] = {"PUERTO_ESCUCHA","IP_MEMORIA","IP_CPU","PUERTO_CPU_DISPATCH","PUERTO_CPU_INTERRUPT","ALGORITMO_PLANIFICACION","QUANTUM","RECURSOS","INSTANCIAS_RECURSOS","GRADO_MULTIPROGRAMACION","PATHBASE_SCRIPTS",NULL};
 static t_log *logger;
 static t_config *config;
 static int server_fd;
@@ -37,6 +37,7 @@ static void config_init(char *path)
     cfg_kernel->recursos = config_get_array_value(config, "RECURSOS");
     cfg_kernel->instancias_recursos = config_get_array_value(config, "INSTANCIAS_RECURSOS");
     cfg_kernel->grado_multiprogramacion = config_get_int_value(config, "GRADO_MULTIPROGRAMACION");
+    cfg_kernel->pathbase_scripts = config_get_string_value(config, "PATHBASE_SCRIPTS");
 }
 
 static void init_kernel(int argc, char **argv)
