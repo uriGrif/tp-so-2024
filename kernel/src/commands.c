@@ -102,23 +102,26 @@ void multiprogramming(char *value, t_log *logger)
 
 void list_processes_by_state(char *x, t_log *logger)
 {
+    char* final_result = string_duplicate(" -- Listado de procesos por estado --\n");
     char *pids = generate_string_of_pids(new_queue);
-    log_info(logger, "Estado NEW: %s", pids);
+    string_append_with_format(&final_result,"Estado NEW: %s\n", pids);
     free(pids);
     pids = generate_string_of_pids(ready_queue);
     char *pids2 = generate_string_of_pids(ready_plus_queue);
-    log_info(logger, "Estado READY: %s READY+ %s", pids, pids2);
+    string_append_with_format(&final_result,"Estado READY: %s READY+ %s\n", pids, pids2);
     free(pids2);
     free(pids);
     pids = generate_string_of_pids(exec_queue);
-    log_info(logger, "Estado EXEC: %s", pids);
+    string_append_with_format(&final_result,"Estado EXEC: %s\n", pids);
     free(pids);
     pids = get_pids_of_blocked_queues();
-    log_info(logger, "Estado BLOCKED: %s", pids);
+    string_append_with_format(&final_result,"Estado BLOCKED: %s\n", pids);
     free(pids);
     pids = generate_string_of_pids(exit_queue);
-    log_info(logger, "Estado EXIT: %s", pids);
+    string_append_with_format(&final_result,"Estado EXIT: %s\n", pids);
+    log_info(logger, "%s", final_result);
     free(pids);
+    free(final_result);
 }
 
 void list_resources(char *x, t_log *logger)

@@ -86,7 +86,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         {
             handle_quantum();
             handle_pause();
-            log_info(logger, "Finaliza el proceso %d- Motivo: INVALID_RESOURCE %s", pcb->context->pid, resource_name);
+            log_info(logger, "Finaliza el proceso %d- Motivo: INVALID_RESOURCE: %s", pcb->context->pid, resource_name);
             move_pcb_to_exit(pcb, logger);
             free(resource_name);
             break;
@@ -126,7 +126,7 @@ int wait_for_dispatch_reason(t_pcb *pcb, t_log *logger)
         if (!q)
         {
             handle_quantum();
-            log_info(logger, "Finaliza el proceso %d- Motivo: INVALID_RESOURCE %s", pcb->context->pid, resource_name);
+            log_info(logger, "Finaliza el proceso %d- Motivo: INVALID_RESOURCE: %s", pcb->context->pid, resource_name);
             move_pcb_to_exit(pcb, logger);
             free(resource_name);
             break;
@@ -313,7 +313,7 @@ t_interface *interface_middleware(t_buffer *buffer, uint8_t instruction_to_run, 
     t_interface *interface = interface_validate(interface_name, instruction_to_run);
     if (!interface)
     {
-        log_info(logger, "Finaliza el proceso %d- Motivo: INVALID_INTERFACE %s ", pcb->context->pid, interface_name);
+        log_info(logger, "Finaliza el proceso %d- Motivo: INVALID_INTERFACE: %s ", pcb->context->pid, interface_name);
         free(interface_name);
         // nunca pase por bloqueado asi que no deberia explotar
         move_pcb_to_exit(pcb, logger);
