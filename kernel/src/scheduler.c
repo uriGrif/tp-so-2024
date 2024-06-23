@@ -293,7 +293,7 @@ bool handle_sigterm(t_pcb *pcb, t_log *logger)
 {
     if (pcb->sigterm)
     {
-        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", pcb->context->pid);
+        log_info(logger, "Finaliza el proceso %d- Motivo: INTERRUPTED_BY_USER", pcb->context->pid);
         move_pcb_to_exit(pcb, logger);
         return true;
     }

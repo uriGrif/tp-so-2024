@@ -46,7 +46,7 @@ void end_process(char *pid_str, t_log *logger)
     {
         sigterm_new++;
         // no sumo grado de multiprogramacion
-        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
+        log_info(logger, "Finaliza el proceso %d- Motivo: INTERRUPTED_BY_USER", victim->context->pid);
         log_info(logger, "PID: %d - Estado Anterior: NEW - Estado Actual EXIT", victim->context->pid);
         queue_sync_push(exit_queue, victim);
     }
@@ -54,7 +54,7 @@ void end_process(char *pid_str, t_log *logger)
     else if ((victim = remove_pcb_by_pid(ready_queue, pid)) || (victim = remove_pcb_by_pid(ready_plus_queue, pid)))
     {
         sem_wait(&scheduler.sem_ready);
-        log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
+        log_info(logger, "Finaliza el proceso %d- Motivo: INTERRUPTED_BY_USER", victim->context->pid);
         move_pcb_to_exit(victim, logger);
     }
     // busco en bloqueados por si las dudas uso el mutex
@@ -62,7 +62,7 @@ void end_process(char *pid_str, t_log *logger)
     {
         if (!victim->sigterm)
         {
-            log_info(logger, "Finaliza el proceso %d- Motivo: ASESINADO POR CONSOLA", victim->context->pid);
+            log_info(logger, "Finaliza el proceso %d- Motivo: INTERRUPTED_BY_USER", victim->context->pid);
             move_pcb_to_exit(victim, logger);
         }
     }
