@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <commons/bitarray.h>
+#include <string.h>
+#include <errno.h>
 #include <math.h>
 #include <commons/log.h>
 #include <utils.h>

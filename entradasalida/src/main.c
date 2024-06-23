@@ -91,7 +91,7 @@ int main(int argc, char *argv[])
     int res = registerResourceInKernel(kernel_fd, logger, cfg_io);
     if (res == -1)
     {
-        log_error(logger, "could not register resource to the kernel, reason: %s\n", strerror(errno));
+        log_error(logger, "could not register resource to the kernel, reason: %s", strerror(errno));
         exit(1);
     }
 

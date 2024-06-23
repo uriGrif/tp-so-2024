@@ -7,7 +7,11 @@ static void create_blocks(t_log *logger)
     char *blocks_name = mount_pathbase("bloques.dat");
     FILE *f = fopen(blocks_name, "wb+");
     int fd = fileno(f);
-    ftruncate(fd, cfg_io->block_count * cfg_io->block_size);
+    if (-1 == ftruncate(fd, cfg_io->block_count * cfg_io->block_size))
+    {
+        log_error(logger, "Error al crear el archivo de bloques.dat: %s", strerror(errno));
+        exit(1);
+    }
     fclose(f);
     free(blocks_name);
     log_info(logger, "se ha creado un nuevo archivo de bloques.dat");
