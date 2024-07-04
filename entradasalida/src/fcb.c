@@ -110,10 +110,11 @@ void compact(char *file_name, int target_blocks)
         fcb_set_first_block(name, blocks_offset); // bloques
         
         uint32_t file_size_in_blocks = ceil((double) file_size_in_bytes / cfg_io->block_size);
+        uint32_t real_size = file_size_in_blocks ? file_size_in_blocks : 1;
         if(strcmp(name,file_name)){
-            occupy_free_blocks(blocks_offset, file_size_in_blocks); //bloques
-            blocks_offset += file_size_in_blocks; //bloques
-            bytes_offset += file_size_in_bytes; //bytes
+            occupy_free_blocks(blocks_offset, real_size); //bloques
+            blocks_offset += real_size; //bloques
+            bytes_offset += real_size; //bytes
 
         } else {
             occupy_free_blocks(blocks_offset, target_blocks); //bloques
