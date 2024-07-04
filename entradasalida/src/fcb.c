@@ -98,7 +98,7 @@ void fcb_set_first_block(char *file_name, int block)
 void compact(char *file_name, int target_blocks)
 {
     uint8_t *blocks_cpy = calloc(cfg_io->block_count * cfg_io->block_size, 1);
-    uint32_t bytes_offset = 0;
+    //uint32_t bytes_offset = 0;
     uint32_t blocks_offset = 0;
     void iterator(char *name, void *elem)
     {
@@ -106,7 +106,7 @@ void compact(char *file_name, int target_blocks)
         int file_size_in_bytes = config_get_int_value(config, METADATA_TAMANIO_ARCHIVO);
         void *file_blocks = read_blocks(config_get_int_value(config, METADATA_BLOQUE_INICIAL), 0, file_size_in_bytes);
 
-        memcpy(blocks_cpy + bytes_offset, file_blocks, file_size_in_bytes); //bytes
+        memcpy(blocks_cpy + blocks_offset * cfg_io->block_size, file_blocks, file_size_in_bytes); //bytes
         fcb_set_first_block(name, blocks_offset); // bloques
         
         uint32_t file_size_in_blocks = ceil((double) file_size_in_bytes / cfg_io->block_size);
@@ -114,12 +114,12 @@ void compact(char *file_name, int target_blocks)
         if(strcmp(name,file_name)){
             occupy_free_blocks(blocks_offset, real_size); //bloques
             blocks_offset += real_size; //bloques
-            bytes_offset += file_size_in_bytes; //bytes
+           // bytes_offset += file_size_in_bytes; //bytes
 
         } else {
             occupy_free_blocks(blocks_offset, target_blocks); //bloques
             blocks_offset += target_blocks; //bloques
-            bytes_offset += target_blocks * cfg_io->block_size; //bytes
+           // bytes_offset += target_blocks * cfg_io->block_size; //bytes
         }
         free(file_blocks);
     }
