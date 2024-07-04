@@ -114,7 +114,7 @@ void compact(char *file_name, int target_blocks)
         if(strcmp(name,file_name)){
             occupy_free_blocks(blocks_offset, real_size); //bloques
             blocks_offset += real_size; //bloques
-            bytes_offset += real_size; //bytes
+            bytes_offset += file_size_in_bytes; //bytes
 
         } else {
             occupy_free_blocks(blocks_offset, target_blocks); //bloques
