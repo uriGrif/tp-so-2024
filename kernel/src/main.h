@@ -23,7 +23,7 @@
 #include <scheduler.h>
 
 
-#define LOG_LEVEL LOG_LEVEL_DEBUG
+#define LOG_LEVEL LOG_LEVEL_INFO
 #define LOG_PATH "kernel.log"
 #define PROCESS_NAME "kernel"
 

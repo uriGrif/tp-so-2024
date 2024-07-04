@@ -19,7 +19,7 @@
 #include <instr_set.h>
 #include <tlb.h>
 
-#define LOG_LEVEL LOG_LEVEL_DEBUG
+#define LOG_LEVEL LOG_LEVEL_INFO
 #define LOG_PATH "cpu.log"
 #define PROCESS_NAME "cpu"
 
