@@ -86,3 +86,23 @@ void tlb_insert(uint32_t pid, uint32_t page, uint32_t frame, t_log *logger)
     lowest_timestamp->frame = frame;
     lowest_timestamp->last_use = current_timestamp();
 }
+
+void cleanup_tlb(uint32_t pid, uint32_t size){
+    uint32_t page_amount =  ceil( (double) size / PAGE_SIZE);
+
+    bool closure(void *elem){
+        t_tlb_row* entry = (t_tlb_row*) elem;
+        return entry->pid == pid && entry->page >= page_amount;
+    }
+
+    list_remove_and_destroy_all_by_condition(TLB.entries,closure,free);
+}
+
+void tlb_dump(t_log* logger){
+    void print_tlb_entry(void* elem){
+        t_tlb_row* entry = (t_tlb_row*) elem;
+        log_debug(logger,"entrada: %d | %d | %d | TUR: %lld",entry->pid,entry->page,entry->frame,entry->last_use);
+    }
+
+    list_iterate(TLB.entries,print_tlb_entry);
+}

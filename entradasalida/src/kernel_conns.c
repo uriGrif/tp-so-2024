@@ -6,7 +6,7 @@ static char *string_from_read_mem_msg(t_memory_read_ok_msg *msg, size_t size)
 {
     char *aux = malloc(size + 1);
     memset(aux, 0x0, size + 1);
-    strncpy(aux, msg->value, size);
+    memcpy(aux, msg->value, size);
     return aux;
 }
 

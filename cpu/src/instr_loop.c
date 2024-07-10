@@ -57,13 +57,13 @@ void execute(void (*instr)(char **args, t_log *logger), char **args, t_log *logg
 void check_interrupt(t_log *logger)
 {
     if (interrupt_flag()) {
-        clear_interrupt();
         send_dispatch_reason(interrupt_reason,&context);
         log_info(logger, "PID: %d - Fue interrumpido", context.pid);
         if(wait_for_context(&context) == -1){
             log_error(logger, "se desconecto el kernel de dispatch");
             exit(1);
         }
+        clear_interrupt();
         log_debug(logger, "me llego: pid: %d, quantum: %d, AX: %u", context.pid, context.quantum,context.registers.ax);
     }
 }

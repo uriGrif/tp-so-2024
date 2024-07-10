@@ -62,7 +62,7 @@ void process_conn(void *void_args)
                     process_remove_last_page_from_table(process);
                 } while (list_size(process->page_table) > target_pages);
                 process->current_size = size;
-                packet->op_code = RESIZE_OK;
+                packet->op_code = R_SHRINK_OK;
                 packet_send(packet, client_fd);
                 break;
             }
@@ -102,7 +102,7 @@ void process_conn(void *void_args)
                 list_add_all(process->page_table, possible_frames);
                 list_destroy(possible_frames);
                 // todo listo, le mando un ok
-                packet->op_code = RESIZE_OK;
+                packet->op_code = R_EXTEND_OK;
                 packet_send(packet, client_fd);
                 process->current_size = size;
                 break;

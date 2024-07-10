@@ -230,6 +230,11 @@ void resize(char **args, t_log *logger)
         wait_for_context(&context);
         clear_interrupt();
     }
+    if(packet->op_code == R_SHRINK_OK){
+        cleanup_tlb(context.pid,size);
+        tlb_dump(logger);
+    }
+
     packet_free(packet);
 }
 
