@@ -59,7 +59,7 @@ void process_conn(void *void_args)
         {
             t_interface_io_done_msg *msg = malloc(sizeof(t_interface_io_done_msg));
             interface_decode_io_done(packet->buffer, msg);
-            log_info(logger, "Interface %s requested by pid %d done", msg->interface_name, msg->pid);
+            log_debug(logger, "Interface %s requested by pid %d done", msg->interface_name, msg->pid);
             handle_pause();
             scheduler.block_to_ready(this_blocked_queue, logger);
 

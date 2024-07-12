@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
         log_error(logger, "err: %s", strerror(errno));
         return 1;
     }
-    log_info(logger, "connected to server\n");
+    log_info(logger, "connected to server");
 
     // send registration to kernel
     int res = registerResourceInKernel(kernel_fd, logger, cfg_io);
