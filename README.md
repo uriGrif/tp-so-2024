@@ -29,7 +29,7 @@ Features:
 
 ## Como ejecutar
 
-# Requerimientos
+### Requerimientos
 - Entorno Unix (preferentemente alguna version de Ubuntu, ya que fue el entorno provisto por la catedra y el utilizado para su desarrollo)
 - Libreria commons utnso - https://github.com/sisoputnfrba/so-commons-library
 
